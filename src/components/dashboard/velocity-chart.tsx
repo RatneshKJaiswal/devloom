@@ -23,7 +23,7 @@ interface VelocityChartProps {
 function CustomTooltip({ active, payload, label }: any) {
   if (active && payload && payload.length) {
     return (
-      <div className="rounded-xl border border-slate-700 bg-slate-950/95 backdrop-blur px-3 py-2 shadow-2xl text-xs">
+      <div className="rounded-xl border border-slate-700 bg-slate-950/95 backdrop-blur px-3 py-2 shadow-2xl text-xs animate-in fade-in zoom-in-95 duration-150">
         <p className="font-semibold text-slate-200">{label}</p>
         <p className="text-emerald-400 font-mono font-medium mt-0.5">
           {payload[0].value} {payload[0].value === 1 ? "task" : "tasks"} completed
@@ -82,7 +82,10 @@ export function VelocityChart({ data }: VelocityChartProps) {
               axisLine={false}
               allowDecimals={false}
             />
-            <Tooltip content={<CustomTooltip />} />
+            <Tooltip
+              cursor={{ stroke: "#10b981", strokeWidth: 1.5, strokeDasharray: "3 3", strokeOpacity: 0.6 }}
+              content={<CustomTooltip />}
+            />
             <Area
               type="monotone"
               dataKey="completedTasks"
@@ -90,7 +93,15 @@ export function VelocityChart({ data }: VelocityChartProps) {
               strokeWidth={2.5}
               fillOpacity={1}
               fill="url(#velocityGradient)"
-              activeDot={{ r: 5, fill: "#10b981", stroke: "#022c22", strokeWidth: 2 }}
+              animationDuration={600}
+              animationEasing="ease-out"
+              activeDot={{
+                r: 6,
+                fill: "#10b981",
+                stroke: "#ffffff",
+                strokeWidth: 2,
+                className: "drop-shadow-[0_0_8px_rgba(16,185,129,0.8)] transition-all",
+              }}
             />
           </AreaChart>
         </ResponsiveContainer>

@@ -27,7 +27,7 @@ function CustomTooltip({ active, payload }: any) {
   if (active && payload && payload.length) {
     const item = payload[0].payload as DueProjectItem;
     return (
-      <div className="rounded-xl border border-slate-700 bg-slate-950/95 backdrop-blur px-3 py-2 shadow-2xl text-xs space-y-1">
+      <div className="rounded-xl border border-slate-700 bg-slate-950/95 backdrop-blur px-3 py-2 shadow-2xl text-xs space-y-1 animate-in fade-in zoom-in-95 duration-150">
         <p className="font-semibold text-slate-200">{item.projectName}</p>
         <div className="space-y-0.5 text-[11px] font-mono">
           <p className="text-red-400">Overdue: {item.overdueCount}</p>
@@ -108,9 +108,12 @@ export function DueTasksByProjectChart({ data }: DueTasksByProjectChartProps) {
               axisLine={false}
               tick={{ fill: "#cbd5e1" }}
             />
-            <Tooltip content={<CustomTooltip />} />
-            <Bar dataKey="overdueCount" name="Overdue" stackId="a" fill="#ef4444" radius={[0, 0, 0, 0]} />
-            <Bar dataKey="dueSoonCount" name="Due Soon" stackId="a" fill="#f59e0b" radius={[0, 4, 4, 0]} />
+            <Tooltip
+              cursor={{ fill: "rgba(255, 255, 255, 0.05)", radius: 6 }}
+              content={<CustomTooltip />}
+            />
+            <Bar dataKey="overdueCount" name="Overdue" stackId="a" fill="#ef4444" radius={[0, 0, 0, 0]} animationDuration={500} animationEasing="ease-out" />
+            <Bar dataKey="dueSoonCount" name="Due Soon" stackId="a" fill="#f59e0b" radius={[0, 4, 4, 0]} animationDuration={500} animationEasing="ease-out" />
           </BarChart>
         </ResponsiveContainer>
       </div>

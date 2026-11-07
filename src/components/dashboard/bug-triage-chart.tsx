@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Bug, AlertTriangle, ShieldCheck } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -32,7 +33,7 @@ function CustomTooltip({ active, payload }: any) {
   if (active && payload && payload.length) {
     const item = payload[0];
     return (
-      <div className="rounded-xl border border-slate-700 bg-slate-950/95 backdrop-blur px-3 py-2 shadow-2xl text-xs">
+      <div className="rounded-xl border border-slate-700 bg-slate-950/95 backdrop-blur px-3 py-2 shadow-2xl text-xs animate-in fade-in zoom-in-95 duration-150">
         <p className="font-semibold text-slate-200">{item.payload.priority} Priority</p>
         <p className="font-mono mt-0.5" style={{ color: item.payload.color }}>
           {item.value} {item.value === 1 ? "defect" : "defects"}
@@ -44,6 +45,7 @@ function CustomTooltip({ active, payload }: any) {
 }
 
 export function BugTriageChart({ data }: BugTriageChartProps) {
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const total = data.total || 0;
   const activeBugs =
     (data.byStatus.open || 0) +
@@ -97,7 +99,16 @@ export function BugTriageChart({ data }: BugTriageChartProps) {
       {/* Priority Severity Bar Chart */}
       <div className="h-28 w-full">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={chartData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
+          <BarChart
+            data={chartData}
+            margin={{ top: 10, right: 10, left: -25, bottom: 0 }}
+            onMouseMove={(state: any) => {
+              if (state?.activeTooltipIndex !== undefined) {
+                setActiveIndex(state.activeTooltipIndex);
+              }
+            }}
+            onMouseLeave={() => setActiveIndex(null)}
+          >
             <XAxis
               dataKey="priority"
               stroke="#64748b"
@@ -112,11 +123,23 @@ export function BugTriageChart({ data }: BugTriageChartProps) {
               axisLine={false}
               allowDecimals={false}
             />
-            <Tooltip content={<CustomTooltip />} />
-            <Bar dataKey="count" radius={[4, 4, 0, 0]}>
-              {chartData.map((entry) => (
-                <Cell key={entry.priority} fill={entry.color} />
-              ))}
+            <Tooltip
+              cursor={{ fill: "rgba(255, 255, 255, 0.06)", radius: 6 }}
+              content={<CustomTooltip />}
+            />
+            <Bar dataKey="count" radius={[5, 5, 0, 0]} animationDuration={500} animationEasing="ease-out">
+              {chartData.map((entry, idx) => {
+                const isHovered = activeIndex === idx;
+                const isAnyHovered = activeIndex !== null;
+                return (
+                  <Cell
+                    key={entry.priority}
+                    fill={entry.color}
+                    opacity={isHovered ? 1 : isAnyHovered ? 0.45 : 0.9}
+                    className="transition-opacity duration-200 cursor-pointer"
+                  />
+                );
+              })}
             </Bar>
           </BarChart>
         </ResponsiveContainer>
