@@ -1,7 +1,7 @@
 import { AgentClient, AgentGenerateOptions, AgentResult } from "./types";
 
 const GEMINI_API_BASE = "https://generativelanguage.googleapis.com/v1beta/models";
-const DEFAULT_MODEL = process.env.GEMINI_MODEL || "gemini-1.5-flash";
+const DEFAULT_MODEL = process.env.GEMINI_MODEL || "gemini-3.5-flash";
 const REQUEST_TIMEOUT_MS = 10000;
 
 export class GeminiAgentClient implements AgentClient {
@@ -61,6 +61,10 @@ export class GeminiAgentClient implements AgentClient {
 
         if (!res.ok) {
           const errBody = await res.text();
+          if (res.status === 404 && this.model !== "gemini-3.5-flash") {
+            this.model = "gemini-3.5-flash";
+            continue; // Fallback to active model
+          }
           if (res.status === 429) {
             return {
               success: false,
