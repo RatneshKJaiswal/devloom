@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import {
   Calendar,
   Flag,
@@ -13,10 +13,15 @@ import {
   Check,
   X,
   GripVertical,
+  ChevronLeft,
+  ChevronRight,
+  CalendarPlus,
+  Plus,
 } from "lucide-react";
 import { TASK_STATUS_CONFIG, PRIORITY_CONFIG } from "@/lib/tokens";
 import type { DependencyWithDetails } from "@/lib/dal/dependencies";
 import { ProjectDependenciesModal } from "./project-dependencies-modal";
+import { QuickCaptureModal } from "@/components/quick-capture-dialog";
 
 export function toDateStr(d: Date | string): string {
   if (typeof d === "string") {
@@ -372,6 +377,67 @@ export function ProjectTimelineView({
     );
   }
 
+  // Scroll and Schedule Management
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
+  const [selectedUnscheduledTaskId, setSelectedUnscheduledTaskId] = useState<string>("");
+  const [scheduleStartDate, setScheduleStartDate] = useState<string>(toDateStr(new Date()));
+  const [scheduleDueDate, setScheduleDueDate] = useState<string>(addDaysToStr(toDateStr(new Date()), 2));
+  const [isQuickCaptureOpen, setIsQuickCaptureOpen] = useState(false);
+
+  const scrollToToday = useCallback(() => {
+    if (scrollContainerRef.current) {
+      const containerWidth = scrollContainerRef.current.clientWidth;
+      scrollContainerRef.current.scrollTo({
+        left: Math.max(0, todayX - containerWidth / 2 + cellWidth / 2),
+        behavior: "smooth",
+      });
+    }
+  }, [todayX, cellWidth]);
+
+  const scrollByOffset = (offset: number) => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollBy({ left: offset, behavior: "smooth" });
+    }
+  };
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      scrollToToday();
+    }, 150);
+    return () => clearTimeout(t);
+  }, [scrollToToday]);
+
+  function openScheduleDialog(taskId?: string) {
+    if (taskId) {
+      setSelectedUnscheduledTaskId(taskId);
+      setScheduleStartDate(toDateStr(new Date()));
+      setScheduleDueDate(addDaysToStr(toDateStr(new Date()), 2));
+      setScheduleModalOpen(true);
+    } else if (unscheduledTasks.length > 0) {
+      setSelectedUnscheduledTaskId(unscheduledTasks[0].id);
+      setScheduleStartDate(toDateStr(new Date()));
+      setScheduleDueDate(addDaysToStr(toDateStr(new Date()), 2));
+      setScheduleModalOpen(true);
+    } else {
+      setIsQuickCaptureOpen(true);
+    }
+  }
+
+  async function handleScheduleConfirm() {
+    if (!selectedUnscheduledTaskId) return;
+    const targetTask = localTasks.find((t) => t.id === selectedUnscheduledTaskId);
+    if (!targetTask) return;
+
+    setScheduleModalOpen(false);
+    await executeReschedule(
+      targetTask.id,
+      scheduleStartDate,
+      scheduleDueDate,
+      targetTask.version || 1
+    );
+  }
+
   // Pointer event handlers for drag / resize
   const handlePointerDown = (
     e: React.PointerEvent,
@@ -506,7 +572,46 @@ export function ProjectTimelineView({
           </span>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Scroll Navigation Controls */}
+          <div className="flex items-center gap-1 p-0.5 rounded-lg border border-slate-800 bg-slate-900">
+            <button
+              type="button"
+              onClick={() => scrollByOffset(-320)}
+              title="Scroll left"
+              className="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-white transition cursor-pointer"
+            >
+              <ChevronLeft className="w-3.5 h-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={scrollToToday}
+              title="Center Today"
+              className="px-2 py-0.5 rounded bg-primary/20 hover:bg-primary/30 text-primary text-[11px] font-medium flex items-center gap-1 transition cursor-pointer"
+            >
+              <Clock className="w-3 h-3" />
+              <span>Today</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollByOffset(320)}
+              title="Scroll right"
+              className="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-white transition cursor-pointer"
+            >
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          {/* Add Unscheduled Task to Gantt */}
+          <button
+            type="button"
+            onClick={() => openScheduleDialog()}
+            className="px-2.5 py-1 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-medium flex items-center gap-1.5 transition shadow-sm cursor-pointer"
+          >
+            <CalendarPlus className="w-3.5 h-3.5" />
+            <span>Add Task to Gantt</span>
+          </button>
+
           {/* Manage Dependencies Trigger */}
           <button
             type="button"
@@ -547,7 +652,7 @@ export function ProjectTimelineView({
 
       {/* Timeline Canvas Container with Horizontal Scroll */}
       <div className="rounded-xl border border-slate-800 bg-slate-950 overflow-hidden">
-        <div className="overflow-x-auto scrollbar-thin">
+        <div ref={scrollContainerRef} className="overflow-x-auto scroll-smooth scrollbar-thin">
           <div style={{ width: `${timelineWidth}px` }} className="relative select-none">
             {/* Header: Date Columns */}
             <div className="flex border-b border-slate-800 bg-slate-900/60 sticky top-0 z-20 h-10">
@@ -930,29 +1035,161 @@ export function ProjectTimelineView({
               <span>Unscheduled Tasks ({unscheduledTasks.length})</span>
             </span>
             <span className="text-[11px] text-slate-500">
-              Tasks without due dates are retained safely
+              Tasks without dates • Click schedule or drag onto timeline
             </span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 pt-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 pt-1">
             {unscheduledTasks.map((t) => (
               <div
                 key={t.id}
-                className="p-2.5 rounded-lg border border-slate-800/80 bg-slate-900/40 flex items-center justify-between gap-2 text-xs"
+                className="p-3 rounded-lg border border-slate-800/80 bg-slate-900/40 hover:border-slate-700 transition flex items-center justify-between gap-3 text-xs group"
               >
-                <span className="text-slate-300 truncate font-medium">{t.title}</span>
-                <span
-                  className={`text-[9px] uppercase font-bold px-1.5 py-0.5 rounded border shrink-0 ${
-                    PRIORITY_CONFIG[t.priority]?.badgeClass || "border-slate-700 text-slate-400"
-                  }`}
-                >
-                  {t.priority}
-                </span>
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="text-slate-200 truncate font-medium">{t.title}</span>
+                  <span
+                    className={`text-[9px] uppercase font-bold px-1.5 py-0.5 rounded border shrink-0 ${
+                      PRIORITY_CONFIG[t.priority]?.badgeClass || "border-slate-700 text-slate-400"
+                    }`}
+                  >
+                    {t.priority}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      executeReschedule(
+                        t.id,
+                        toDateStr(new Date()),
+                        toDateStr(new Date()),
+                        t.version || 1
+                      )
+                    }
+                    title="Schedule for Today"
+                    className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-medium transition cursor-pointer"
+                  >
+                    Today
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => openScheduleDialog(t.id)}
+                    className="px-2 py-0.5 rounded bg-primary/20 hover:bg-primary/30 text-primary border border-primary/40 text-[11px] font-medium flex items-center gap-1 transition cursor-pointer"
+                  >
+                    <CalendarPlus className="w-3 h-3" />
+                    <span>Schedule</span>
+                  </button>
+                </div>
               </div>
             ))}
           </div>
         </div>
       )}
+
+      {/* Schedule Unscheduled Task Modal */}
+      {scheduleModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900 p-6 space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+                <CalendarPlus className="w-4 h-4 text-primary" />
+                <span>Add Task to Gantt Chart</span>
+              </h3>
+              <button
+                type="button"
+                onClick={() => setScheduleModalOpen(false)}
+                className="text-slate-400 hover:text-white transition cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="block text-slate-300 font-medium mb-1">
+                  Select Unscheduled Task
+                </label>
+                <select
+                  value={selectedUnscheduledTaskId}
+                  onChange={(e) => setSelectedUnscheduledTaskId(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg border border-slate-700 bg-slate-950 text-white focus:outline-none focus:border-primary"
+                >
+                  {unscheduledTasks.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.title} ({t.priority})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-300 font-medium mb-1">Start Date</label>
+                  <input
+                    type="date"
+                    value={scheduleStartDate}
+                    onChange={(e) => setScheduleStartDate(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-700 bg-slate-950 text-white focus:outline-none focus:border-primary"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-300 font-medium mb-1">Due Date</label>
+                  <input
+                    type="date"
+                    value={scheduleDueDate}
+                    onChange={(e) => setScheduleDueDate(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-700 bg-slate-950 text-white focus:outline-none focus:border-primary"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between pt-2 border-t border-slate-800">
+              <button
+                type="button"
+                onClick={() => {
+                  setScheduleModalOpen(false);
+                  setIsQuickCaptureOpen(true);
+                }}
+                className="text-primary hover:underline text-xs font-medium flex items-center gap-1 cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Create New Task</span>
+              </button>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setScheduleModalOpen(false)}
+                  className="px-3 py-1.5 rounded-lg border border-slate-700 hover:bg-slate-800 text-slate-300 text-xs transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleScheduleConfirm}
+                  className="px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-medium shadow-md shadow-primary/20 transition cursor-pointer"
+                >
+                  Place on Gantt
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Quick Capture Dialog for creating new task in this project */}
+      <QuickCaptureModal
+        isOpen={isQuickCaptureOpen}
+        onClose={() => setIsQuickCaptureOpen(false)}
+        defaultProjectId={project.id}
+        defaultTab="task"
+        lockTab={true}
+        onSuccess={() => {
+          if (onRefresh) onRefresh();
+        }}
+      />
 
       {/* Dependencies Modal */}
       <ProjectDependenciesModal
