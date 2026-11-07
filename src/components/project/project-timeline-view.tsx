@@ -19,6 +19,10 @@ import {
   Plus,
   FolderKanban,
   Sparkles,
+  Maximize2,
+  Minimize2,
+  ZoomIn,
+  ZoomOut,
 } from "lucide-react";
 import { TASK_STATUS_CONFIG, PRIORITY_CONFIG } from "@/lib/tokens";
 import type { DependencyWithDetails } from "@/lib/dal/dependencies";
@@ -101,6 +105,8 @@ export function ProjectTimelineView({
   onRefresh,
 }: ProjectTimelineProps) {
   const [resolution, setResolution] = useState<"day" | "week">("day");
+  const [zoomScale, setZoomScale] = useState<number>(1);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [isDepModalOpen, setIsDepModalOpen] = useState(false);
 
   // Local optimistic task state
@@ -274,7 +280,8 @@ export function ProjectTimelineView({
     };
   }, [project, milestones, scheduledTasks, resolution]);
 
-  const cellWidth = resolution === "day" ? 38 : 16;
+  const baseCellWidth = resolution === "day" ? 40 : 18;
+  const cellWidth = Math.round(baseCellWidth * zoomScale);
   const timelineWidth = totalDays * cellWidth;
 
   // Month-Year groups for the sticky header
@@ -432,6 +439,14 @@ export function ProjectTimelineView({
   const [scheduleStartDate, setScheduleStartDate] = useState<string>(toDateStr(new Date()));
   const [scheduleDueDate, setScheduleDueDate] = useState<string>(addDaysToStr(toDateStr(new Date()), 2));
   const [isQuickCaptureOpen, setIsQuickCaptureOpen] = useState(false);
+
+  const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
+    if (scrollContainerRef.current) {
+      if (Math.abs(e.deltaY) > Math.abs(e.deltaX) && !e.shiftKey) {
+        scrollContainerRef.current.scrollLeft += e.deltaY * 0.75;
+      }
+    }
+  };
 
   const scrollToToday = useCallback(() => {
     if (scrollContainerRef.current) {
@@ -606,9 +621,15 @@ export function ProjectTimelineView({
   };
 
   return (
-    <div className="space-y-4 relative">
+    <div
+      className={
+        isExpanded
+          ? "fixed inset-0 z-50 bg-[#121316] p-4 sm:p-6 flex flex-col h-screen w-screen overflow-hidden space-y-4 shadow-2xl animate-in fade-in duration-200"
+          : "space-y-4 relative"
+      }
+    >
       {/* Timeline Controls Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl border border-slate-800 bg-[#1a1b1f] shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl border border-slate-800 bg-[#1a1b1f] shadow-sm shrink-0">
         <div className="flex items-center gap-2.5 flex-wrap">
           <div className="p-1.5 rounded-lg bg-primary-subtle text-primary border border-primary/25">
             <Calendar className="w-4 h-4" />
@@ -630,6 +651,31 @@ export function ProjectTimelineView({
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          {/* Zoom In / Zoom Out Controls */}
+          <div className="flex items-center gap-0.5 p-0.5 rounded-xl border border-slate-800 bg-[#121316]">
+            <button
+              type="button"
+              onClick={() => setZoomScale((prev) => Math.max(0.75, Number((prev - 0.25).toFixed(2))))}
+              title="Zoom out timeline"
+              disabled={zoomScale <= 0.75}
+              className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition cursor-pointer disabled:opacity-40"
+            >
+              <ZoomOut className="w-3.5 h-3.5" />
+            </button>
+            <span className="text-[10px] font-mono px-1 text-slate-400 select-none">
+              {Math.round(zoomScale * 100)}%
+            </span>
+            <button
+              type="button"
+              onClick={() => setZoomScale((prev) => Math.min(1.5, Number((prev + 0.25).toFixed(2))))}
+              title="Zoom in timeline"
+              disabled={zoomScale >= 1.5}
+              className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition cursor-pointer disabled:opacity-40"
+            >
+              <ZoomIn className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
           {/* Scroll Navigation Controls */}
           <div className="flex items-center gap-0.5 p-0.5 rounded-xl border border-slate-800 bg-[#121316]">
             <button
@@ -704,12 +750,27 @@ export function ProjectTimelineView({
               Week
             </button>
           </div>
+
+          {/* Expand / Fullscreen Toggle */}
+          <button
+            type="button"
+            onClick={() => setIsExpanded(!isExpanded)}
+            title={isExpanded ? "Exit Fullscreen" : "Expand Gantt to Fullscreen"}
+            className="px-2.5 py-1.5 rounded-xl border border-slate-700 bg-slate-850 hover:bg-slate-800 text-slate-300 hover:text-white text-xs font-medium flex items-center gap-1.5 transition cursor-pointer shadow-sm"
+          >
+            {isExpanded ? <Minimize2 className="w-3.5 h-3.5 text-primary" /> : <Maximize2 className="w-3.5 h-3.5 text-primary" />}
+            <span className="hidden md:inline">{isExpanded ? "Collapse" : "Expand"}</span>
+          </button>
         </div>
       </div>
 
       {/* Timeline Canvas Container with Horizontal Scroll */}
-      <div className="rounded-2xl border border-slate-800 bg-[#121316] overflow-hidden shadow-md">
-        <div ref={scrollContainerRef} className="overflow-x-auto scroll-smooth scrollbar-thin">
+      <div className={`rounded-2xl border border-slate-800 bg-[#121316] overflow-hidden shadow-md ${isExpanded ? "flex-1 min-h-0 flex flex-col" : ""}`}>
+        <div
+          ref={scrollContainerRef}
+          onWheel={handleWheel}
+          className={`overflow-x-auto scroll-smooth scrollbar-thin ${isExpanded ? "flex-1 overflow-y-auto" : ""}`}
+        >
           <div style={{ width: `${timelineWidth}px` }} className="relative select-none">
             {/* Header: Row 1 - Month / Year Bands */}
             <div className="flex border-b border-slate-800 bg-[#1a1b1f] sticky top-0 z-30 h-7 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
