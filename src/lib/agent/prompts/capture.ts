@@ -5,6 +5,7 @@ export const smartCaptureOutputSchema = z.object({
   title: z.string().min(1).max(120),
   description: z.string().default(""),
   priority: z.enum(["low", "medium", "high", "urgent"]).default("medium"),
+  dueDate: z.string().optional().nullable(),
   suggestedProjectName: z.string().optional().nullable(),
   tags: z.array(z.string()).max(5).default([]),
   bugDetails: z
@@ -38,6 +39,10 @@ export const smartCaptureJsonSchema = {
       type: "STRING",
       enum: ["low", "medium", "high", "urgent"],
       description: "Appropriate priority based on defect severity or urgency",
+    },
+    dueDate: {
+      type: "STRING",
+      description: "Estimated due date in YYYY-MM-DD format if mentioned in input (e.g. 'by tomorrow', 'by Friday', '2026-11-15'), else null",
     },
     suggestedProjectName: {
       type: "STRING",

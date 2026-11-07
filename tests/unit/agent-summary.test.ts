@@ -44,4 +44,26 @@ describe("Agent Summaries & Daily Planner", () => {
     const parsed = summaryOutputSchema.safeParse(validPlanOutput);
     expect(parsed.success).toBe(true);
   });
+
+  it("should auto-heal output when mode or markdownSummary are missing", () => {
+    // Model returns raw daily plan without mode or markdownSummary
+    const rawOutput = {
+      headline: "Today's Priorities",
+      focusItems: [
+        {
+          title: "Fix auth token expiry",
+          priority: "urgent",
+          rationale: "Prevents logouts",
+        },
+      ],
+    };
+
+    const parsed = summaryOutputSchema.safeParse(rawOutput);
+    expect(parsed.success).toBe(true);
+    if (parsed.success) {
+      expect(parsed.data.mode).toBe("daily_plan");
+      expect(parsed.data.markdownSummary).toContain("Today's Priorities");
+      expect(parsed.data.dailyPlan?.headline).toBe("Today's Priorities");
+    }
+  });
 });
