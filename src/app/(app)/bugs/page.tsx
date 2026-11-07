@@ -476,11 +476,13 @@ export default function BugsPage() {
         </div>
       )}
 
-      {/* Quick Capture Dialog */}
+      {/* Quick Capture Dialog (Locked to Bug Mode on Bug Page) */}
       <QuickCaptureModal
         isOpen={isCreateOpen}
         onClose={() => setIsCreateOpen(false)}
         defaultProjectId={projectFilter !== "all" ? projectFilter : null}
+        defaultTab="bug"
+        lockTab={true}
         onSuccess={loadBugs}
       />
 

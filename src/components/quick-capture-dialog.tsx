@@ -9,6 +9,8 @@ interface QuickCaptureModalProps {
   onClose: () => void;
   onSuccess?: () => void;
   defaultProjectId?: string | null;
+  defaultTab?: "task" | "bug" | "learning";
+  lockTab?: boolean;
 }
 
 export function QuickCaptureModal({
@@ -16,8 +18,10 @@ export function QuickCaptureModal({
   onClose,
   onSuccess,
   defaultProjectId = null,
+  defaultTab = "task",
+  lockTab = false,
 }: QuickCaptureModalProps) {
-  const [activeTab, setActiveTab] = useState<"task" | "bug" | "learning">("task");
+  const [activeTab, setActiveTab] = useState<"task" | "bug" | "learning">(defaultTab);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [priority, setPriority] = useState<"low" | "medium" | "high" | "urgent">("medium");
@@ -42,6 +46,12 @@ export function QuickCaptureModal({
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (isOpen && defaultTab) {
+      setActiveTab(defaultTab);
+    }
+  }, [isOpen, defaultTab]);
 
   useEffect(() => {
     if (isOpen) {
@@ -178,45 +188,77 @@ export function QuickCaptureModal({
           <X className="w-5 h-5" />
         </button>
 
-        {/* Tab switcher */}
-        <div className="flex gap-2 p-1 rounded-xl bg-slate-950 border border-slate-800 mb-6 max-w-sm">
-          <button
-            type="button"
-            onClick={() => setActiveTab("task")}
-            className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 transition cursor-pointer ${
-              activeTab === "task"
-                ? "bg-primary text-white shadow-sm shadow-primary/20"
-                : "text-slate-400 hover:text-slate-200"
-            }`}
-          >
-            <CheckSquare className="w-3.5 h-3.5" />
-            <span>Task</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab("bug")}
-            className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 transition cursor-pointer ${
+        {/* Tab switcher or locked single-mode header */}
+        {!lockTab ? (
+          <div className="flex gap-2 p-1 rounded-xl bg-slate-950 border border-slate-800 mb-6 max-w-sm">
+            <button
+              type="button"
+              onClick={() => setActiveTab("task")}
+              className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 transition cursor-pointer ${
+                activeTab === "task"
+                  ? "bg-primary text-white shadow-sm shadow-primary/20"
+                  : "text-slate-400 hover:text-slate-200"
+              }`}
+            >
+              <CheckSquare className="w-3.5 h-3.5" />
+              <span>Task</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("bug")}
+              className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 transition cursor-pointer ${
+                activeTab === "bug"
+                  ? "bg-amber-500 text-slate-950 font-semibold shadow-sm shadow-amber-500/20"
+                  : "text-slate-400 hover:text-slate-200"
+              }`}
+            >
+              <Bug className="w-3.5 h-3.5" />
+              <span>Bug</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("learning")}
+              className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 transition cursor-pointer ${
+                activeTab === "learning"
+                  ? "bg-success text-white shadow-sm shadow-success/20"
+                  : "text-slate-400 hover:text-slate-200"
+              }`}
+            >
+              <Brain className="w-3.5 h-3.5" />
+              <span>Learning</span>
+            </button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-3 mb-6 pb-3 border-b border-slate-800">
+            <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${
               activeTab === "bug"
-                ? "bg-warning text-slate-950 font-semibold shadow-sm shadow-warning/20"
-                : "text-slate-400 hover:text-slate-200"
-            }`}
-          >
-            <Bug className="w-3.5 h-3.5" />
-            <span>Bug</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab("learning")}
-            className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 transition cursor-pointer ${
-              activeTab === "learning"
-                ? "bg-success text-white shadow-sm shadow-success/20"
-                : "text-slate-400 hover:text-slate-200"
-            }`}
-          >
-            <Brain className="w-3.5 h-3.5" />
-            <span>Learning</span>
-          </button>
-        </div>
+                ? "bg-amber-500/10 border border-amber-500/20 text-amber-400"
+                : activeTab === "learning"
+                ? "bg-success-subtle border border-success/20 text-success"
+                : "bg-primary-subtle border border-primary/20 text-primary"
+            }`}>
+              {activeTab === "bug" ? (
+                <Bug className="w-4 h-4" />
+              ) : activeTab === "learning" ? (
+                <Brain className="w-4 h-4" />
+              ) : (
+                <CheckSquare className="w-4 h-4" />
+              )}
+            </div>
+            <div>
+              <h2 className="text-base font-semibold text-white">
+                {activeTab === "bug" ? "Report New Bug" : activeTab === "learning" ? "Record Learning" : "Create New Task"}
+              </h2>
+              <p className="text-xs text-slate-400">
+                {activeTab === "bug"
+                  ? "Log defect details, priority, target resolution, and stack traces."
+                  : activeTab === "learning"
+                  ? "Document insights, technical gotchas, and architectural takeaways."
+                  : "Track tasks, estimated dates, and development phases."}
+              </p>
+            </div>
+          </div>
+        )}
 
         {error && (
           <div className="mb-4 p-3 rounded-lg bg-red-950/40 border border-red-500/30 text-xs text-red-400">
@@ -309,7 +351,8 @@ export function QuickCaptureModal({
             )}
           </div>
 
-          {activeTab !== "learning" && (
+          {/* Dates */}
+          {activeTab === "task" && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-medium text-slate-300 mb-1 flex items-center gap-1">
@@ -336,6 +379,21 @@ export function QuickCaptureModal({
                   className="w-full px-3 py-2 rounded-xl border border-slate-700 bg-slate-950 text-xs text-white focus:outline-none focus:border-primary cursor-pointer"
                 />
               </div>
+            </div>
+          )}
+
+          {activeTab === "bug" && (
+            <div>
+              <label className="block text-xs font-medium text-slate-300 mb-1 flex items-center gap-1">
+                <Calendar className="w-3.5 h-3.5 text-amber-400" />
+                <span>Due Date (Target Resolution)</span>
+              </label>
+              <input
+                type="date"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+                className="w-full px-3 py-2 rounded-xl border border-slate-700 bg-slate-950 text-xs text-white focus:outline-none focus:border-amber-500 cursor-pointer"
+              />
             </div>
           )}
 
@@ -379,10 +437,22 @@ export function QuickCaptureModal({
             <button
               type="submit"
               disabled={loading}
-              className="px-5 py-2 rounded-xl bg-primary hover:bg-primary-hover disabled:opacity-50 text-white text-xs font-medium flex items-center gap-1.5 shadow-md shadow-primary/20 transition cursor-pointer"
+              className={`px-5 py-2 rounded-xl disabled:opacity-50 text-white text-xs font-medium flex items-center gap-1.5 shadow-md transition cursor-pointer ${
+                activeTab === "bug"
+                  ? "bg-amber-600 hover:bg-amber-500 shadow-amber-600/20"
+                  : activeTab === "learning"
+                  ? "bg-success hover:bg-success-hover shadow-success/20"
+                  : "bg-primary hover:bg-primary-hover shadow-primary/20"
+              }`}
             >
               {loading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-              <span>Create {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}</span>
+              <span>
+                {activeTab === "bug"
+                  ? "Create Bug Report"
+                  : activeTab === "learning"
+                  ? "Save Learning"
+                  : "Create Task"}
+              </span>
             </button>
           </div>
         </form>

@@ -7,7 +7,6 @@ import { useRouter, usePathname } from "next/navigation";
 import {
   Plus,
   Search,
-  Sparkles,
   Menu,
   X,
   LayoutDashboard,
@@ -17,6 +16,7 @@ import {
   FolderKanban,
   Settings,
 } from "lucide-react";
+import { AIIcon } from "@/components/icons/ai";
 import clsx from "clsx";
 import { QuickCaptureModal } from "@/components/quick-capture-dialog";
 import { SmartCaptureModal } from "@/components/smart-capture-dialog";
@@ -107,7 +107,7 @@ export function HeaderActions({ userProfile }: HeaderActionsProps) {
           onClick={() => setIsSmartCaptureOpen(true)}
           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary hover:bg-primary-hover text-white text-xs font-medium shadow-sm shadow-primary/20 transition cursor-pointer"
         >
-          <Sparkles className="w-3.5 h-3.5 text-white" />
+          <AIIcon className="w-3.5 h-3.5 text-white" />
           <span className="hidden sm:inline">Smart Capture</span>
         </button>
 
@@ -118,7 +118,7 @@ export function HeaderActions({ userProfile }: HeaderActionsProps) {
           className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-slate-800 bg-slate-900/80 hover:bg-slate-800 text-slate-300 text-xs font-medium transition cursor-pointer"
         >
           <Plus className="w-3.5 h-3.5" />
-          <span className="hidden md:inline">Add</span>
+          <span className="hidden md:inline">{pathname?.startsWith("/bugs") ? "Add Bug" : "Add"}</span>
         </button>
 
         {userProfile}
@@ -177,8 +177,8 @@ export function HeaderActions({ userProfile }: HeaderActionsProps) {
             {/* AI Status */}
             <div className="p-4 m-3 rounded-2xl border border-slate-800 bg-slate-900/50 shrink-0">
               <div className="flex items-center gap-2 text-xs font-medium text-slate-300">
-                <Sparkles className="w-3.5 h-3.5 text-primary" />
-                <span>Gemini Agent</span>
+                <AIIcon className="w-3.5 h-3.5 text-primary" />
+                <span>AI Assistant</span>
               </div>
               <p className="mt-1 text-[11px] text-slate-400">
                 Capture stack traces or notes with smart auto-tagging.
@@ -192,6 +192,8 @@ export function HeaderActions({ userProfile }: HeaderActionsProps) {
       <QuickCaptureModal
         isOpen={isQuickCaptureOpen}
         onClose={() => setIsQuickCaptureOpen(false)}
+        defaultTab={pathname?.startsWith("/bugs") ? "bug" : undefined}
+        lockTab={pathname?.startsWith("/bugs")}
         onSuccess={() => router.refresh()}
       />
 
