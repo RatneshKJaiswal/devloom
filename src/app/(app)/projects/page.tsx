@@ -125,7 +125,7 @@ export default function ProjectsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
-            <FolderKanban className="w-6 h-6 text-indigo-400" />
+            <FolderKanban className="w-6 h-6 text-primary" />
             <span>Projects & Repositories</span>
           </h1>
           <p className="mt-1 text-sm text-slate-400">
@@ -148,7 +148,7 @@ export default function ProjectsPage() {
           <button
             type="button"
             onClick={() => setIsModalOpen(true)}
-            className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium flex items-center gap-1.5 shadow-md shadow-indigo-600/20 transition cursor-pointer"
+            className="px-4 py-2 rounded-xl bg-primary hover:bg-primary-hover text-white text-xs font-medium flex items-center gap-1.5 shadow-md shadow-primary/20 transition cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>New Project</span>
@@ -159,7 +159,7 @@ export default function ProjectsPage() {
       {/* Projects Grid */}
       {loading ? (
         <div className="p-16 flex items-center justify-center">
-          <Loader2 className="w-6 h-6 text-indigo-400 animate-spin" />
+          <Loader2 className="w-6 h-6 text-primary animate-spin" />
         </div>
       ) : projects.length === 0 ? (
         <div className="p-16 text-center border border-dashed border-slate-800 rounded-2xl bg-slate-900/20">
@@ -171,7 +171,7 @@ export default function ProjectsPage() {
           <button
             type="button"
             onClick={() => setIsGitHubImportOpen(true)}
-            className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium inline-flex items-center gap-2 transition cursor-pointer"
+            className="px-4 py-2 rounded-xl bg-primary hover:bg-primary-hover text-white text-xs font-medium inline-flex items-center gap-2 transition cursor-pointer"
           >
             <GithubIcon className="w-4 h-4" />
             <span>Connect GitHub Repos</span>
@@ -191,7 +191,7 @@ export default function ProjectsPage() {
                 onClick={() => loadProjectDetails(p.id)}
                 className={`p-5 rounded-2xl border transition flex flex-col justify-between gap-4 cursor-pointer text-left ${
                   isSelected
-                    ? "border-indigo-500/80 bg-slate-900 shadow-lg shadow-indigo-500/10"
+                    ? "border-primary/80 bg-slate-900 shadow-lg shadow-primary/10"
                     : "border-slate-800 bg-slate-900/50 hover:border-slate-700/80 hover:bg-slate-900/70"
                 }`}
               >
@@ -240,7 +240,7 @@ export default function ProjectsPage() {
                 <div className="pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs">
                   <div className="flex items-center gap-3 text-slate-400">
                     <span className="flex items-center gap-1" title="Active Tasks">
-                      <CheckSquare className="w-3.5 h-3.5 text-indigo-400" />
+                      <CheckSquare className="w-3.5 h-3.5 text-primary" />
                       <span>{taskCount}</span>
                     </span>
                     <span className="flex items-center gap-1" title="Open Bugs">
@@ -253,7 +253,7 @@ export default function ProjectsPage() {
                     </span>
                   </div>
 
-                  <span className="text-[11px] text-indigo-400 flex items-center gap-0.5">
+                  <span className="text-[11px] text-primary flex items-center gap-0.5">
                     <span>Inspect</span>
                     <ArrowRight className="w-3 h-3" />
                   </span>
@@ -266,12 +266,12 @@ export default function ProjectsPage() {
 
       {/* Selected Project Deep-Dive Workspace */}
       {selectedProjectId && (
-        <div className="p-6 rounded-2xl border border-indigo-500/30 bg-slate-900/90 shadow-2xl space-y-6">
+        <div className="p-6 rounded-2xl border border-primary/30 bg-slate-900/90 shadow-2xl space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
             <div className="flex items-center gap-3">
               <span
                 className="w-3.5 h-3.5 rounded-full"
-                style={{ backgroundColor: projectDetails?.project?.color || "#6366F1" }}
+                style={{ backgroundColor: projectDetails?.project?.color || "#4285F4" }}
               />
               <div>
                 <h2 className="text-xl font-bold text-white">
@@ -287,7 +287,7 @@ export default function ProjectsPage() {
               <button
                 type="button"
                 onClick={() => setIsQuickCaptureOpen(true)}
-                className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium flex items-center gap-1.5 transition cursor-pointer"
+                className="px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-medium flex items-center gap-1.5 transition cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>Add Item to this Project</span>
@@ -308,7 +308,7 @@ export default function ProjectsPage() {
 
           {loadingDetails ? (
             <div className="p-12 flex items-center justify-center">
-              <Loader2 className="w-6 h-6 text-indigo-400 animate-spin" />
+              <Loader2 className="w-6 h-6 text-primary animate-spin" />
             </div>
           ) : (
             <div className="space-y-6">
@@ -415,7 +415,7 @@ export default function ProjectsPage() {
                           <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-slate-800 text-slate-300">
                             {task.priority}
                           </span>
-                          <span className="text-[10px] uppercase px-1.5 py-0.5 rounded bg-indigo-950/40 text-indigo-300 border border-indigo-500/20">
+                          <span className="text-[10px] uppercase px-1.5 py-0.5 rounded bg-primary-subtle text-primary border border-primary/20">
                             {task.status}
                           </span>
                         </div>
@@ -516,7 +516,7 @@ export default function ProjectsPage() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. backend-service"
-                  className="w-full px-3.5 py-2 rounded-xl border border-slate-700 bg-slate-950 text-sm text-white placeholder:text-slate-400 focus:outline-none focus:border-indigo-500"
+                  className="w-full px-3.5 py-2 rounded-xl border border-slate-700 bg-slate-950 text-sm text-white placeholder:text-slate-400 focus:outline-none focus:border-primary"
                 />
               </div>
 
@@ -529,7 +529,7 @@ export default function ProjectsPage() {
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Optional brief description"
-                  className="w-full px-3.5 py-2 rounded-xl border border-slate-700 bg-slate-950 text-sm text-white placeholder:text-slate-400 focus:outline-none focus:border-indigo-500"
+                  className="w-full px-3.5 py-2 rounded-xl border border-slate-700 bg-slate-950 text-sm text-white placeholder:text-slate-400 focus:outline-none focus:border-primary"
                 />
               </div>
 
@@ -552,14 +552,14 @@ export default function ProjectsPage() {
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 rounded-xl border border-slate-700 hover:bg-slate-800 text-slate-300 text-xs font-medium transition"
+                  className="px-4 py-2 rounded-xl border border-slate-700 hover:bg-slate-800 text-slate-300 text-xs font-medium transition cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={creating}
-                  className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-medium flex items-center gap-1.5 shadow-md shadow-indigo-600/20 transition cursor-pointer"
+                  className="px-5 py-2 rounded-xl bg-primary hover:bg-primary-hover disabled:opacity-50 text-white text-xs font-medium flex items-center gap-1.5 shadow-md shadow-primary/20 transition cursor-pointer"
                 >
                   {creating && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                   <span>Create Project</span>

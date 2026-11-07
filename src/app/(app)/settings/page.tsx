@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Download, Trash2, ShieldCheck, AlertTriangle, Loader2 } from "lucide-react";
 
 export default function SettingsPage() {
+  const router = useRouter();
   const [exporting, setExporting] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -41,7 +43,7 @@ export default function SettingsPage() {
     try {
       const res = await fetch("/api/account", { method: "DELETE" });
       if (res.ok) {
-        window.location.href = "/";
+        router.push("/");
       } else {
         alert("Failed to delete account. Please try again.");
       }
@@ -64,7 +66,7 @@ export default function SettingsPage() {
 
       {/* LLM & Privacy Disclosure */}
       <div className="p-6 rounded-2xl border border-slate-800 bg-slate-900/40 space-y-3">
-        <div className="flex items-center gap-2 text-indigo-400">
+        <div className="flex items-center gap-2 text-primary">
           <ShieldCheck className="w-5 h-5" />
           <h2 className="text-base font-semibold text-white">AI Agent & LLM Privacy</h2>
         </div>
@@ -92,9 +94,9 @@ export default function SettingsPage() {
             className="px-4 py-2.5 rounded-xl border border-slate-700 bg-slate-800 hover:bg-slate-700 text-white text-xs font-medium flex items-center gap-2 transition cursor-pointer"
           >
             {exporting ? (
-              <Loader2 className="w-4 h-4 animate-spin text-indigo-400" />
+              <Loader2 className="w-4 h-4 animate-spin text-primary" />
             ) : (
-              <Download className="w-4 h-4 text-indigo-400" />
+              <Download className="w-4 h-4 text-primary" />
             )}
             <span>Export Complete Dataset (JSON)</span>
           </button>

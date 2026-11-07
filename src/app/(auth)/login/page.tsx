@@ -7,7 +7,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center p-4 bg-[#090d16]">
       <div className="w-full max-w-md p-8 rounded-2xl border border-slate-800 bg-slate-900/70 shadow-2xl backdrop-blur">
         <div className="text-center mb-8">
-          <div className="h-12 w-12 rounded-xl bg-indigo-600 flex items-center justify-center font-bold text-white text-xl mx-auto mb-4 shadow-lg shadow-indigo-500/20">
+          <div className="h-12 w-12 rounded-xl bg-primary flex items-center justify-center font-bold text-white text-xl mx-auto mb-4 shadow-lg shadow-primary/20">
             D
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-white">
@@ -35,7 +35,7 @@ export default function LoginPage() {
         </form>
 
         <div className="mt-8 pt-6 border-t border-slate-800 text-center text-xs text-slate-400 flex items-center justify-center gap-1.5">
-          <ShieldCheck className="w-4 h-4 text-emerald-400" />
+          <ShieldCheck className="w-4 h-4 text-success" />
           <span>Complete tenant data isolation. We only request read scopes.</span>
         </div>
       </div>

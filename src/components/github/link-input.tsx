@@ -67,13 +67,13 @@ export function GitHubLinkInput({ entityType, entityId, onLinkAdded }: GitHubLin
         value={url}
         onChange={(e) => setUrl(e.target.value)}
         placeholder="https://github.com/owner/repo/issues/123"
-        className="px-2.5 py-1 rounded-lg border border-slate-700 bg-slate-950 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 w-64"
+        className="px-2.5 py-1 rounded-lg border border-slate-700 bg-slate-950 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-primary w-64"
       />
 
       <button
         type="submit"
         disabled={loading}
-        className="px-2 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium disabled:opacity-50 transition cursor-pointer"
+        className="px-2 py-1 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-medium disabled:opacity-50 transition cursor-pointer shadow-sm shadow-primary/20"
       >
         {loading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
       </button>

@@ -782,6 +782,9 @@ export function ProjectTimelineView({
                             tabIndex={0}
                             role="slider"
                             aria-label={`Task: ${t.title}. Start: ${taskStart}, Due: ${taskEnd}. Alt+Left/Right arrows to shift.`}
+                            aria-valuenow={Math.round(startX / cellWidth)}
+                            aria-valuemin={0}
+                            aria-valuemax={totalDays}
                             aria-valuetext={`${taskStart} to ${taskEnd}`}
                             onKeyDown={(e) => handleKeyDown(e, t)}
                             style={{ left: `${startX}px`, width: `${width}px` }}

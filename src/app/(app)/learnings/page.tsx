@@ -211,8 +211,8 @@ export default function LearningsPage() {
 
             {/* AI Active-Recall Quiz Section */}
             {quizData ? (
-              <div className="p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/20 space-y-3">
-                <div className="flex items-center gap-2 text-xs font-semibold text-indigo-400">
+              <div className="p-4 rounded-xl border border-primary/30 bg-primary-subtle space-y-3">
+                <div className="flex items-center gap-2 text-xs font-semibold text-primary">
                   <Sparkles className="w-4 h-4" />
                   <span>AI Recall Challenge</span>
                 </div>
@@ -224,7 +224,7 @@ export default function LearningsPage() {
                       <button
                         type="button"
                         onClick={() => setShowHint(true)}
-                        className="text-xs text-indigo-300 hover:underline flex items-center gap-1"
+                        className="text-xs text-primary hover:underline flex items-center gap-1 cursor-pointer"
                       >
                         <HelpCircle className="w-3.5 h-3.5" />
                         <span>Need a hint?</span>
@@ -243,12 +243,12 @@ export default function LearningsPage() {
                   type="button"
                   disabled={quizLoading}
                   onClick={handleLoadQuiz}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-indigo-500/30 bg-indigo-950/40 hover:bg-indigo-900/40 text-indigo-300 text-xs font-medium transition cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-primary/30 bg-primary-subtle hover:bg-primary/20 text-primary text-xs font-medium transition cursor-pointer"
                 >
                   {quizLoading ? (
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
                   ) : (
-                    <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+                    <Sparkles className="w-3.5 h-3.5 text-primary" />
                   )}
                   <span>{quizLoading ? "Generating Question..." : "Challenge Me with AI Quiz"}</span>
                 </button>
@@ -257,7 +257,7 @@ export default function LearningsPage() {
 
             {isAnswerRevealed ? (
               <div className="pt-4 border-t border-slate-800/80 space-y-2">
-                <span className="text-xs uppercase tracking-wider text-emerald-400 block">
+                <span className="text-xs uppercase tracking-wider text-success block">
                   Knowledge / Content
                 </span>
                 <p className="text-sm text-slate-200 leading-relaxed whitespace-pre-wrap">
@@ -266,7 +266,7 @@ export default function LearningsPage() {
 
                 {quizData?.explanation && (
                   <div className="mt-3 p-3 rounded-lg bg-black/40 border border-slate-800 text-xs text-slate-300">
-                    <span className="font-semibold text-indigo-400 block mb-1">AI Takeaway:</span>
+                    <span className="font-semibold text-primary block mb-1">AI Takeaway:</span>
                     {quizData.explanation}
                   </div>
                 )}
@@ -364,7 +364,7 @@ export default function LearningsPage() {
 
                 <div className="text-[11px] text-slate-400 pt-3 border-t border-slate-800/80 flex items-center justify-between">
                   <span>Next review: {new Date(item.nextReviewAt).toLocaleDateString()}</span>
-                  {item.projectName && <span className="text-indigo-400">{item.projectName}</span>}
+                  {item.projectName && <span className="text-primary">{item.projectName}</span>}
                 </div>
               </div>
             ))}

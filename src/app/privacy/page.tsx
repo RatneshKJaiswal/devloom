@@ -13,7 +13,7 @@ export default function PrivacyPage() {
       </Link>
 
       <div className="space-y-6">
-        <div className="flex items-center gap-2 text-indigo-400">
+        <div className="flex items-center gap-2 text-primary">
           <ShieldCheck className="w-6 h-6" />
           <h1 className="text-3xl font-bold tracking-tight text-white">Privacy Policy & LLM Disclosure</h1>
         </div>

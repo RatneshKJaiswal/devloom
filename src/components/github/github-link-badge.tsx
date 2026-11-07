@@ -98,7 +98,7 @@ export function GitHubLinkBadge({ link, onRefresh, onDelete }: GitHubLinkBadgePr
           className="p-1 rounded text-slate-500 hover:text-slate-300 transition cursor-pointer"
         >
           {refreshing ? (
-            <Loader2 className="w-3 h-3 animate-spin text-indigo-400" />
+            <Loader2 className="w-3 h-3 animate-spin text-primary" />
           ) : (
             <RefreshCw className="w-3 h-3" />
           )}
