@@ -181,8 +181,20 @@ export function HeaderActions({ userProfile }: HeaderActionsProps) {
       <QuickCaptureModal
         isOpen={isQuickCaptureOpen}
         onClose={() => setIsQuickCaptureOpen(false)}
-        defaultTab={pathname?.startsWith("/bugs") ? "bug" : undefined}
-        lockTab={pathname?.startsWith("/bugs")}
+        defaultTab={
+          pathname?.startsWith("/bugs")
+            ? "bug"
+            : pathname?.startsWith("/learnings")
+            ? "learning"
+            : pathname?.startsWith("/tasks")
+            ? "task"
+            : undefined
+        }
+        lockTab={
+          pathname?.startsWith("/bugs") ||
+          pathname?.startsWith("/learnings") ||
+          pathname?.startsWith("/tasks")
+        }
         onSuccess={() => router.refresh()}
       />
 

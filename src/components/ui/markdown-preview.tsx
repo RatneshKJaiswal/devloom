@@ -11,7 +11,9 @@ interface MarkdownPreviewProps {
 export function stripMarkdown(md: string): string {
   if (!md) return "";
   return md
+    .replace(/\\r\\n/g, "\n")
     .replace(/\\n/g, "\n")
+    .replace(/\\t/g, " ")
     .replace(/^#{1,6}\s+/gm, "")
     .replace(/(\*\*|__)(.*?)\1/g, "$2")
     .replace(/(\*|_)(.*?)\1/g, "$2")
@@ -22,7 +24,8 @@ export function stripMarkdown(md: string): string {
     .replace(/^[-*+]\s+/gm, "")
     .replace(/^\d+\.\s+/gm, "")
     .replace(/^>\s+/gm, "")
-    .replace(/\n{2,}/g, "\n")
+    .replace(/\n+/g, " ")
+    .replace(/\s{2,}/g, " ")
     .trim();
 }
 

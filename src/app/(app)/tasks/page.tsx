@@ -540,11 +540,13 @@ export default function TasksPage() {
         </div>
       )}
 
-      {/* Quick Capture Dialog */}
+      {/* Quick Capture Dialog (Locked to Task Mode on Tasks Page) */}
       <QuickCaptureModal
         isOpen={isCreateOpen}
         onClose={() => setIsCreateOpen(false)}
         defaultProjectId={projectFilter !== "all" ? projectFilter : null}
+        defaultTab="task"
+        lockTab={true}
         onSuccess={loadTasks}
       />
 
