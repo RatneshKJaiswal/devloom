@@ -7,6 +7,11 @@ import { buildSmartCapturePrompt, SmartCaptureOutput } from "./prompts/capture";
 import { agentClient } from "./client";
 import { AgentResult } from "./types";
 
+export type SavedRecord =
+  | Awaited<ReturnType<typeof createTask>>
+  | Awaited<ReturnType<typeof createBug>>
+  | Awaited<ReturnType<typeof createLearning>>;
+
 export interface SmartCaptureRequest {
   userId: string;
   rawInput: string;
@@ -14,7 +19,7 @@ export interface SmartCaptureRequest {
 }
 
 export type SmartCaptureResponse =
-  | { success: true; candidate: SmartCaptureOutput; savedRecord?: any; usage: { inputTokens: number; outputTokens: number } }
+  | { success: true; candidate: SmartCaptureOutput; savedRecord?: SavedRecord | null; usage: { inputTokens: number; outputTokens: number } }
   | { success: false; error: { code: string; message: string; retryable: boolean } };
 
 export async function processSmartCapture({
@@ -100,7 +105,7 @@ export async function processSmartCapture({
   }
 
   // 7. Auto-save if requested
-  let savedRecord: any = null;
+  let savedRecord: SavedRecord | null = null;
   if (autoSave) {
     // Resolve project ID if suggested name matches
     const matchedProject = userProjects.find(

@@ -40,6 +40,31 @@ export interface PrecomputedPlan {
   keyInsightsRetained: string[];
 }
 
+export interface SummaryTaskInput {
+  id: string;
+  taskNumber?: number | null;
+  title: string;
+  status: string;
+  priority?: string | null;
+  dueDate?: string | Date | null;
+}
+
+export interface SummaryBugInput {
+  id: string;
+  bugNumber?: number | null;
+  title: string;
+  status: string;
+  priority?: string | null;
+  dueDate?: string | Date | null;
+}
+
+export interface SummaryLearningInput {
+  id: string;
+  title: string;
+  reviewBox?: number | null;
+  reviewStatus?: string | null;
+}
+
 /**
  * Deterministic engineering priority engine.
  * Filters and ranks tasks, bugs, and learnings using computational logic
@@ -49,9 +74,9 @@ export interface PrecomputedPlan {
 export function computeRelevantWorkspaceItems(
   mode: "daily_plan" | "weekly_standup",
   data: {
-    tasks: any[];
-    bugs: any[];
-    learnings: any[];
+    tasks: SummaryTaskInput[];
+    bugs: SummaryBugInput[];
+    learnings: SummaryLearningInput[];
   }
 ): PrecomputedPlan {
   const today = new Date().toISOString().split("T")[0];
@@ -81,15 +106,21 @@ export function computeRelevantWorkspaceItems(
         explanation = "Low priority defect or minor glitch.";
       }
 
-      if (b.dueDate) {
-        if (b.dueDate < today) {
+      const dueStr = b.dueDate instanceof Date
+        ? b.dueDate.toISOString().split("T")[0]
+        : typeof b.dueDate === "string"
+        ? b.dueDate.split("T")[0]
+        : null;
+
+      if (dueStr) {
+        if (dueStr < today) {
           score += 40;
-          explanation += ` Overdue since ${b.dueDate}.`;
-        } else if (b.dueDate === today) {
+          explanation += ` Overdue since ${dueStr}.`;
+        } else if (dueStr === today) {
           score += 30;
           explanation += " Target resolution deadline is today.";
         } else {
-          explanation += ` Target deadline: ${b.dueDate}.`;
+          explanation += ` Target deadline: ${dueStr}.`;
         }
       }
 
@@ -100,7 +131,7 @@ export function computeRelevantWorkspaceItems(
         title: b.title,
         priority: b.priority || "medium",
         status: b.status,
-        dueDate: b.dueDate,
+        dueDate: dueStr,
         explanation,
         score,
       });
@@ -129,15 +160,21 @@ export function computeRelevantWorkspaceItems(
         score += 20;
       }
 
-      if (t.dueDate) {
-        if (t.dueDate < today) {
+      const dueStr = t.dueDate instanceof Date
+        ? t.dueDate.toISOString().split("T")[0]
+        : typeof t.dueDate === "string"
+        ? t.dueDate.split("T")[0]
+        : null;
+
+      if (dueStr) {
+        if (dueStr < today) {
           score += 50;
-          explanation += ` Overdue deadline: ${t.dueDate}.`;
-        } else if (t.dueDate === today) {
+          explanation += ` Overdue deadline: ${dueStr}.`;
+        } else if (dueStr === today) {
           score += 35;
           explanation += " Due today.";
         } else {
-          explanation += ` Scheduled completion: ${t.dueDate}.`;
+          explanation += ` Scheduled completion: ${dueStr}.`;
         }
       }
 
@@ -148,7 +185,7 @@ export function computeRelevantWorkspaceItems(
         title: t.title,
         priority: t.priority || "medium",
         status: t.status,
-        dueDate: t.dueDate,
+        dueDate: dueStr,
         explanation,
         score,
       });
@@ -287,9 +324,9 @@ export async function generateWorkspaceSummary({
 }> {
   try {
     // 1. Fetch raw scoped workspace records
-    let tasks: any[] = [];
-    let bugs: any[] = [];
-    let learnings: any[] = [];
+    let tasks: SummaryTaskInput[] = [];
+    let bugs: SummaryBugInput[] = [];
+    let learnings: SummaryLearningInput[] = [];
 
     if (mode === "daily_plan") {
       const [allTasks, allBugs, dueLearnings] = await Promise.all([

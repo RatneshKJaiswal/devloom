@@ -12,6 +12,14 @@ import { withUserScope } from "./base";
 import { eq, desc, sql, and, isNull } from "drizzle-orm";
 import { listProjectDependencies } from "./dependencies";
 
+export type SDLCPhase =
+  | "planning"
+  | "design"
+  | "development"
+  | "testing"
+  | "release"
+  | "maintenance";
+
 export async function listProjects(userId: string) {
   const allProjects = await db
     .select()
@@ -132,7 +140,7 @@ export async function createProject(
     color?: string;
     startDate?: string | null;
     targetDate?: string | null;
-    currentPhase?: any;
+    currentPhase?: SDLCPhase;
   }
 ) {
   const [created] = await db
@@ -215,7 +223,7 @@ export async function updateProject(
 export async function transitionProjectPhase(
   userId: string,
   projectId: string,
-  newPhase: any,
+  newPhase: SDLCPhase,
   notes?: string
 ) {
   // 1. Close current open phase record

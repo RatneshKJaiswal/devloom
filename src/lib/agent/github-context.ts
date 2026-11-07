@@ -10,13 +10,20 @@ import { createLearning } from "@/lib/dal/learnings";
 import { linkItemToGitHub, findExistingGitHubLink } from "@/lib/dal/links";
 import { findOrCreateProjectByName } from "@/lib/dal/organization";
 
+export type CreatedEntity =
+  | Awaited<ReturnType<typeof createTask>>
+  | Awaited<ReturnType<typeof createBug>>
+  | Awaited<ReturnType<typeof createLearning>>;
+
+export type CreatedGitHubLink = Awaited<ReturnType<typeof linkItemToGitHub>>;
+
 export interface GitHubContextRequest {
   userId: string;
   githubUrl: string;
 }
 
 export type GitHubContextResponse =
-  | { success: true; candidate: GitHubContextOutput; createdItem: any; gitHubLink: any }
+  | { success: true; candidate: GitHubContextOutput; createdItem: CreatedEntity; gitHubLink: CreatedGitHubLink }
   | { success: false; error: { code: string; message: string; retryable: boolean } };
 
 export async function processGitHubContext({
@@ -152,7 +159,7 @@ export async function processGitHubContext({
   );
 
   // 9. Create item inside workspace
-  let createdItem: any = null;
+  let createdItem: CreatedEntity = null;
   if (candidate.entityType === "bug") {
     createdItem = await createBug(userId, {
       title: candidate.title,
@@ -176,6 +183,17 @@ export async function processGitHubContext({
       priority: candidate.priority,
       projectId: project.id,
     });
+  }
+
+  if (!createdItem) {
+    return {
+      success: false,
+      error: {
+        code: "INTERNAL_ERROR",
+        message: "Failed to persist workspace item from GitHub context.",
+        retryable: true,
+      },
+    };
   }
 
   // 9. Link to GitHub
