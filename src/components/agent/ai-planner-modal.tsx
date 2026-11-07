@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { X, Loader2, Copy, Check, Calendar, CheckCircle2, AlertCircle, Sparkles, Cpu } from "lucide-react";
+import { X, Loader2, Copy, Check, Calendar, CheckCircle2, AlertCircle, Sparkles } from "lucide-react";
 import { AIIcon } from "@/components/icons/ai";
 import { SummaryOutput } from "@/lib/agent/prompts/summary";
 
@@ -144,14 +144,6 @@ export function AIPlannerModal({
           <div className="mb-4 p-3 rounded-xl bg-danger-subtle border border-danger/30 text-xs text-danger-foreground flex items-start gap-2">
             <AlertCircle className="w-4 h-4 text-danger shrink-0 mt-0.5" />
             <div className="flex-1">{error}</div>
-          </div>
-        )}
-
-        {/* Engine Notice */}
-        {result?.isAiFallback && (
-          <div className="mb-3 px-3 py-1.5 rounded-lg bg-blue-950/40 border border-blue-500/30 text-[11px] text-blue-300 flex items-center gap-2">
-            <Cpu className="w-3.5 h-3.5 text-blue-400 shrink-0" />
-            <span>Computed deterministically using DevLoom priority heuristics (AI high-demand fallback).</span>
           </div>
         )}
 

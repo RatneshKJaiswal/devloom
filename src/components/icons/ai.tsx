@@ -5,20 +5,33 @@ export function AIIcon({ className = "w-4 h-4", ...props }: React.SVGProps<SVGSV
     <svg
       viewBox="0 0 24 24"
       fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
       className={className}
       {...props}
     >
-      {/* Primary 4-pointed smooth star */}
-      <path
-        d="M12 2C12 7.52 7.52 12 2 12C7.52 12 12 16.48 12 22C12 16.48 16.48 12 22 12C16.48 12 12 7.52 12 2Z"
-        fill="currentColor"
-      />
-      {/* Secondary accent star */}
-      <path
-        d="M19 2C19 4.2 17.2 6 15 6C17.2 6 19 7.8 19 10C19 7.8 20.8 6 23 6C20.8 6 19 4.2 19 2Z"
-        fill="currentColor"
-        opacity="0.85"
-      />
+      {/* Central neural intelligence core */}
+      <circle cx="12" cy="12" r="3" fill="currentColor" fillOpacity="0.25" />
+      {/* Neural lattice interconnect pathways */}
+      <path d="M12 2v4" />
+      <path d="M12 18v4" />
+      <path d="M4.93 4.93l2.83 2.83" />
+      <path d="M16.24 16.24l2.83 2.83" />
+      <path d="M2 12h4" />
+      <path d="M18 12h4" />
+      <path d="M4.93 19.07l2.83-2.83" />
+      <path d="M16.24 7.76l2.83-2.83" />
+      {/* Peripheral node points */}
+      <circle cx="12" cy="2" r="1.2" fill="currentColor" />
+      <circle cx="12" cy="22" r="1.2" fill="currentColor" />
+      <circle cx="2" cy="12" r="1.2" fill="currentColor" />
+      <circle cx="22" cy="12" r="1.2" fill="currentColor" />
+      <circle cx="4.93" cy="4.93" r="1" fill="currentColor" />
+      <circle cx="19.07" cy="4.93" r="1" fill="currentColor" />
+      <circle cx="4.93" cy="19.07" r="1" fill="currentColor" />
+      <circle cx="19.07" cy="19.07" r="1" fill="currentColor" />
     </svg>
   );
 }
