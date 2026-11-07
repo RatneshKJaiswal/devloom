@@ -38,8 +38,8 @@ export async function PATCH(req: Request, { params }: Params) {
     const parsed = updateTaskSchema.safeParse(body);
     if (!parsed.success) return badRequestResponse(parsed.error);
 
-    const { tagIds, ...taskData } = parsed.data;
-    const updated = await updateTask(session.user.id, id, taskData as any, tagIds);
+    const { tagIds, bugIds, ...taskData } = parsed.data;
+    const updated = await updateTask(session.user.id, id, taskData as any, tagIds, bugIds);
     if (!updated) return notFoundResponse("Task not found");
 
     return jsonResponse(updated);

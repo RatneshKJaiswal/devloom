@@ -38,8 +38,8 @@ export async function PATCH(req: Request, { params }: Params) {
     const parsed = updateBugSchema.safeParse(body);
     if (!parsed.success) return badRequestResponse(parsed.error);
 
-    const { tagIds, ...bugData } = parsed.data;
-    const updated = await updateBug(session.user.id, id, bugData as any, tagIds);
+    const { tagIds, taskId, ...bugData } = parsed.data;
+    const updated = await updateBug(session.user.id, id, bugData as any, tagIds, taskId);
     if (!updated) return notFoundResponse("Bug not found");
 
     return jsonResponse(updated);

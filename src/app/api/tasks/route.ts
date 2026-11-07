@@ -43,8 +43,8 @@ export async function POST(req: Request) {
     const parsed = createTaskSchema.safeParse(body);
     if (!parsed.success) return badRequestResponse(parsed.error);
 
-    const { tagIds, ...taskData } = parsed.data;
-    const created = await createTask(session.user.id, taskData, tagIds);
+    const { tagIds, bugIds, ...taskData } = parsed.data;
+    const created = await createTask(session.user.id, taskData, tagIds, bugIds);
 
     return jsonResponse(created, 201);
   } catch (error) {

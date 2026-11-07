@@ -1,7 +1,7 @@
 import { db } from "@/lib/db";
-import { bugs, bugTags, tags, projects, githubLinks } from "@/lib/db/schema";
+import { bugs, bugTags, tags, projects, githubLinks, taskBugs, tasks } from "@/lib/db/schema";
 import { withUserScope } from "./base";
-import { eq, desc, and, inArray } from "drizzle-orm";
+import { eq, desc, and, inArray, sql } from "drizzle-orm";
 
 export interface BugFilterOptions {
   status?: "open" | "confirmed" | "fixing" | "resolved" | "closed" | "wont_fix";
@@ -29,6 +29,7 @@ export async function listBugs(userId: string, options: BugFilterOptions = {}) {
   const rawBugs = await db
     .select({
       id: bugs.id,
+      bugNumber: bugs.bugNumber,
       userId: bugs.userId,
       projectId: bugs.projectId,
       projectName: projects.name,
@@ -73,6 +74,31 @@ export async function listBugs(userId: string, options: BugFilterOptions = {}) {
     tagMap.set(row.bugId, list);
   }
 
+  // Fetch associated tasks for these bugs
+  const taskRows = await db
+    .select({
+      bugId: taskBugs.bugId,
+      id: tasks.id,
+      taskNumber: tasks.taskNumber,
+      title: tasks.title,
+      status: tasks.status,
+    })
+    .from(taskBugs)
+    .innerJoin(tasks, eq(taskBugs.taskId, tasks.id))
+    .where(inArray(taskBugs.bugId, bugIds));
+
+  const taskMap = new Map<string, Array<any>>();
+  for (const row of taskRows) {
+    const list = taskMap.get(row.bugId) || [];
+    list.push({
+      id: row.id,
+      taskNumber: row.taskNumber,
+      title: row.title,
+      status: row.status,
+    });
+    taskMap.set(row.bugId, list);
+  }
+
   // Fetch GitHub links for these bugs
   const linkRows = await db
     .select({
@@ -106,6 +132,7 @@ export async function listBugs(userId: string, options: BugFilterOptions = {}) {
     ...bug,
     tags: tagMap.get(bug.id) || [],
     githubLinks: linkMap.get(bug.id) || [],
+    associatedTasks: taskMap.get(bug.id) || [],
   }));
 }
 
@@ -113,6 +140,7 @@ export async function getBugById(userId: string, id: string) {
   const results = await db
     .select({
       id: bugs.id,
+      bugNumber: bugs.bugNumber,
       userId: bugs.userId,
       projectId: bugs.projectId,
       projectName: projects.name,
@@ -146,6 +174,17 @@ export async function getBugById(userId: string, id: string) {
     .innerJoin(tags, eq(bugTags.tagId, tags.id))
     .where(eq(bugTags.bugId, bug.id));
 
+  const taskRows = await db
+    .select({
+      id: tasks.id,
+      taskNumber: tasks.taskNumber,
+      title: tasks.title,
+      status: tasks.status,
+    })
+    .from(taskBugs)
+    .innerJoin(tasks, eq(taskBugs.taskId, tasks.id))
+    .where(eq(taskBugs.bugId, bug.id));
+
   const linkRows = await db
     .select({
       id: githubLinks.id,
@@ -171,6 +210,7 @@ export async function getBugById(userId: string, id: string) {
     ...bug,
     tags: tagRows,
     githubLinks: linkRows,
+    associatedTasks: taskRows,
   };
 }
 
@@ -188,7 +228,8 @@ export async function createBug(
     startDate?: string | null;
     dueDate?: string | null;
   },
-  tagIds?: string[]
+  tagIds?: string[],
+  taskId?: string | null
 ) {
   const [created] = await db
     .insert(bugs)
@@ -215,6 +256,14 @@ export async function createBug(
     );
   }
 
+  if (taskId) {
+    await db.insert(taskBugs).values({
+      userId,
+      taskId,
+      bugId: created.id,
+    });
+  }
+
   return getBugById(userId, created.id);
 }
 
@@ -233,7 +282,8 @@ export async function updateBug(
     startDate?: string | null;
     dueDate?: string | null;
   }>,
-  tagIds?: string[]
+  tagIds?: string[],
+  taskId?: string | null
 ) {
   const updateData: Record<string, unknown> = {
     updatedAt: new Date(),
@@ -268,6 +318,49 @@ export async function updateBug(
           tagId,
         }))
       );
+    }
+  }
+
+  if (taskId !== undefined) {
+    await db.delete(taskBugs).where(and(eq(taskBugs.bugId, id), eq(taskBugs.userId, userId)));
+    if (taskId) {
+      await db.insert(taskBugs).values({
+        userId,
+        taskId,
+        bugId: id,
+      });
+    }
+  }
+
+  // Check all tasks linked to this bug - completing all bugs results in end of task
+  const linkedTaskRows = await db
+    .select({ taskId: taskBugs.taskId })
+    .from(taskBugs)
+    .where(eq(taskBugs.bugId, id));
+
+  for (const { taskId: tId } of linkedTaskRows) {
+    const allBugsForTask = await db
+      .select({ status: bugs.status })
+      .from(taskBugs)
+      .innerJoin(bugs, eq(taskBugs.bugId, bugs.id))
+      .where(eq(taskBugs.taskId, tId));
+
+    const allResolved =
+      allBugsForTask.length > 0 &&
+      allBugsForTask.every(
+        (b) => b.status === "resolved" || b.status === "closed"
+      );
+
+    if (allResolved) {
+      await db
+        .update(tasks)
+        .set({
+          status: "done",
+          completedAt: new Date(),
+          updatedAt: new Date(),
+          version: sql`${tasks.version} + 1`,
+        })
+        .where(and(eq(tasks.id, tId), eq(tasks.userId, userId)));
     }
   }
 

@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, uuid, pgEnum, index, uniqueIndex, integer } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, uuid, pgEnum, index, uniqueIndex, integer, serial } from "drizzle-orm/pg-core";
 import { users } from "./auth";
 import { projects, sdlcPhaseEnum } from "./organization";
 
@@ -20,6 +20,7 @@ export const tasks = pgTable(
   "tasks",
   {
     id: uuid("id").defaultRandom().primaryKey(),
+    taskNumber: integer("task_number"),
     userId: uuid("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),

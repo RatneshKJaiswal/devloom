@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { tasks, taskTags, tags, projects, taskDependencies, githubLinks } from "@/lib/db/schema";
+import { tasks, taskTags, tags, projects, taskDependencies, githubLinks, bugs, taskBugs } from "@/lib/db/schema";
 import { withUserScope } from "./base";
 import { eq, desc, and, inArray, sql } from "drizzle-orm";
 
@@ -29,6 +29,7 @@ export async function listTasks(userId: string, options: TaskFilterOptions = {})
   const query = db
     .select({
       id: tasks.id,
+      taskNumber: tasks.taskNumber,
       userId: tasks.userId,
       projectId: tasks.projectId,
       projectName: projects.name,
@@ -74,6 +75,33 @@ export async function listTasks(userId: string, options: TaskFilterOptions = {})
     tagMap.set(row.taskId, list);
   }
 
+  // Fetch associated bugs for these tasks
+  const bugRows = await db
+    .select({
+      taskId: taskBugs.taskId,
+      id: bugs.id,
+      bugNumber: bugs.bugNumber,
+      title: bugs.title,
+      status: bugs.status,
+      priority: bugs.priority,
+    })
+    .from(taskBugs)
+    .innerJoin(bugs, eq(taskBugs.bugId, bugs.id))
+    .where(inArray(taskBugs.taskId, taskIds));
+
+  const bugMap = new Map<string, Array<any>>();
+  for (const row of bugRows) {
+    const list = bugMap.get(row.taskId) || [];
+    list.push({
+      id: row.id,
+      bugNumber: row.bugNumber,
+      title: row.title,
+      status: row.status,
+      priority: row.priority,
+    });
+    bugMap.set(row.taskId, list);
+  }
+
   // Fetch GitHub links for these tasks
   const linkRows = await db
     .select({
@@ -107,6 +135,7 @@ export async function listTasks(userId: string, options: TaskFilterOptions = {})
     ...task,
     tags: tagMap.get(task.id) || [],
     githubLinks: linkMap.get(task.id) || [],
+    associatedBugs: bugMap.get(task.id) || [],
   }));
 }
 
@@ -114,6 +143,7 @@ export async function getTaskById(userId: string, id: string) {
   const results = await db
     .select({
       id: tasks.id,
+      taskNumber: tasks.taskNumber,
       userId: tasks.userId,
       projectId: tasks.projectId,
       projectName: projects.name,
@@ -147,6 +177,18 @@ export async function getTaskById(userId: string, id: string) {
     .innerJoin(tags, eq(taskTags.tagId, tags.id))
     .where(eq(taskTags.taskId, task.id));
 
+  const bugRows = await db
+    .select({
+      id: bugs.id,
+      bugNumber: bugs.bugNumber,
+      title: bugs.title,
+      status: bugs.status,
+      priority: bugs.priority,
+    })
+    .from(taskBugs)
+    .innerJoin(bugs, eq(taskBugs.bugId, bugs.id))
+    .where(eq(taskBugs.taskId, task.id));
+
   const linkRows = await db
     .select({
       id: githubLinks.id,
@@ -172,6 +214,7 @@ export async function getTaskById(userId: string, id: string) {
     ...task,
     tags: tagRows,
     githubLinks: linkRows,
+    associatedBugs: bugRows,
   };
 }
 
@@ -186,7 +229,8 @@ export async function createTask(
     startDate?: string | null;
     dueDate?: string | null;
   },
-  tagIds?: string[]
+  tagIds?: string[],
+  bugIds?: string[]
 ) {
   const [created] = await db
     .insert(tasks)
@@ -212,6 +256,16 @@ export async function createTask(
     );
   }
 
+  if (bugIds && bugIds.length > 0) {
+    await db.insert(taskBugs).values(
+      bugIds.map((bugId) => ({
+        userId,
+        taskId: created.id,
+        bugId,
+      }))
+    );
+  }
+
   return getTaskById(userId, created.id);
 }
 
@@ -227,7 +281,8 @@ export async function updateTask(
     startDate?: string | null;
     dueDate?: string | null;
   }>,
-  tagIds?: string[]
+  tagIds?: string[],
+  bugIds?: string[]
 ) {
   const updateData: Record<string, unknown> = {
     updatedAt: new Date(),
@@ -251,6 +306,33 @@ export async function updateTask(
   }
   if (data.dueDate !== undefined) {
     updateData.dueDate = data.dueDate ? new Date(data.dueDate) : null;
+  }
+
+  if (bugIds !== undefined) {
+    await db.delete(taskBugs).where(and(eq(taskBugs.taskId, id), eq(taskBugs.userId, userId)));
+    if (bugIds.length > 0) {
+      await db.insert(taskBugs).values(
+        bugIds.map((bugId) => ({
+          userId,
+          taskId: id,
+          bugId,
+        }))
+      );
+
+      // Check if all newly associated bugs are resolved/closed
+      const linkedBugs = await db
+        .select({ status: bugs.status })
+        .from(bugs)
+        .where(inArray(bugs.id, bugIds));
+
+      if (
+        linkedBugs.length > 0 &&
+        linkedBugs.every((b) => b.status === "resolved" || b.status === "closed")
+      ) {
+        updateData.status = "done";
+        updateData.completedAt = new Date();
+      }
+    }
   }
 
   const [updated] = await db

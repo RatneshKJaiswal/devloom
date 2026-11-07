@@ -29,6 +29,7 @@ export const createTaskSchema = z.object({
   startDate: emptyStringToNull(z.string().nullable().optional()),
   dueDate: emptyStringToNull(z.string().nullable().optional()),
   tagIds: z.array(z.string().uuid()).optional(),
+  bugIds: z.array(z.string().uuid()).optional(),
 });
 
 export const updateTaskSchema = createTaskSchema.partial();
@@ -49,6 +50,7 @@ export const createBugSchema = z.object({
   priority: priorityEnum.default("medium"),
   phase: sdlcPhaseEnum.optional().nullable(),
   projectId: emptyStringToNull(z.string().uuid().nullable().optional()),
+  taskId: emptyStringToNull(z.string().uuid().nullable().optional()),
   startDate: emptyStringToNull(z.string().nullable().optional()),
   dueDate: emptyStringToNull(z.string().nullable().optional()),
   tagIds: z.array(z.string().uuid()).optional(),
