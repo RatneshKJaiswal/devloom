@@ -11,12 +11,14 @@ import {
   Bug,
   Brain,
   ArrowRight,
+  Calendar,
 } from "lucide-react";
 import { GithubIcon } from "@/components/icons/github";
 import { GitHubRepoImportModal } from "@/components/github/github-repo-import-modal";
 import { QuickCaptureModal } from "@/components/quick-capture-dialog";
 import { ProjectSDLCBar } from "@/components/project/project-sdlc-bar";
 import { ProjectMilestonesCard } from "@/components/project/project-milestones-card";
+import { ProjectTimelineView } from "@/components/project/project-timeline-view";
 import { SDLC_PHASE_CONFIG } from "@/lib/tokens";
 
 export default function ProjectsPage() {
@@ -27,7 +29,7 @@ export default function ProjectsPage() {
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [projectDetails, setProjectDetails] = useState<any | null>(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
-  const [activeTab, setActiveTab] = useState<"tasks" | "bugs" | "learnings">("tasks");
+  const [activeTab, setActiveTab] = useState<"tasks" | "bugs" | "learnings" | "timeline">("tasks");
   const [isQuickCaptureOpen, setIsQuickCaptureOpen] = useState(false);
 
   // Form state for manual project creation
@@ -329,18 +331,30 @@ export default function ProjectsPage() {
               />
 
               {/* Tabs */}
-              <div className="flex gap-2 p-1 rounded-xl bg-slate-950 border border-slate-800 max-w-sm">
+              <div className="flex flex-wrap gap-2 p-1 rounded-xl bg-slate-950 border border-slate-800 max-w-lg">
                 <button
                   type="button"
                   onClick={() => setActiveTab("tasks")}
                   className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 transition ${
                     activeTab === "tasks"
-                      ? "bg-indigo-600 text-white shadow-sm"
+                      ? "bg-primary text-white shadow-sm"
                       : "text-slate-400 hover:text-slate-200"
                   }`}
                 >
                   <CheckSquare className="w-3.5 h-3.5" />
                   <span>Tasks ({projectDetails?.tasks?.length || 0})</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("timeline")}
+                  className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 transition ${
+                    activeTab === "timeline"
+                      ? "bg-primary text-white shadow-sm"
+                      : "text-slate-400 hover:text-slate-200"
+                  }`}
+                >
+                  <Calendar className="w-3.5 h-3.5" />
+                  <span>Timeline</span>
                 </button>
                 <button
                   type="button"
@@ -359,7 +373,7 @@ export default function ProjectsPage() {
                   onClick={() => setActiveTab("learnings")}
                   className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 transition ${
                     activeTab === "learnings"
-                      ? "bg-emerald-600 text-white shadow-sm"
+                      ? "bg-success text-white shadow-sm"
                       : "text-slate-400 hover:text-slate-200"
                   }`}
                 >
@@ -369,6 +383,14 @@ export default function ProjectsPage() {
               </div>
 
               {/* Tab Content */}
+              {activeTab === "timeline" && (
+                <ProjectTimelineView
+                  project={projectDetails.project}
+                  tasks={projectDetails.tasks || []}
+                  milestones={projectDetails.milestones || []}
+                />
+              )}
+
               {activeTab === "tasks" && (
                 <div className="space-y-2">
                   {(!projectDetails?.tasks || projectDetails.tasks.length === 0) ? (
