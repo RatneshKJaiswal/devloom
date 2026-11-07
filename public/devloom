@@ -1,0 +1,655 @@
+#!/usr/bin/env node
+
+/**
+ * DevLoom CLI — Developer Command Center & Terminal Suite
+ * Zero-dependency, native Node.js executable.
+ */
+
+import fs from "fs";
+import path from "path";
+import os from "os";
+import http from "http";
+import https from "https";
+import readline from "readline";
+import { execSync } from "child_process";
+
+const CONFIG_DIR = path.join(os.homedir(), ".devloom");
+const CONFIG_FILE = path.join(CONFIG_DIR, "config.json");
+
+// ANSI color helpers
+const colors = {
+  reset: "\x1b[0m",
+  bold: "\x1b[1m",
+  dim: "\x1b[2m",
+  green: "\x1b[32m",
+  yellow: "\x1b[33m",
+  blue: "\x1b[34m",
+  magenta: "\x1b[35m",
+  cyan: "\x1b[36m",
+  red: "\x1b[31m",
+};
+
+function print(msg = "") {
+  console.log(msg);
+}
+
+function error(msg) {
+  console.error(`${colors.red}${colors.bold}Error:${colors.reset} ${msg}`);
+}
+
+function success(msg) {
+  console.log(`${colors.green}${colors.bold}✓${colors.reset} ${msg}`);
+}
+
+function info(msg) {
+  console.log(`${colors.cyan}${colors.bold}ℹ${colors.reset} ${msg}`);
+}
+
+// Config file management
+function loadConfig() {
+  const envUrl = process.env.DEVLOOM_API_URL || process.env.DEVLOOM_URL;
+  const envToken = process.env.DEVLOOM_TOKEN || process.env.DEVLOOM_PAT;
+
+  if (envToken) {
+    return {
+      apiUrl: envUrl || "http://localhost:3000",
+      token: envToken,
+    };
+  }
+
+  if (fs.existsSync(CONFIG_FILE)) {
+    try {
+      const raw = fs.readFileSync(CONFIG_FILE, "utf-8");
+      const parsed = JSON.parse(raw);
+      if (envUrl) parsed.apiUrl = envUrl;
+      return parsed;
+    } catch {
+      // Ignore parse errors and return null
+    }
+  }
+
+  return null;
+}
+
+function saveConfig(config) {
+  if (!fs.existsSync(CONFIG_DIR)) {
+    fs.mkdirSync(CONFIG_DIR, { recursive: true, mode: 0o700 });
+  }
+  fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2), {
+    mode: 0o600,
+  });
+}
+
+// Native HTTP client
+function apiRequest({ method = "GET", endpoint, body = null, config }) {
+  return new Promise((resolve, reject) => {
+    const fullUrl = new URL(endpoint, config.apiUrl);
+    const isHttps = fullUrl.protocol === "https:";
+    const transport = isHttps ? https : http;
+
+    const payload = body ? JSON.stringify(body) : null;
+    const headers = {
+      Accept: "application/json",
+      Authorization: `Bearer ${config.token}`,
+    };
+
+    if (payload) {
+      headers["Content-Type"] = "application/json";
+      headers["Content-Length"] = Buffer.byteLength(payload);
+    }
+
+    const req = transport.request(
+      fullUrl,
+      {
+        method,
+        headers,
+      },
+      (res) => {
+        let responseBody = "";
+        res.on("data", (chunk) => {
+          responseBody += chunk;
+        });
+
+        res.on("end", () => {
+          let data = null;
+          try {
+            data = responseBody ? JSON.parse(responseBody) : {};
+          } catch {
+            data = { raw: responseBody };
+          }
+
+          if (res.statusCode >= 200 && res.statusCode < 300) {
+            resolve({ status: res.statusCode, data });
+          } else {
+            const errMsg =
+              data?.error || data?.message || `HTTP ${res.statusCode} ${res.statusMessage}`;
+            reject(new Error(errMsg));
+          }
+        });
+      }
+    );
+
+    req.on("error", (err) => {
+      reject(new Error(`Network request failed: ${err.message}`));
+    });
+
+    if (payload) {
+      req.write(payload);
+    }
+    req.end();
+  });
+}
+
+function prompt(question) {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+  return new Promise((resolve) => {
+    rl.question(question, (answer) => {
+      rl.close();
+      resolve(answer.trim());
+    });
+  });
+}
+
+function slugify(text) {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)+/g, "")
+    .slice(0, 40);
+}
+
+// Commands
+async function cmdLogin() {
+  print(`${colors.bold}${colors.cyan}◆ DevLoom CLI Setup & Authentication${colors.reset}\n`);
+
+  const currentConfig = loadConfig() || {};
+  const defaultUrl = currentConfig.apiUrl || "http://localhost:3000";
+
+  const apiUrl = (await prompt(`Enter DevLoom App URL [${defaultUrl}]: `)) || defaultUrl;
+  const token = await prompt(`Enter Personal Access Token (devloom_pat_...): `);
+
+  if (!token || !token.startsWith("devloom_pat_")) {
+    error("Invalid token. Personal Access Tokens must start with 'devloom_pat_'");
+    process.exit(1);
+  }
+
+  const testConfig = { apiUrl, token };
+  info("Verifying credentials with DevLoom server...");
+
+  try {
+    const res = await apiRequest({
+      method: "GET",
+      endpoint: "/api/account/tokens",
+      config: testConfig,
+    });
+
+    saveConfig(testConfig);
+    success(`Authentication verified! Config saved to ${CONFIG_FILE}`);
+    print(`${colors.dim}You have ${res.data?.length || 0} active token(s) registered.${colors.reset}\n`);
+  } catch (err) {
+    error(`Authentication failed: ${err.message}`);
+    process.exit(1);
+  }
+}
+
+async function cmdWhoami() {
+  const config = loadConfig();
+  if (!config) {
+    error("Not logged in. Run 'devloom login' to authenticate.");
+    process.exit(1);
+  }
+
+  try {
+    const res = await apiRequest({
+      method: "GET",
+      endpoint: "/api/account/tokens",
+      config,
+    });
+
+    print(`${colors.bold}${colors.cyan}DevLoom Session${colors.reset}`);
+    print(`  API URL: ${colors.green}${config.apiUrl}${colors.reset}`);
+    print(`  Tokens:  ${res.data?.length || 0} active token(s)`);
+    if (res.data && res.data.length > 0) {
+      for (const t of res.data) {
+        print(`    - ${colors.bold}${t.name}${colors.reset} (${t.tokenPrefix})`);
+      }
+    }
+  } catch (err) {
+    error(`Failed to verify session: ${err.message}`);
+    process.exit(1);
+  }
+}
+
+async function cmdTask(args) {
+  const config = loadConfig();
+  if (!config) {
+    error("Not logged in. Run 'devloom login' to authenticate.");
+    process.exit(1);
+  }
+
+  let title = "";
+  let priority = "medium";
+  let description = "";
+
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === "--priority" || args[i] === "-p") {
+      priority = args[++i] || "medium";
+    } else if (args[i] === "--desc" || args[i] === "-d") {
+      description = args[++i] || "";
+    } else if (!args[i].startsWith("-")) {
+      title += (title ? " " : "") + args[i];
+    }
+  }
+
+  if (!title) {
+    title = await prompt("Task title: ");
+    if (!title) {
+      error("Task title cannot be empty");
+      process.exit(1);
+    }
+  }
+
+  try {
+    const res = await apiRequest({
+      method: "POST",
+      endpoint: "/api/tasks",
+      body: {
+        title,
+        priority: priority.toLowerCase(),
+        description: description || undefined,
+        status: "todo",
+      },
+      config,
+    });
+
+    const task = res.data;
+    const taskNumberStr = task.taskNumber ? `TSK-${task.taskNumber}` : `Task #${task.id.slice(0, 8)}`;
+    success(`Created ${colors.bold}${taskNumberStr}${colors.reset}: ${task.title}`);
+    print(`  Status:   ${colors.yellow}${task.status}${colors.reset}`);
+    print(`  Priority: ${task.priority}`);
+    print(`  Web URL:  ${config.apiUrl}/tasks?selected=${task.id}`);
+  } catch (err) {
+    error(`Failed to create task: ${err.message}`);
+    process.exit(1);
+  }
+}
+
+async function cmdBug(args) {
+  const config = loadConfig();
+  if (!config) {
+    error("Not logged in. Run 'devloom login' to authenticate.");
+    process.exit(1);
+  }
+
+  let title = "";
+  let priority = "medium";
+  let stackTrace = "";
+
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === "--priority" || args[i] === "-p") {
+      priority = args[++i] || "medium";
+    } else if (args[i] === "--stack" || args[i] === "-s") {
+      stackTrace = args[++i] || "";
+    } else if (!args[i].startsWith("-")) {
+      title += (title ? " " : "") + args[i];
+    }
+  }
+
+  if (!title) {
+    title = await prompt("Bug title: ");
+    if (!title) {
+      error("Bug title cannot be empty");
+      process.exit(1);
+    }
+  }
+
+  try {
+    const res = await apiRequest({
+      method: "POST",
+      endpoint: "/api/bugs",
+      body: {
+        title,
+        priority: priority.toLowerCase(),
+        stackTrace: stackTrace || undefined,
+        status: "open",
+      },
+      config,
+    });
+
+    const bug = res.data;
+    const bugNumberStr = bug.bugNumber ? `BUG-${bug.bugNumber}` : `Bug #${bug.id.slice(0, 8)}`;
+    success(`Reported ${colors.bold}${colors.red}${bugNumberStr}${colors.reset}: ${bug.title}`);
+    print(`  Priority: ${bug.priority}`);
+    print(`  Web URL:  ${config.apiUrl}/bugs?selected=${bug.id}`);
+  } catch (err) {
+    error(`Failed to report bug: ${err.message}`);
+    process.exit(1);
+  }
+}
+
+async function cmdGotcha(args) {
+  const config = loadConfig();
+  if (!config) {
+    error("Not logged in. Run 'devloom login' to authenticate.");
+    process.exit(1);
+  }
+
+  let title = "";
+  let category = "gotcha";
+  let content = "";
+
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === "--category" || args[i] === "-c") {
+      category = args[++i] || "gotcha";
+    } else if (args[i] === "--solution" || args[i] === "-s") {
+      content = args[++i] || "";
+    } else if (!args[i].startsWith("-")) {
+      title += (title ? " " : "") + args[i];
+    }
+  }
+
+  if (!title) {
+    title = await prompt("Gotcha title: ");
+    if (!title) {
+      error("Title cannot be empty");
+      process.exit(1);
+    }
+  }
+
+  if (!content) {
+    content = await prompt("Solution / explanation notes: ");
+  }
+
+  try {
+    const res = await apiRequest({
+      method: "POST",
+      endpoint: "/api/learnings",
+      body: {
+        title,
+        category: category.toLowerCase(),
+        content: content || "Quick captured via DevLoom CLI",
+        status: "open",
+      },
+      config,
+    });
+
+    const item = res.data;
+    success(`Recorded Gotcha: ${colors.bold}${item.title}${colors.reset}`);
+    print(`  Category: ${item.category}`);
+    print(`  Web URL:  ${config.apiUrl}/learnings?selected=${item.id}`);
+  } catch (err) {
+    error(`Failed to record gotcha: ${err.message}`);
+    process.exit(1);
+  }
+}
+
+async function cmdCapture(args) {
+  const config = loadConfig();
+  if (!config) {
+    error("Not logged in. Run 'devloom login' to authenticate.");
+    process.exit(1);
+  }
+
+  const rawInput = args.join(" ").trim();
+  if (!rawInput) {
+    error("Provide input text or URL to capture. Usage: devloom capture 'Fix auth timeout issue'");
+    process.exit(1);
+  }
+
+  info("Analyzing with DevLoom Smart Capture...");
+
+  try {
+    const res = await apiRequest({
+      method: "POST",
+      endpoint: "/api/agent/capture",
+      body: {
+        rawInput,
+        autoSave: true,
+      },
+      config,
+    });
+
+    const payload = res.data;
+    if (payload.createdItem) {
+      const type = payload.type || "item";
+      success(`Auto-captured as ${colors.bold}${type.toUpperCase()}${colors.reset}: ${payload.createdItem.title}`);
+      if (payload.redirectUrl) {
+        print(`  Web URL: ${config.apiUrl}${payload.redirectUrl}`);
+      }
+    } else if (payload.intent) {
+      info(`Identified intent: ${payload.intent.type} - "${payload.intent.title}"`);
+    }
+  } catch (err) {
+    error(`Capture failed: ${err.message}`);
+    process.exit(1);
+  }
+}
+
+async function cmdStandup() {
+  const config = loadConfig();
+  if (!config) {
+    error("Not logged in. Run 'devloom login' to authenticate.");
+    process.exit(1);
+  }
+
+  info("Generating standup & daily plan summary...");
+
+  try {
+    const res = await apiRequest({
+      method: "POST",
+      endpoint: "/api/agent/summary",
+      body: { mode: "daily_plan" },
+      config,
+    });
+
+    const plan = res.data;
+    print(`\n${colors.bold}${colors.cyan}══════════════════════════════════════════════════${colors.reset}`);
+    print(`${colors.bold}◆ DevLoom Daily Standup & Engineering Focus${colors.reset}`);
+    print(`${colors.bold}${colors.cyan}══════════════════════════════════════════════════${colors.reset}\n`);
+
+    if (plan.summary) {
+      print(`${colors.bold}Overview:${colors.reset}\n${plan.summary}\n`);
+    }
+
+    if (plan.focusItems && plan.focusItems.length > 0) {
+      print(`${colors.bold}Top Priorities for Today:${colors.reset}`);
+      for (const item of plan.focusItems) {
+        const idBadge = item.taskNumber ? `[TSK-${item.taskNumber}]` : item.bugNumber ? `[BUG-${item.bugNumber}]` : "";
+        print(`  • ${colors.green}${idBadge}${colors.reset} ${item.title} ${colors.dim}(${item.priority})${colors.reset}`);
+      }
+      print("");
+    }
+
+    if (plan.blockers && plan.blockers.length > 0) {
+      print(`${colors.bold}${colors.red}Blockers & Critical Risks:${colors.reset}`);
+      for (const b of plan.blockers) {
+        print(`  ⚠ ${b.title || b}`);
+      }
+      print("");
+    }
+  } catch (err) {
+    error(`Failed to fetch standup: ${err.message}`);
+    process.exit(1);
+  }
+}
+
+async function cmdBranch(args) {
+  const config = loadConfig();
+  if (!config) {
+    error("Not logged in. Run 'devloom login' to authenticate.");
+    process.exit(1);
+  }
+
+  let doCheckout = false;
+  const filteredArgs = [];
+  for (const a of args) {
+    if (a === "-c" || a === "--checkout") {
+      doCheckout = true;
+    } else {
+      filteredArgs.push(a);
+    }
+  }
+
+  const query = filteredArgs.join(" ").trim();
+  if (!query) {
+    error("Specify task/bug number or title. E.g. devloom branch TSK-3");
+    process.exit(1);
+  }
+
+  let branchName = "";
+
+  // If format is TSK-X or BUG-X
+  const tskMatch = query.match(/^tsk-(\d+)/i);
+  const bugMatch = query.match(/^bug-(\d+)/i);
+
+  if (tskMatch) {
+    const num = parseInt(tskMatch[1], 10);
+    // Find task
+    const res = await apiRequest({ method: "GET", endpoint: "/api/tasks", config });
+    const match = res.data?.find((t) => t.taskNumber === num);
+    const slug = match ? slugify(match.title) : `task-${num}`;
+    branchName = `feature/tsk-${num}-${slug}`;
+  } else if (bugMatch) {
+    const num = parseInt(bugMatch[1], 10);
+    const res = await apiRequest({ method: "GET", endpoint: "/api/bugs", config });
+    const match = res.data?.find((b) => b.bugNumber === num);
+    const slug = match ? slugify(match.title) : `bug-${num}`;
+    branchName = `fix/bug-${num}-${slug}`;
+  } else {
+    branchName = `feature/${slugify(query)}`;
+  }
+
+  print(`Branch: ${colors.bold}${colors.cyan}${branchName}${colors.reset}`);
+
+  if (doCheckout) {
+    try {
+      execSync(`git checkout -b "${branchName}"`, { stdio: "inherit" });
+      success(`Checked out new branch: ${branchName}`);
+    } catch (err) {
+      error(`Failed to checkout git branch: ${err.message}`);
+    }
+  } else {
+    print(`Run: ${colors.yellow}git checkout -b ${branchName}${colors.reset}`);
+  }
+}
+
+async function cmdList(args) {
+  const config = loadConfig();
+  if (!config) {
+    error("Not logged in. Run 'devloom login' to authenticate.");
+    process.exit(1);
+  }
+
+  const sub = (args[0] || "tasks").toLowerCase();
+
+  try {
+    if (sub.startsWith("bug")) {
+      const res = await apiRequest({ method: "GET", endpoint: "/api/bugs", config });
+      print(`\n${colors.bold}DevLoom Bugs (${res.data?.length || 0}):${colors.reset}`);
+      for (const b of (res.data || []).slice(0, 15)) {
+        const num = b.bugNumber ? `BUG-${b.bugNumber}` : b.id.slice(0, 6);
+        print(`  ${colors.red}${num.padEnd(8)}${colors.reset} [${b.status.padEnd(8)}] ${b.title}`);
+      }
+    } else if (sub.startsWith("gotcha") || sub.startsWith("learning")) {
+      const res = await apiRequest({ method: "GET", endpoint: "/api/learnings", config });
+      print(`\n${colors.bold}DevLoom Gotchas (${res.data?.length || 0}):${colors.reset}`);
+      for (const g of (res.data || []).slice(0, 15)) {
+        print(`  ${colors.magenta}${g.category.padEnd(10)}${colors.reset} [Box ${g.box}] ${g.title}`);
+      }
+    } else {
+      const res = await apiRequest({ method: "GET", endpoint: "/api/tasks", config });
+      print(`\n${colors.bold}DevLoom Tasks (${res.data?.length || 0}):${colors.reset}`);
+      for (const t of (res.data || []).slice(0, 15)) {
+        const num = t.taskNumber ? `TSK-${t.taskNumber}` : t.id.slice(0, 6);
+        print(`  ${colors.cyan}${num.padEnd(8)}${colors.reset} [${t.status.padEnd(11)}] ${t.title}`);
+      }
+    }
+    print("");
+  } catch (err) {
+    error(`Failed to list ${sub}: ${err.message}`);
+    process.exit(1);
+  }
+}
+
+function showHelp() {
+  print(`
+${colors.bold}${colors.cyan}DevLoom CLI${colors.reset} — Personal Developer Command Center
+
+${colors.bold}USAGE:${colors.reset}
+  devloom <command> [options]
+
+${colors.bold}COMMANDS:${colors.reset}
+  ${colors.bold}login${colors.reset}                       Authenticate with Personal Access Token
+  ${colors.bold}whoami${colors.reset}                      Display current session and active tokens
+  ${colors.bold}task${colors.reset} <title> [-p priority]  Quickly create an engineering task
+  ${colors.bold}bug${colors.reset} <title> [-p priority]   Log a defect or bug report
+  ${colors.bold}gotcha${colors.reset} <title> [-s notes]   Record a technical gotcha / Leitner entry
+  ${colors.bold}capture${colors.reset} <text|url>          Smart-capture unstructured note or issue
+  ${colors.bold}standup${colors.reset}                     Fetch daily AI planner summary & standup
+  ${colors.bold}branch${colors.reset} <id> [-c]            Generate Git branch (or -c to checkout)
+  ${colors.bold}list${colors.reset} [tasks|bugs|gotchas]   View recent items in terminal
+  ${colors.bold}help${colors.reset}                        Show this help message
+
+${colors.bold}EXAMPLES:${colors.reset}
+  devloom task "Refactor auth middleware" -p high
+  devloom bug "Postgres connection pool exhausted" -p urgent
+  devloom gotcha "Drizzle PgBouncer mode" -s "Set prepare: false"
+  devloom capture "Investigate memory spike on /api/agent/summary"
+  devloom branch TSK-3 -c
+  devloom standup
+`);
+}
+
+// Main CLI router
+async function main() {
+  const [,, cmd, ...args] = process.argv;
+
+  if (!cmd || cmd === "help" || cmd === "--help" || cmd === "-h") {
+    showHelp();
+    return;
+  }
+
+  switch (cmd) {
+    case "login":
+      await cmdLogin();
+      break;
+    case "whoami":
+      await cmdWhoami();
+      break;
+    case "task":
+      await cmdTask(args);
+      break;
+    case "bug":
+      await cmdBug(args);
+      break;
+    case "gotcha":
+    case "learning":
+      await cmdGotcha(args);
+      break;
+    case "capture":
+      await cmdCapture(args);
+      break;
+    case "standup":
+    case "plan":
+      await cmdStandup();
+      break;
+    case "branch":
+      await cmdBranch(args);
+      break;
+    case "list":
+    case "ls":
+      await cmdList(args);
+      break;
+    default:
+      error(`Unknown command '${cmd}'. Run 'devloom help' for usage.`);
+      process.exit(1);
+  }
+}
+
+main().catch((err) => {
+  error(`Fatal: ${err.message}`);
+  process.exit(1);
+});

@@ -37,6 +37,14 @@ export function DeveloperTokensCard() {
   const [newlyCreatedToken, setNewlyCreatedToken] = useState<string | null>(null);
   const [copiedToken, setCopiedToken] = useState(false);
   const [copiedSnippet, setCopiedSnippet] = useState(false);
+  const [copiedOneLiner, setCopiedOneLiner] = useState(false);
+  const [origin, setOrigin] = useState("http://localhost:3000");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setOrigin(window.location.origin);
+    }
+  }, []);
 
   // Load tokens
   useEffect(() => {
@@ -157,6 +165,29 @@ export function DeveloperTokensCard() {
             >
               {copiedToken ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
             </button>
+          </div>
+
+          {/* 1-Line Terminal Auto-Installer */}
+          <div className="pt-2 border-t border-amber-500/20 space-y-1.5">
+            <div className="flex items-center justify-between text-[11px] text-amber-300 font-medium">
+              <span>⚡ 1-Line Terminal Install & Auto-Login:</span>
+              <button
+                type="button"
+                onClick={() =>
+                  copyToClipboard(
+                    `curl -fsSL "${origin}/api/cli/install?token=${newlyCreatedToken}" | bash`,
+                    setCopiedOneLiner
+                  )
+                }
+                className="text-[10px] text-slate-400 hover:text-white flex items-center gap-1 transition cursor-pointer"
+              >
+                {copiedOneLiner ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                <span>{copiedOneLiner ? "Copied" : "Copy Command"}</span>
+              </button>
+            </div>
+            <div className="bg-slate-950 border border-slate-800 rounded-lg p-2 font-mono text-[11px] text-emerald-400 select-all overflow-x-auto">
+              curl -fsSL &quot;{origin}/api/cli/install?token={newlyCreatedToken}&quot; | bash
+            </div>
           </div>
         </div>
       )}
@@ -298,13 +329,16 @@ export function DeveloperTokensCard() {
         </div>
 
         <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 font-mono text-[11px] text-slate-300 space-y-2">
-          <div className="text-slate-500"># 1. Link devloom binary into your global PATH</div>
-          <div className="text-emerald-400">npm link</div>
+          <div className="text-slate-500"># 1. Install CLI directly (No git repository clone required)</div>
+          <div className="text-emerald-400">curl -fsSL &quot;{origin}/install.sh&quot; | bash</div>
 
-          <div className="text-slate-500 pt-1"># 2. Authenticate CLI using your Personal Access Token</div>
+          <div className="text-slate-500 pt-1"># (Or if developing locally from repository source)</div>
+          <div className="text-slate-400">npm link</div>
+
+          <div className="text-slate-500 pt-1"># 2. Authenticate CLI</div>
           <div className="text-emerald-400">devloom login</div>
 
-          <div className="text-slate-500 pt-1"># 3. Quick shell commands in any repository</div>
+          <div className="text-slate-500 pt-1"># 3. Use in any project or terminal window</div>
           <div className="text-slate-300">
             devloom task <span className="text-amber-300">&quot;Fix database connection pool&quot;</span> -p high
           </div>
