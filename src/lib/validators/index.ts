@@ -85,6 +85,11 @@ export const updateProjectMilestoneSchema = createProjectMilestoneSchema
     isCompleted: z.boolean().optional(),
   });
 
+export const createTaskDependencySchema = z.object({
+  predecessorId: z.string().uuid("Predecessor task ID must be a valid UUID"),
+  successorId: z.string().uuid("Successor task ID must be a valid UUID"),
+});
+
 export const createTagSchema = z.object({
   name: z.string().min(1, "Tag name is required").max(50),
   color: z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Must be a valid hex color").default("#64748B"),

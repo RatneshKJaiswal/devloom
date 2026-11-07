@@ -6,14 +6,12 @@ import {
   Flag,
   CheckSquare,
   Clock,
-  Layers,
-  ChevronLeft,
-  ChevronRight,
-  ZoomIn,
-  ZoomOut,
-  Info,
+  Link2,
+  Lock,
 } from "lucide-react";
 import { TASK_STATUS_CONFIG, PRIORITY_CONFIG } from "@/lib/tokens";
+import type { DependencyWithDetails } from "@/lib/dal/dependencies";
+import { ProjectDependenciesModal } from "./project-dependencies-modal";
 
 interface ProjectTimelineProps {
   project: {
@@ -37,14 +35,19 @@ interface ProjectTimelineProps {
     targetDate: string;
     isCompleted: boolean;
   }>;
+  dependencies?: DependencyWithDetails[];
+  onRefresh?: () => void;
 }
 
 export function ProjectTimelineView({
   project,
   tasks = [],
   milestones = [],
+  dependencies = [],
+  onRefresh,
 }: ProjectTimelineProps) {
   const [resolution, setResolution] = useState<"day" | "week">("day");
+  const [isDepModalOpen, setIsDepModalOpen] = useState(false);
 
   // Filter tasks into scheduled vs unscheduled
   const { scheduledTasks, unscheduledTasks } = useMemo(() => {
@@ -60,6 +63,20 @@ export function ProjectTimelineView({
     }
     return { scheduledTasks: scheduled, unscheduledTasks: unscheduled };
   }, [tasks]);
+
+  // Compute blocked state map
+  const blockedMap = useMemo(() => {
+    const map = new Map<string, { isBlocked: boolean; blockers: string[] }>();
+    for (const dep of dependencies) {
+      const entry = map.get(dep.successorId) || { isBlocked: false, blockers: [] };
+      if (dep.predecessorStatus !== "done") {
+        entry.isBlocked = true;
+        entry.blockers.push(dep.predecessorTitle);
+      }
+      map.set(dep.successorId, entry);
+    }
+    return map;
+  }, [dependencies]);
 
   // Compute timeline date envelope
   const { startDate, endDate, totalDays, datesList } = useMemo(() => {
@@ -127,6 +144,16 @@ export function ProjectTimelineView({
 
   const todayX = dateToX(new Date());
 
+  // Task vertical indexing for connector lines
+  const taskRowHeight = 36;
+  const tasksStartY = 110; // offset after Horizon and Milestones
+
+  const taskIndexMap = useMemo(() => {
+    const map = new Map<string, number>();
+    scheduledTasks.forEach((t, idx) => map.set(t.id, idx));
+    return map;
+  }, [scheduledTasks]);
+
   return (
     <div className="space-y-4">
       {/* Timeline Controls Header */}
@@ -135,11 +162,21 @@ export function ProjectTimelineView({
           <Calendar className="w-4 h-4 text-primary" />
           <span className="text-xs font-semibold text-white">Project Timeline</span>
           <span className="text-[11px] text-slate-400">
-            ({scheduledTasks.length} dated tasks, {milestones.length} milestones)
+            ({scheduledTasks.length} dated tasks, {milestones.length} milestones, {dependencies.length} dependencies)
           </span>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
+          {/* Manage Dependencies Trigger */}
+          <button
+            type="button"
+            onClick={() => setIsDepModalOpen(true)}
+            className="px-2.5 py-1 rounded-lg border border-slate-800 bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs font-medium flex items-center gap-1.5 transition cursor-pointer"
+          >
+            <Link2 className="w-3.5 h-3.5 text-primary" />
+            <span>Dependencies ({dependencies.length})</span>
+          </button>
+
           {/* Day / Week Resolution Toggle */}
           <div className="flex items-center p-0.5 rounded-lg border border-slate-800 bg-slate-900 text-[11px]">
             <button
@@ -216,7 +253,7 @@ export function ProjectTimelineView({
             </div>
 
             {/* Vertical Guide Lines + Canvas Body */}
-            <div className="relative min-h-[300px] py-4">
+            <div className="relative min-h-[340px] py-4">
               {/* Today Guideline */}
               <div
                 style={{ left: `${todayX + cellWidth / 2}px` }}
@@ -237,6 +274,75 @@ export function ProjectTimelineView({
                   />
                 ))}
               </div>
+
+              {/* SVG Dependency Connector Curves Overlay */}
+              <svg
+                style={{ width: `${timelineWidth}px` }}
+                className="absolute inset-0 h-full pointer-events-none z-10"
+              >
+                <defs>
+                  <marker
+                    id="arrow-resolved"
+                    viewBox="0 0 10 10"
+                    refX="6"
+                    refY="5"
+                    markerWidth="5"
+                    markerHeight="5"
+                    orient="auto-start-reverse"
+                  >
+                    <path d="M 0 1 L 10 5 L 0 9 z" fill="#64748B" />
+                  </marker>
+                  <marker
+                    id="arrow-blocked"
+                    viewBox="0 0 10 10"
+                    refX="6"
+                    refY="5"
+                    markerWidth="5"
+                    markerHeight="5"
+                    orient="auto-start-reverse"
+                  >
+                    <path d="M 0 1 L 10 5 L 0 9 z" fill="#EA4335" />
+                  </marker>
+                </defs>
+
+                {dependencies.map((dep) => {
+                  const predIdx = taskIndexMap.get(dep.predecessorId);
+                  const succIdx = taskIndexMap.get(dep.successorId);
+                  if (predIdx === undefined || succIdx === undefined) return null;
+
+                  const predTask = scheduledTasks[predIdx];
+                  const succTask = scheduledTasks[succIdx];
+                  if (!predTask || !succTask) return null;
+
+                  const predEnd = predTask.dueDate || predTask.startDate!;
+                  const succStart = succTask.startDate || succTask.dueDate!;
+
+                  const x1 = dateToX(predEnd) + cellWidth;
+                  const y1 = tasksStartY + predIdx * taskRowHeight + 14;
+
+                  const x2 = dateToX(succStart);
+                  const y2 = tasksStartY + succIdx * taskRowHeight + 14;
+
+                  const isBlocked = dep.predecessorStatus !== "done";
+                  const c1x = x1 + Math.max(Math.abs(x2 - x1) / 2, 20);
+                  const c2x = x2 - Math.max(Math.abs(x2 - x1) / 2, 20);
+
+                  const pathD = `M ${x1} ${y1} C ${c1x} ${y1}, ${c2x} ${y2}, ${x2} ${y2}`;
+
+                  return (
+                    <path
+                      key={dep.id}
+                      d={pathD}
+                      fill="none"
+                      stroke={isBlocked ? "var(--timeline-dep-blocked)" : "var(--timeline-dep-line)"}
+                      strokeWidth={isBlocked ? 2 : 1.5}
+                      strokeDasharray={isBlocked ? "4 3" : undefined}
+                      markerEnd={isBlocked ? "url(#arrow-blocked)" : "url(#arrow-resolved)"}
+                      className="transition-all opacity-80 hover:opacity-100"
+                    />
+                  );
+                })}
+              </svg>
 
               <div className="space-y-4 relative z-10 px-2">
                 {/* 1. Project Duration Envelope */}
@@ -321,9 +427,11 @@ export function ProjectTimelineView({
                       const startX = dateToX(taskStart);
                       const endX = dateToX(taskEnd) + cellWidth;
                       const width = Math.max(endX - startX, 28);
-                      const isSingleDay = !t.startDate || t.startDate === t.dueDate;
 
                       const isDone = t.status === "done";
+                      const blockedInfo = blockedMap.get(t.id);
+                      const isBlocked = !isDone && !!blockedInfo?.isBlocked;
+
                       const priorityColor =
                         PRIORITY_CONFIG[t.priority]?.badgeClass || "border-slate-700 text-slate-300";
 
@@ -334,11 +442,22 @@ export function ProjectTimelineView({
                             className={`absolute h-6 rounded-md border text-xs px-2 flex items-center justify-between gap-1 transition-all shadow-sm ${
                               isDone
                                 ? "bg-slate-900/80 border-slate-700 text-slate-500 line-through"
+                                : isBlocked
+                                ? "bg-danger-subtle border-danger/60 text-white"
                                 : "bg-primary/20 border-primary/50 text-white hover:border-primary hover:bg-primary/30"
                             }`}
-                            title={`${t.title} (${taskStart}${t.dueDate ? ` to ${t.dueDate}` : ""})`}
+                            title={
+                              isBlocked
+                                ? `BLOCKED by: ${blockedInfo?.blockers.join(", ")}`
+                                : `${t.title} (${taskStart}${t.dueDate ? ` to ${t.dueDate}` : ""})`
+                            }
                           >
-                            <span className="truncate font-medium text-[11px]">{t.title}</span>
+                            <div className="flex items-center gap-1.5 truncate">
+                              {isBlocked && (
+                                <Lock className="w-3 h-3 text-red-400 shrink-0 animate-pulse" />
+                              )}
+                              <span className="truncate font-medium text-[11px]">{t.title}</span>
+                            </div>
 
                             <span
                               className={`text-[8px] uppercase font-bold px-1 py-0.2 rounded border shrink-0 ${priorityColor}`}
@@ -389,6 +508,18 @@ export function ProjectTimelineView({
           </div>
         </div>
       )}
+
+      {/* Dependencies Modal */}
+      <ProjectDependenciesModal
+        isOpen={isDepModalOpen}
+        onClose={() => setIsDepModalOpen(false)}
+        projectId={project.id}
+        tasks={tasks}
+        dependencies={dependencies}
+        onRefresh={() => {
+          if (onRefresh) onRefresh();
+        }}
+      />
     </div>
   );
 }

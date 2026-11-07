@@ -15,6 +15,13 @@
       "when": 1794051373666,
       "tag": "0001_cool_jane_foster",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794052178891,
+      "tag": "0002_typical_romulus",
+      "breakpoints": true
     }
   ]
 }

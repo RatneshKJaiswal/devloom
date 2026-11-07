@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, uuid, pgEnum, index } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, uuid, pgEnum, index, uniqueIndex } from "drizzle-orm/pg-core";
 import { users } from "./auth";
 import { projects, sdlcPhaseEnum } from "./organization";
 
@@ -40,5 +40,33 @@ export const tasks = pgTable(
     index("idx_tasks_user_project").on(table.userId, table.projectId),
     index("idx_tasks_user_due").on(table.userId, table.dueDate),
     index("idx_tasks_user_proj_due_status").on(table.userId, table.projectId, table.status, table.dueDate),
+  ]
+);
+
+export const taskDependencies = pgTable(
+  "task_dependencies",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    projectId: uuid("project_id")
+      .notNull()
+      .references(() => projects.id, { onDelete: "cascade" }),
+    predecessorId: uuid("predecessor_id")
+      .notNull()
+      .references(() => tasks.id, { onDelete: "cascade" }),
+    successorId: uuid("successor_id")
+      .notNull()
+      .references(() => tasks.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index("idx_task_deps_user_project").on(table.userId, table.projectId),
+    uniqueIndex("idx_task_deps_unique_pair").on(
+      table.userId,
+      table.predecessorId,
+      table.successorId
+    ),
   ]
 );

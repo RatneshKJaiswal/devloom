@@ -6,6 +6,7 @@ import {
   projectMilestones,
   tags,
   tasks,
+  taskDependencies,
   bugs,
   learnings,
   githubLinks,
@@ -33,6 +34,7 @@ export async function exportUserData(userId: string) {
     userMilestones,
     userTags,
     userTasks,
+    userDependencies,
     userBugs,
     userLearnings,
     userGithubLinks,
@@ -42,6 +44,7 @@ export async function exportUserData(userId: string) {
     db.select().from(projectMilestones).where(withUserScope(projectMilestones, userId)),
     db.select().from(tags).where(withUserScope(tags, userId)),
     db.select().from(tasks).where(withUserScope(tasks, userId)),
+    db.select().from(taskDependencies).where(withUserScope(taskDependencies, userId)),
     db.select().from(bugs).where(withUserScope(bugs, userId)),
     db.select().from(learnings).where(withUserScope(learnings, userId)),
     db.select().from(githubLinks).where(withUserScope(githubLinks, userId)),
@@ -49,7 +52,7 @@ export async function exportUserData(userId: string) {
 
   return {
     exportedAt: new Date().toISOString(),
-    version: "1.1",
+    version: "1.2",
     profile: userProfile,
     data: {
       projects: userProjects,
@@ -57,6 +60,7 @@ export async function exportUserData(userId: string) {
       milestones: userMilestones,
       tags: userTags,
       tasks: userTasks,
+      dependencies: userDependencies,
       bugs: userBugs,
       learnings: userLearnings,
       githubLinks: userGithubLinks,

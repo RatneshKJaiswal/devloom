@@ -10,6 +10,7 @@ import {
 } from "@/lib/db/schema";
 import { withUserScope } from "./base";
 import { eq, desc, sql, and, isNull } from "drizzle-orm";
+import { listProjectDependencies } from "./dependencies";
 
 export async function listProjects(userId: string) {
   const allProjects = await db
@@ -83,7 +84,7 @@ export async function getProjectDetails(userId: string, id: string) {
   const project = await getProjectById(userId, id);
   if (!project) return null;
 
-  const [projectTasks, projectBugs, projectLearnings, history, milestones] = await Promise.all([
+  const [projectTasks, projectBugs, projectLearnings, history, milestones, dependencies] = await Promise.all([
     db
       .select()
       .from(tasks)
@@ -109,6 +110,7 @@ export async function getProjectDetails(userId: string, id: string) {
       .from(projectMilestones)
       .where(withUserScope(projectMilestones, userId, eq(projectMilestones.projectId, id)))
       .orderBy(projectMilestones.targetDate),
+    listProjectDependencies(userId, id),
   ]);
 
   return {
@@ -118,6 +120,7 @@ export async function getProjectDetails(userId: string, id: string) {
     learnings: projectLearnings,
     phaseHistory: history,
     milestones,
+    dependencies,
   };
 }
 

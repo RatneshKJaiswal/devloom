@@ -388,6 +388,8 @@ export default function ProjectsPage() {
                   project={projectDetails.project}
                   tasks={projectDetails.tasks || []}
                   milestones={projectDetails.milestones || []}
+                  dependencies={projectDetails.dependencies || []}
+                  onRefresh={() => loadProjectDetails(selectedProjectId)}
                 />
               )}
 

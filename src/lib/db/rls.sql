@@ -7,6 +7,7 @@ ALTER TABLE "project_phase_history" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "project_milestones" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "tags" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "tasks" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "task_dependencies" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "bugs" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "learnings" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "github_links" ENABLE ROW LEVEL SECURITY;
@@ -37,22 +38,27 @@ CREATE POLICY "tasks_user_isolation" ON "tasks"
   FOR ALL
   USING (user_id = NULLIF(current_setting('app.current_user_id', true), '')::uuid);
 
--- 6. Bugs Isolation Policy
+-- 6. Task Dependencies Isolation Policy
+CREATE POLICY "task_dependencies_user_isolation" ON "task_dependencies"
+  FOR ALL
+  USING (user_id = NULLIF(current_setting('app.current_user_id', true), '')::uuid);
+
+-- 7. Bugs Isolation Policy
 CREATE POLICY "bugs_user_isolation" ON "bugs"
   FOR ALL
   USING (user_id = NULLIF(current_setting('app.current_user_id', true), '')::uuid);
 
--- 7. Learnings Isolation Policy
+-- 8. Learnings Isolation Policy
 CREATE POLICY "learnings_user_isolation" ON "learnings"
   FOR ALL
   USING (user_id = NULLIF(current_setting('app.current_user_id', true), '')::uuid);
 
--- 8. GitHub Links Isolation Policy
+-- 9. GitHub Links Isolation Policy
 CREATE POLICY "github_links_user_isolation" ON "github_links"
   FOR ALL
   USING (user_id = NULLIF(current_setting('app.current_user_id', true), '')::uuid);
 
--- 9. Agent Usage Isolation Policy
+-- 10. Agent Usage Isolation Policy
 CREATE POLICY "agent_usage_user_isolation" ON "agent_usage"
   FOR ALL
   USING (user_id = NULLIF(current_setting('app.current_user_id', true), '')::uuid);
