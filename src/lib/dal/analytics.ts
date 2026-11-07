@@ -26,6 +26,7 @@ export interface DashboardAnalytics {
     byStatus: Record<string, number>;
     byPriority: Record<string, number>;
     total: number;
+    totalOpen: number;
   };
   completedVelocity: Array<{
     weekLabel: string;
@@ -37,7 +38,7 @@ export async function getDashboardAnalytics(userId: string): Promise<DashboardAn
   const fourWeeksAgo = new Date(Date.now() - 28 * 24 * 60 * 60 * 1000);
 
   // Run 3 optimized aggregate queries in parallel
-  const [taskStats, bugStats, weeklyTasks] = await Promise.all([
+  const [taskStats, bugStats, completedTaskRows] = await Promise.all([
     // Query 1: Project-scoped task aggregates (Overdue, Due Soon, Status Breakdown)
     db
       .select({
@@ -68,11 +69,10 @@ export async function getDashboardAnalytics(userId: string): Promise<DashboardAn
       .where(withUserScope(bugs, userId))
       .groupBy(bugs.status, bugs.priority),
 
-    // Query 3: 4-week task completion velocity
+    // Query 3: Completed tasks in past 4 weeks (safely bucketed in JS)
     db
       .select({
-        weekStart: sql<string>`TO_CHAR(DATE_TRUNC('week', ${tasks.updatedAt}), 'YYYY-MM-DD')`,
-        count: sql<number>`count(*)::int`,
+        updatedAt: tasks.updatedAt,
       })
       .from(tasks)
       .where(
@@ -84,33 +84,35 @@ export async function getDashboardAnalytics(userId: string): Promise<DashboardAn
             sql`${tasks.updatedAt} >= ${fourWeeksAgo}`
           )
         )
-      )
-      .groupBy(sql`DATE_TRUNC('week', ${tasks.updatedAt})`)
-      .orderBy(sql`DATE_TRUNC('week', ${tasks.updatedAt})`),
+      ),
   ]);
 
   // Transform Query 1 into Due Tasks & Status Distribution
   const dueTasksByProject = taskStats
+    .map((r) => {
+      const overdue = Number(r.overdueCount) || 0;
+      const dueSoon = Number(r.dueSoonCount) || 0;
+      return {
+        projectId: r.projectId,
+        projectName: r.projectName,
+        projectColor: r.projectColor,
+        overdueCount: overdue,
+        dueSoonCount: dueSoon,
+        totalOpen: overdue + dueSoon,
+      };
+    })
     .filter((r) => r.overdueCount > 0 || r.dueSoonCount > 0)
-    .map((r) => ({
-      projectId: r.projectId,
-      projectName: r.projectName,
-      projectColor: r.projectColor,
-      overdueCount: r.overdueCount,
-      dueSoonCount: r.dueSoonCount,
-      totalOpen: r.overdueCount + r.dueSoonCount,
-    }))
     .sort((a, b) => b.totalOpen - a.totalOpen);
 
   const statusDistributionByProject = taskStats.map((r) => ({
     projectId: r.projectId,
     projectName: r.projectName,
     projectColor: r.projectColor,
-    todo: r.todoCount,
-    inProgress: r.inProgressCount,
-    done: r.doneCount,
-    cancelled: r.cancelledCount,
-    total: r.totalTasks,
+    todo: Number(r.todoCount) || 0,
+    inProgress: Number(r.inProgressCount) || 0,
+    done: Number(r.doneCount) || 0,
+    cancelled: Number(r.cancelledCount) || 0,
+    total: Number(r.totalTasks) || 0,
   }));
 
   // Transform Query 2 into Bug stats
@@ -131,31 +133,38 @@ export async function getDashboardAnalytics(userId: string): Promise<DashboardAn
   let totalBugs = 0;
 
   for (const row of bugStats) {
-    if (row.status in byStatus) {
-      byStatus[row.status] += row.count;
+    const count = Number(row.count) || 0;
+    if (row.status && row.status in byStatus) {
+      byStatus[row.status] = (byStatus[row.status] || 0) + count;
     }
-    if (row.priority in byPriority) {
-      byPriority[row.priority] += row.count;
+    if (row.priority && row.priority in byPriority) {
+      byPriority[row.priority] = (byPriority[row.priority] || 0) + count;
     }
-    totalBugs += row.count;
+    totalBugs += count;
   }
 
-  // Transform Query 3: generate 4 contiguous weekly buckets
-  const weeklyMap = new Map(weeklyTasks.map((w) => [w.weekStart, w.count]));
+  const totalOpen =
+    (byStatus.open || 0) +
+    (byStatus.confirmed || 0) +
+    (byStatus.fixing || 0);
+
+  // Transform Query 3: bucket completed tasks into past 4 rolling weeks
+  const now = new Date();
   const completedVelocity: Array<{ weekLabel: string; completedTasks: number }> = [];
 
-  const now = new Date();
   for (let i = 3; i >= 0; i--) {
-    const d = new Date(now.getTime() - i * 7 * 24 * 60 * 60 * 1000);
-    // Find Monday of that week
-    const day = d.getDay();
-    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-    const monday = new Date(d.setDate(diff));
-    const key = monday.toISOString().slice(0, 10);
-    const label = `Wk ${monday.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
+    const weekStart = new Date(now.getTime() - (i + 1) * 7 * 24 * 60 * 60 * 1000);
+    const weekEnd = new Date(now.getTime() - i * 7 * 24 * 60 * 60 * 1000);
+    const label = `Wk ${weekEnd.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
+
+    const count = completedTaskRows.filter((t) => {
+      const taskDate = new Date(t.updatedAt);
+      return taskDate >= weekStart && taskDate < weekEnd;
+    }).length;
+
     completedVelocity.push({
       weekLabel: label,
-      completedTasks: weeklyMap.get(key) || 0,
+      completedTasks: count,
     });
   }
 
@@ -166,6 +175,7 @@ export async function getDashboardAnalytics(userId: string): Promise<DashboardAn
       byStatus,
       byPriority,
       total: totalBugs,
+      totalOpen,
     },
     completedVelocity,
   };

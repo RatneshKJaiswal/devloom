@@ -14,6 +14,7 @@ export async function GET() {
     const analytics = await getDashboardAnalytics(session.user.id);
     return jsonResponse(analytics);
   } catch (error) {
+    console.error("Dashboard Analytics Error:", error);
     return serverErrorResponse(error);
   }
 }

@@ -14,6 +14,7 @@ import type { DashboardAnalytics } from "@/lib/dal/analytics";
 export default function DashboardPage() {
   const [analytics, setAnalytics] = useState<DashboardAnalytics | null>(null);
   const [dueLearnings, setDueLearnings] = useState(0);
+  const [fallbackBugCount, setFallbackBugCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [isQuickCaptureOpen, setIsQuickCaptureOpen] = useState(false);
   const [isPlannerOpen, setIsPlannerOpen] = useState(false);
@@ -22,9 +23,10 @@ export default function DashboardPage() {
   async function loadDashboard() {
     setLoading(true);
     try {
-      const [analyticsRes, dueRes] = await Promise.all([
+      const [analyticsRes, dueRes, bugsRes] = await Promise.all([
         fetch("/api/dashboard/analytics"),
         fetch("/api/learnings/review"),
+        fetch("/api/bugs"),
       ]);
 
       if (analyticsRes.ok) {
@@ -35,6 +37,15 @@ export default function DashboardPage() {
       if (dueRes.ok) {
         const dueData = await dueRes.json();
         setDueLearnings(Array.isArray(dueData) ? dueData.length : 0);
+      }
+
+      if (bugsRes.ok) {
+        const bugsData = await bugsRes.json();
+        if (Array.isArray(bugsData)) {
+          setFallbackBugCount(
+            bugsData.filter((b: any) => b.status !== "resolved" && b.status !== "closed").length
+          );
+        }
       }
     } catch (err) {
       console.error("Failed to load dashboard metrics:", err);
@@ -54,9 +65,7 @@ export default function DashboardPage() {
     ) ?? 0;
 
   const totalOpenBugs =
-    (analytics?.bugsByStatusAndPriority.byStatus.open ?? 0) +
-    (analytics?.bugsByStatusAndPriority.byStatus.confirmed ?? 0) +
-    (analytics?.bugsByStatusAndPriority.byStatus.fixing ?? 0);
+    analytics?.bugsByStatusAndPriority.totalOpen ?? fallbackBugCount;
 
   return (
     <div className="space-y-8 max-w-6xl mx-auto">
