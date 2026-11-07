@@ -76,7 +76,7 @@ export class GeminiAgentClient implements AgentClient {
     }
 
     let attempts = 0;
-    const maxAttempts = 2;
+    const maxAttempts = 3;
 
     while (attempts < maxAttempts) {
       attempts++;
@@ -110,6 +110,12 @@ export class GeminiAgentClient implements AgentClient {
 
         if (!res.ok) {
           const errBody = await res.text();
+          let parsedErrorMsg = "";
+          try {
+            const errJson = JSON.parse(errBody);
+            parsedErrorMsg = errJson?.error?.message || "";
+          } catch {}
+
           if (res.status === 404 && this.model !== "gemini-3.5-flash") {
             this.model = "gemini-3.5-flash";
             continue; // Fallback to active model
@@ -124,14 +130,31 @@ export class GeminiAgentClient implements AgentClient {
               },
             };
           }
-          if (res.status >= 500 && attempts < maxAttempts) {
-            continue; // Transient retry
+          if ((res.status === 503 || res.status >= 500) && attempts < maxAttempts) {
+            await new Promise((resolve) => setTimeout(resolve, attempts * 1200));
+            continue; // Transient retry with backoff
           }
+
+          if (
+            res.status === 503 ||
+            parsedErrorMsg.toLowerCase().includes("high demand") ||
+            parsedErrorMsg.toLowerCase().includes("unavailable")
+          ) {
+            return {
+              success: false,
+              error: {
+                code: "SERVICE_UNAVAILABLE",
+                message: "The AI model is currently experiencing high demand. Please try again in a few moments.",
+                retryable: true,
+              },
+            };
+          }
+
           return {
             success: false,
             error: {
               code: "API_ERROR",
-              message: `AI service returned error HTTP ${res.status}: ${errBody.slice(0, 200)}`,
+              message: parsedErrorMsg || `AI service returned error HTTP ${res.status}: ${errBody.slice(0, 180)}`,
               retryable: false,
             },
           };

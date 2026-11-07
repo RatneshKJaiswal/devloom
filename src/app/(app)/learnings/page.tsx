@@ -376,6 +376,8 @@ export default function LearningsPage() {
         isOpen={isCreateOpen}
         onClose={() => setIsCreateOpen(false)}
         onSuccess={loadData}
+        defaultTab="learning"
+        lockTab={true}
       />
     </div>
   );
