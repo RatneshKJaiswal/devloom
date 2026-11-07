@@ -120,6 +120,20 @@ export default function BugsPage() {
     loadBugs();
   }, [statusFilter, projectFilter]);
 
+  // Auto-focus and open newly created bug if ?selected= query param is present
+  useEffect(() => {
+    if (typeof window === "undefined" || bugs.length === 0) return;
+    const params = new URLSearchParams(window.location.search);
+    const selectedId = params.get("selected");
+    if (!selectedId) return;
+
+    const matched = bugs.find((b) => b.id === selectedId);
+    if (matched) {
+      setEditingBug(matched);
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }, [bugs]);
+
   async function updateStatus(id: string, newStatus: string) {
     try {
       const res = await fetch(`/api/bugs/${id}`, {

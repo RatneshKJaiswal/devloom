@@ -28,28 +28,14 @@ import { TASK_STATUS_CONFIG, PRIORITY_CONFIG } from "@/lib/tokens";
 import type { DependencyWithDetails } from "@/lib/dal/dependencies";
 import { ProjectDependenciesModal } from "./project-dependencies-modal";
 import { QuickCaptureModal } from "@/components/quick-capture-dialog";
+import {
+  toDateStr,
+  parseDateOnly,
+  addDaysToStr,
+  calculateReschedule,
+} from "@/lib/timeline";
 
-export function toDateStr(d: Date | string): string {
-  if (typeof d === "string") {
-    if (d.includes("T")) return d.split("T")[0];
-    return d.slice(0, 10);
-  }
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
-
-export function parseDateOnly(dateStr: string): Date {
-  const [y, m, d] = dateStr.slice(0, 10).split("-").map(Number);
-  return new Date(y, m - 1, d);
-}
-
-export function addDaysToStr(dateStr: string, days: number): string {
-  const d = parseDateOnly(dateStr);
-  d.setDate(d.getDate() + days);
-  return toDateStr(d);
-}
+export { toDateStr, parseDateOnly, addDaysToStr };
 
 interface DragState {
   taskId: string;

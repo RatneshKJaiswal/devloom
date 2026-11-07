@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { calculateTimelineBoundaries } from "@/lib/timeline";
 
 describe("Project Timeline Calculations", () => {
   it("correctly separates scheduled vs unscheduled tasks", () => {
@@ -40,5 +41,25 @@ describe("Project Timeline Calculations", () => {
 
     expect(minDate.toISOString().slice(0, 10)).toBe("2026-11-01");
     expect(maxDate.toISOString().slice(0, 10)).toBe("2026-12-31");
+  });
+
+  it("calculates padded timeline boundaries with total day span", () => {
+    const bounds = calculateTimelineBoundaries({
+      today: new Date("2026-11-10T00:00:00Z"),
+      projectStartDate: "2026-11-05",
+      projectTargetDate: "2026-11-25",
+      tasks: [
+        { startDate: "2026-11-08", dueDate: "2026-11-18" },
+      ],
+      milestones: [
+        { targetDate: "2026-11-20" },
+      ],
+    });
+
+    // 7 days before min (2026-11-05 - 7d = 2026-10-29)
+    expect(bounds.startBound).toBe("2026-10-29");
+    // 14 days after max (2026-11-25 + 14d = 2026-12-09)
+    expect(bounds.endBound).toBe("2026-12-09");
+    expect(bounds.totalDays).toBeGreaterThan(30);
   });
 });

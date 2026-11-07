@@ -77,17 +77,17 @@ export function ViewLearningModal({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-2xl rounded-2xl border border-slate-800 bg-slate-900 shadow-2xl p-6 relative max-h-[90vh] flex flex-col animate-in zoom-in-95 duration-150"
+        className="w-full max-w-2xl rounded-xl border border-slate-800 bg-[#131519] shadow-2xl p-5 sm:p-6 relative max-h-[90vh] flex flex-col animate-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button */}
         <button
           type="button"
           onClick={onClose}
-          className="absolute right-4 top-4 p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
+          className="absolute right-4 top-4 p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/80 transition cursor-pointer"
           title="Close dialog (Esc)"
         >
-          <X className="w-5 h-5" />
+          <X className="w-4 h-4" />
         </button>
 
         {/* Modal Header: Category & Metadata */}
@@ -146,7 +146,7 @@ export function ViewLearningModal({
           <button
             type="button"
             onClick={handleCopy}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-700 bg-slate-800 hover:bg-slate-750 text-slate-200 text-xs font-medium transition cursor-pointer"
+            className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg border border-slate-800 bg-slate-800/80 hover:bg-slate-750 text-slate-200 text-xs font-medium transition cursor-pointer"
           >
             {copied ? (
               <>
@@ -169,7 +169,7 @@ export function ViewLearningModal({
                   onClose();
                   onEdit(learning);
                 }}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-700 hover:bg-slate-800 text-slate-300 text-xs font-medium transition cursor-pointer"
+                className="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg border border-slate-800 hover:bg-slate-800 text-slate-300 text-xs font-medium transition cursor-pointer"
               >
                 <Pencil className="w-3.5 h-3.5" />
                 <span>Edit</span>
@@ -179,7 +179,7 @@ export function ViewLearningModal({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-medium transition cursor-pointer"
+              className="h-8 px-3.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-xs font-medium transition cursor-pointer"
             >
               Close
             </button>

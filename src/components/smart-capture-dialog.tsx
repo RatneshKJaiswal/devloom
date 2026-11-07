@@ -63,9 +63,19 @@ export function SmartCaptureModal({ isOpen, onClose, onSuccess }: SmartCaptureMo
           throw new Error(data.error || "Failed to import GitHub issue");
         }
 
+        const createdItem = data.createdItem;
+        const entityType = data.candidate?.entityType || "task";
+        const targetRoute =
+          entityType === "bug"
+            ? (createdItem?.id ? `/bugs?selected=${createdItem.id}` : "/bugs")
+            : entityType === "learning"
+            ? (createdItem?.id ? `/learnings?selected=${createdItem.id}` : "/learnings")
+            : (createdItem?.id ? `/tasks?selected=${createdItem.id}` : "/tasks");
+
         setGithubUrl("");
         onClose();
         if (onSuccess) onSuccess();
+        router.push(targetRoute);
       } catch (err: any) {
         setError(err.message || "An unexpected error occurred");
       } finally {
@@ -139,17 +149,18 @@ export function SmartCaptureModal({ isOpen, onClose, onSuccess }: SmartCaptureMo
         body: JSON.stringify(body),
       });
 
+      const savedData = await res.json();
       if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Failed to save item");
+        throw new Error(savedData.error || "Failed to save item");
       }
 
+      const entityId = savedData?.id || savedData?.data?.id;
       const targetRoute =
         candidate.entityType === "bug"
-          ? "/bugs"
+          ? (entityId ? `/bugs?selected=${entityId}` : "/bugs")
           : candidate.entityType === "learning"
-          ? "/learnings"
-          : "/tasks";
+          ? (entityId ? `/learnings?selected=${entityId}` : "/learnings")
+          : (entityId ? `/tasks?selected=${entityId}` : "/tasks");
 
       setRawText("");
       setCandidate(null);
@@ -165,21 +176,21 @@ export function SmartCaptureModal({ isOpen, onClose, onSuccess }: SmartCaptureMo
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs">
-      <div className="w-full max-w-2xl rounded-2xl border border-slate-800 bg-[#131519] shadow-2xl p-7 relative max-h-[92vh] flex flex-col">
+      <div className="w-full max-w-2xl rounded-xl border border-slate-800 bg-[#131519] shadow-2xl p-5 sm:p-6 relative max-h-[90vh] flex flex-col">
         <button
           onClick={onClose}
-          className="absolute right-5 top-5 p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
+          className="absolute right-4 top-4 p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/80 transition cursor-pointer"
         >
-          <X className="w-5 h-5" />
+          <X className="w-4 h-4" />
         </button>
 
         {/* Header */}
-        <div className="flex items-center gap-3.5 mb-5 pb-4 border-b border-slate-800/80">
-          <div className="w-10 h-10 rounded-xl bg-primary-subtle border border-primary/25 flex items-center justify-center text-primary shrink-0">
-            <AIIcon className="w-5 h-5 text-primary" />
+        <div className="flex items-center gap-3 mb-4 pb-3 border-b border-slate-800/80">
+          <div className="w-8 h-8 rounded-lg bg-primary-subtle border border-primary/25 flex items-center justify-center text-primary shrink-0">
+            <AIIcon className="w-4 h-4 text-primary" />
           </div>
           <div>
-            <h2 className="text-base font-bold text-white tracking-tight">Smart Capture</h2>
+            <h2 className="text-sm font-semibold text-white tracking-tight">Smart Capture</h2>
             <p className="text-xs text-slate-400 mt-0.5">
               Paste stack traces, rough notes, or link a GitHub issue/PR to automatically structure it.
             </p>
@@ -188,13 +199,13 @@ export function SmartCaptureModal({ isOpen, onClose, onSuccess }: SmartCaptureMo
 
         {/* Mode Selector */}
         {!candidate && (
-          <div className="flex gap-2 p-1.5 rounded-2xl bg-slate-950 border border-slate-800 mb-5 max-w-sm">
+          <div className="flex gap-1.5 p-1 rounded-lg bg-slate-950 border border-slate-800 mb-4 max-w-xs">
             <button
               type="button"
               onClick={() => setMode("text")}
-              className={`flex-1 py-2 px-3.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
+              className={`flex-1 h-7 px-2.5 rounded-md text-xs font-medium transition cursor-pointer ${
                 mode === "text"
-                  ? "bg-primary text-white shadow-sm shadow-primary/20"
+                  ? "bg-primary text-white shadow-xs"
                   : "text-slate-400 hover:text-slate-200"
               }`}
             >
@@ -203,9 +214,9 @@ export function SmartCaptureModal({ isOpen, onClose, onSuccess }: SmartCaptureMo
             <button
               type="button"
               onClick={() => setMode("github")}
-              className={`flex-1 py-2 px-3.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer ${
+              className={`flex-1 h-7 px-2.5 rounded-md text-xs font-medium flex items-center justify-center gap-1.5 transition cursor-pointer ${
                 mode === "github"
-                  ? "bg-primary text-white shadow-sm shadow-primary/20"
+                  ? "bg-primary text-white shadow-xs"
                   : "text-slate-400 hover:text-slate-200"
               }`}
             >
@@ -216,23 +227,23 @@ export function SmartCaptureModal({ isOpen, onClose, onSuccess }: SmartCaptureMo
         )}
 
         {error && (
-          <div className="mb-4 p-3 rounded-xl bg-red-950/40 border border-red-500/30 text-xs text-red-300 flex items-start gap-2">
-            <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+          <div className="mb-3.5 p-2.5 rounded-lg bg-red-950/40 border border-red-500/30 text-xs text-red-300 flex items-start gap-2">
+            <AlertCircle className="w-3.5 h-3.5 text-red-400 shrink-0 mt-0.5" />
             <div className="flex-1">{error}</div>
           </div>
         )}
 
-        <div className="flex-1 overflow-y-auto space-y-4 pr-1">
+        <div className="flex-1 overflow-y-auto space-y-3.5 pr-1">
           {!candidate ? (
             mode === "text" ? (
               /* Raw Text Input */
               <div className="space-y-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-2">
+                  <label className="block text-[11px] font-medium text-slate-300 mb-1.5">
                     Raw Developer Input (Max 8,000 characters)
                   </label>
                   <textarea
-                    rows={8}
+                    rows={7}
                     value={rawText}
                     onChange={(e) => setRawText(e.target.value)}
                     placeholder="Paste stack traces, error messages, terminal snippets, or rough thoughts here...
@@ -241,9 +252,9 @@ Example:
 TypeError: Cannot read properties of undefined (reading 'userId')
     at handleRequest (/app/api/tasks/route.ts:42:15)
     Occurs when request session is expired or unauthenticated."
-                    className="w-full px-4 py-3 rounded-xl border border-slate-700/80 bg-slate-950 font-mono text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-primary leading-relaxed transition"
+                    className="w-full px-3 py-2 rounded-lg border border-slate-800 bg-slate-950 font-mono text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-slate-600 leading-relaxed transition"
                   />
-                  <div className="flex justify-between items-center text-[11px] text-slate-500 mt-1.5">
+                  <div className="flex justify-between items-center text-[10px] text-slate-500 mt-1">
                     <span>Treats pasted text as untrusted data</span>
                     <span>{rawText.length} / 8,000</span>
                   </div>
@@ -251,22 +262,22 @@ TypeError: Cannot read properties of undefined (reading 'userId')
               </div>
             ) : (
               /* GitHub URL Input */
-              <div className="space-y-3 py-2">
+              <div className="space-y-3 py-1">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-2">
+                  <label className="block text-[11px] font-medium text-slate-300 mb-1.5">
                     GitHub Issue or Pull Request URL
                   </label>
                   <div className="relative">
-                    <Link2 className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <Link2 className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <input
                       type="url"
                       value={githubUrl}
                       onChange={(e) => setGithubUrl(e.target.value)}
                       placeholder="https://github.com/owner/repo/issues/123"
-                      className="w-full !pl-11 pr-4 py-2.5 rounded-xl border border-slate-700/80 bg-slate-950 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-primary transition"
+                      className="w-full h-8 !pl-9 pr-3 rounded-lg border border-slate-800 bg-slate-950 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-slate-600 transition"
                     />
                   </div>
-                  <p className="text-[11px] text-slate-400 mt-2">
+                  <p className="text-[11px] text-slate-400 mt-1.5">
                     The agent fetches the issue title, description, and labels, generates a clean task or bug, and establishes a live link.
                   </p>
                 </div>
@@ -274,8 +285,8 @@ TypeError: Cannot read properties of undefined (reading 'userId')
             )
           ) : (
             /* Structured Candidate Preview */
-            <div className="space-y-4 p-5 rounded-2xl border border-primary/30 bg-primary-subtle">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+            <div className="space-y-3.5 p-4 rounded-xl border border-primary/30 bg-primary-subtle">
+              <div className="flex items-center justify-between pb-2.5 border-b border-slate-800">
                 <div className="flex items-center gap-2">
                   {candidate.entityType === "task" && <CheckSquare className="w-4 h-4 text-primary" />}
                   {candidate.entityType === "bug" && <Bug className="w-4 h-4 text-warning" />}
@@ -297,75 +308,75 @@ TypeError: Cannot read properties of undefined (reading 'userId')
 
               {/* Editable Title */}
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-2">Title</label>
+                <label className="block text-[11px] font-medium text-slate-300 mb-1.5">Title</label>
                 <input
                   type="text"
                   value={candidate.title}
                   onChange={(e) => setCandidate({ ...candidate, title: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-700/80 bg-slate-950 text-xs text-white focus:outline-none focus:border-primary transition"
+                  className="w-full h-8 px-3 rounded-lg border border-slate-800 bg-slate-950 text-xs text-white focus:outline-none focus:border-slate-600 transition"
                 />
               </div>
 
               {/* Editable Description */}
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-2">
+                <label className="block text-[11px] font-medium text-slate-300 mb-1.5">
                   {candidate.entityType === "learning" ? "Note Content" : "Description"}
                 </label>
                 <textarea
                   rows={3}
                   value={candidate.description}
                   onChange={(e) => setCandidate({ ...candidate, description: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-700/80 bg-slate-950 text-xs text-white focus:outline-none focus:border-primary transition leading-relaxed"
+                  className="w-full px-3 py-2 rounded-lg border border-slate-800 bg-slate-950 text-xs text-white focus:outline-none focus:border-slate-600 transition leading-relaxed"
                 />
               </div>
 
               {/* Priority & Tags */}
-              <div className="flex flex-wrap items-center gap-3">
-                <div className="flex-1 min-w-[140px]">
-                  <label className="block text-xs font-semibold text-slate-300 mb-2">Priority</label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-medium text-slate-300 mb-1.5">Priority</label>
                   <div className="relative flex items-center">
                     <select
                       value={candidate.priority}
                       onChange={(e) => setCandidate({ ...candidate, priority: e.target.value as any })}
-                      className="w-full px-4 py-2.5 pr-9 rounded-xl border border-slate-700/80 bg-slate-950 text-xs text-white focus:outline-none focus:border-primary cursor-pointer appearance-none transition"
+                      className="w-full h-8 px-2.5 pr-8 rounded-lg border border-slate-800 bg-slate-950 text-xs text-white focus:outline-none focus:border-slate-600 cursor-pointer appearance-none transition"
                     >
                       <option value="low" className="bg-slate-950 text-slate-200">Low</option>
                       <option value="medium" className="bg-slate-950 text-slate-200">Medium</option>
                       <option value="high" className="bg-slate-950 text-slate-200">High</option>
                       <option value="urgent" className="bg-slate-950 text-slate-200">Urgent</option>
                     </select>
-                    <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-3 pointer-events-none shrink-0" />
+                    <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 pointer-events-none shrink-0" />
                   </div>
                 </div>
 
                 {candidate.entityType !== "learning" && (
-                  <div className="flex-1 min-w-[140px]">
-                    <label className="block text-xs font-semibold text-slate-300 mb-2">Due Date</label>
+                  <div>
+                    <label className="block text-[11px] font-medium text-slate-300 mb-1.5">Due Date</label>
                     <input
                       type="date"
                       value={candidate.dueDate || ""}
                       onChange={(e) => setCandidate({ ...candidate, dueDate: e.target.value || null })}
-                      className="w-full px-4 py-2.5 rounded-xl border border-slate-700/80 bg-slate-950 text-xs text-white focus:outline-none focus:border-primary cursor-pointer transition"
+                      className="w-full h-8 px-2.5 rounded-lg border border-slate-800 bg-slate-950 text-xs text-white focus:outline-none focus:border-slate-600 cursor-pointer transition"
                     />
                   </div>
                 )}
-
-                {candidate.tags && candidate.tags.length > 0 && (
-                  <div className="flex-1 min-w-[200px]">
-                    <label className="block text-xs font-semibold text-slate-300 mb-2">Suggested Tags</label>
-                    <div className="flex flex-wrap gap-1.5 pt-0.5">
-                      {candidate.tags.map((tag, idx) => (
-                        <span
-                          key={idx}
-                          className="px-2.5 py-1 rounded-lg bg-slate-800 text-[11px] font-medium text-slate-300 border border-slate-700"
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
               </div>
+
+              {candidate.tags && candidate.tags.length > 0 && (
+                <div>
+                  <label className="block text-[11px] font-medium text-slate-300 mb-1.5">Suggested Tags</label>
+                  <div className="flex flex-wrap gap-1.5 pt-0.5">
+                    {candidate.tags.map((tag, idx) => (
+                      <span
+                        key={idx}
+                        className="px-2 py-0.5 rounded-md bg-slate-800 text-[10px] font-medium text-slate-300 border border-slate-700"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Bug Details Preview */}
               {candidate.entityType === "bug" && candidate.bugDetails && (
@@ -384,7 +395,7 @@ TypeError: Cannot read properties of undefined (reading 'userId')
                       <span className="text-xs font-semibold text-amber-400 block mb-1">
                         Extracted Stack Trace:
                       </span>
-                      <pre className="p-3 rounded-xl bg-black/60 font-mono text-[11px] text-amber-200/90 overflow-x-auto max-h-28 whitespace-pre-wrap border border-slate-800 leading-relaxed">
+                      <pre className="p-2.5 rounded-lg bg-black/60 font-mono text-[11px] text-amber-200/90 overflow-x-auto max-h-28 whitespace-pre-wrap border border-slate-800 leading-relaxed">
                         {candidate.bugDetails.stackTrace}
                       </pre>
                     </div>
@@ -395,12 +406,12 @@ TypeError: Cannot read properties of undefined (reading 'userId')
           )}
         </div>
 
-        {/* Footer Actions */}
-        <div className="flex justify-end gap-3 pt-5 border-t border-slate-800/80 mt-5">
+        {/* Modal Actions */}
+        <div className="flex justify-end gap-2.5 pt-4 border-t border-slate-800/80 mt-4">
           <button
             type="button"
             onClick={onClose}
-            className="px-5 py-2.5 rounded-xl border border-slate-700 hover:bg-slate-800 text-slate-300 text-xs font-semibold transition cursor-pointer"
+            className="h-8 px-3.5 rounded-lg border border-slate-800 hover:bg-slate-850 hover:border-slate-700 text-slate-300 text-xs font-medium transition cursor-pointer"
           >
             Cancel
           </button>
@@ -410,12 +421,12 @@ TypeError: Cannot read properties of undefined (reading 'userId')
               type="button"
               disabled={analyzing || (mode === "text" ? !rawText.trim() : !githubUrl.trim())}
               onClick={handleAnalyze}
-              className="px-6 py-2.5 rounded-xl bg-primary hover:bg-primary-hover disabled:opacity-50 text-white text-xs font-semibold flex items-center gap-2 shadow-md shadow-primary/25 transition cursor-pointer"
+              className="h-8 px-4 rounded-lg bg-primary hover:bg-primary-hover disabled:opacity-50 text-white text-xs font-medium flex items-center gap-1.5 shadow-xs transition cursor-pointer"
             >
               {analyzing ? (
                 <>
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  <span>{mode === "github" ? "Fetching & Summarizing..." : "AI Analyzing..."}</span>
+                  <span>{mode === "github" ? "Fetching..." : "Analyzing..."}</span>
                 </>
               ) : (
                 <>
@@ -429,7 +440,7 @@ TypeError: Cannot read properties of undefined (reading 'userId')
               type="button"
               disabled={saving}
               onClick={handleConfirmSave}
-              className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-xs font-semibold flex items-center gap-2 shadow-md shadow-emerald-600/25 transition cursor-pointer"
+              className="h-8 px-4 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-xs font-medium flex items-center gap-1.5 shadow-xs transition cursor-pointer"
             >
               {saving ? (
                 <>

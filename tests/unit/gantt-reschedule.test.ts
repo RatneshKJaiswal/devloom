@@ -1,83 +1,10 @@
 import { describe, it, expect } from "vitest";
-
-// Pure helper functions matching Gantt reschedule logic
-export function toDateStr(d: Date | string): string {
-  if (typeof d === "string") {
-    if (d.includes("T")) return d.split("T")[0];
-    return d.slice(0, 10);
-  }
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
-
-export function parseDateOnly(dateStr: string): Date {
-  const [y, m, d] = dateStr.slice(0, 10).split("-").map(Number);
-  return new Date(y, m - 1, d);
-}
-
-export function addDaysToStr(dateStr: string, days: number): string {
-  const d = parseDateOnly(dateStr);
-  d.setDate(d.getDate() + days);
-  return toDateStr(d);
-}
-
-export function calculateReschedule({
-  mode,
-  initialStart,
-  initialDue,
-  deltaDays,
-  predecessorDueDate,
-}: {
-  mode: "move" | "resize-start" | "resize-due";
-  initialStart: string;
-  initialDue: string;
-  deltaDays: number;
-  predecessorDueDate?: string | null;
-}) {
-  let newStart = initialStart;
-  let newDue = initialDue;
-  let snapped = false;
-
-  if (mode === "move") {
-    newStart = addDaysToStr(initialStart, deltaDays);
-    newDue = addDaysToStr(initialDue, deltaDays);
-
-    // Dependency snap enforcement: candidate start cannot be before predecessorDueDate + 1 day
-    if (predecessorDueDate) {
-      const minValidStart = addDaysToStr(predecessorDueDate, 1);
-      if (newStart < minValidStart) {
-        const startDiff = (parseDateOnly(initialDue).getTime() - parseDateOnly(initialStart).getTime()) / 86400000;
-        newStart = minValidStart;
-        newDue = addDaysToStr(newStart, Math.round(startDiff));
-        snapped = true;
-      }
-    }
-  } else if (mode === "resize-start") {
-    newStart = addDaysToStr(initialStart, deltaDays);
-    // Cannot start after due date
-    if (newStart > initialDue) {
-      newStart = initialDue;
-    }
-    // Cannot start before predecessor + 1 day
-    if (predecessorDueDate) {
-      const minValidStart = addDaysToStr(predecessorDueDate, 1);
-      if (newStart < minValidStart) {
-        newStart = minValidStart;
-        snapped = true;
-      }
-    }
-  } else if (mode === "resize-due") {
-    newDue = addDaysToStr(initialDue, deltaDays);
-    // Cannot finish before start date
-    if (newDue < initialStart) {
-      newDue = initialStart;
-    }
-  }
-
-  return { newStart, newDue, snapped };
-}
+import {
+  toDateStr,
+  parseDateOnly,
+  addDaysToStr,
+  calculateReschedule,
+} from "@/lib/timeline";
 
 describe("Gantt Reschedule & Drag Calculations", () => {
   it("shifts both start and due dates when moving the bar", () => {

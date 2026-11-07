@@ -71,6 +71,20 @@ export default function LearningsPage() {
     loadData();
   }, []);
 
+  // Auto-focus and open note popup if ?selected= query param is present
+  useEffect(() => {
+    if (typeof window === "undefined" || learnings.length === 0) return;
+    const params = new URLSearchParams(window.location.search);
+    const selectedId = params.get("selected");
+    if (!selectedId) return;
+
+    const matched = learnings.find((l) => l.id === selectedId);
+    if (matched) {
+      setViewingLearning(matched);
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }, [learnings]);
+
   async function deleteLearning(id: string) {
     if (!confirm("Are you sure you want to delete this knowledge entry?")) return;
     try {

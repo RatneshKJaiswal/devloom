@@ -212,23 +212,23 @@ export function QuickCaptureModal({
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs">
-      <div className="w-full max-w-2xl rounded-2xl border border-slate-800 bg-[#131519] shadow-2xl p-7 relative max-h-[92vh] overflow-y-auto">
+      <div className="w-full max-w-2xl rounded-xl border border-slate-800 bg-[#131519] shadow-2xl p-5 sm:p-6 relative max-h-[90vh] overflow-y-auto">
         <button
           onClick={onClose}
-          className="absolute right-5 top-5 p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
+          className="absolute right-4 top-4 p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/80 transition cursor-pointer"
         >
-          <X className="w-5 h-5" />
+          <X className="w-4 h-4" />
         </button>
 
         {/* Tab switcher or locked single-mode header */}
         {!lockTab ? (
-          <div className="flex gap-2 p-1.5 rounded-2xl bg-slate-950 border border-slate-800 mb-6 max-w-md">
+          <div className="flex gap-1.5 p-1 rounded-lg bg-slate-950 border border-slate-800 mb-4 max-w-xs">
             <button
               type="button"
               onClick={() => setActiveTab("task")}
-              className={`flex-1 py-2 px-3.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer ${
+              className={`flex-1 h-7 px-2.5 rounded-md text-xs font-medium flex items-center justify-center gap-1.5 transition cursor-pointer ${
                 activeTab === "task"
-                  ? "bg-primary text-white shadow-sm shadow-primary/20"
+                  ? "bg-primary text-white shadow-xs"
                   : "text-slate-400 hover:text-slate-200"
               }`}
             >
@@ -238,9 +238,9 @@ export function QuickCaptureModal({
             <button
               type="button"
               onClick={() => setActiveTab("bug")}
-              className={`flex-1 py-2 px-3.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer ${
+              className={`flex-1 h-7 px-2.5 rounded-md text-xs font-medium flex items-center justify-center gap-1.5 transition cursor-pointer ${
                 activeTab === "bug"
-                  ? "bg-amber-500 text-slate-950 font-bold shadow-sm shadow-amber-500/20"
+                  ? "bg-amber-500 text-slate-950 font-semibold shadow-xs"
                   : "text-slate-400 hover:text-slate-200"
               }`}
             >
@@ -250,9 +250,9 @@ export function QuickCaptureModal({
             <button
               type="button"
               onClick={() => setActiveTab("learning")}
-              className={`flex-1 py-2 px-3.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer ${
+              className={`flex-1 h-7 px-2.5 rounded-md text-xs font-medium flex items-center justify-center gap-1.5 transition cursor-pointer ${
                 activeTab === "learning"
-                  ? "bg-emerald-600 text-white shadow-sm shadow-emerald-600/20"
+                  ? "bg-emerald-600 text-white shadow-xs"
                   : "text-slate-400 hover:text-slate-200"
               }`}
             >
@@ -261,8 +261,8 @@ export function QuickCaptureModal({
             </button>
           </div>
         ) : (
-          <div className="flex items-center gap-3.5 mb-6 pb-4 border-b border-slate-800/80">
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+          <div className="flex items-center gap-3 mb-4 pb-3 border-b border-slate-800/80">
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
               activeTab === "bug"
                 ? "bg-amber-500/10 border border-amber-500/25 text-amber-400"
                 : activeTab === "learning"
@@ -270,15 +270,15 @@ export function QuickCaptureModal({
                 : "bg-primary-subtle border border-primary/25 text-primary"
             }`}>
               {activeTab === "bug" ? (
-                <Bug className="w-5 h-5" />
+                <Bug className="w-4 h-4" />
               ) : activeTab === "learning" ? (
-                <BookOpen className="w-5 h-5" />
+                <BookOpen className="w-4 h-4" />
               ) : (
-                <CheckSquare className="w-5 h-5" />
+                <CheckSquare className="w-4 h-4" />
               )}
             </div>
             <div>
-              <h2 className="text-base font-bold text-white tracking-tight">
+              <h2 className="text-sm font-semibold text-white tracking-tight">
                 {activeTab === "bug" ? "Report New Bug" : activeTab === "learning" ? "Record Knowledge" : "Create New Task"}
               </h2>
               <p className="text-xs text-slate-400 mt-0.5">
@@ -293,14 +293,14 @@ export function QuickCaptureModal({
         )}
 
         {error && (
-          <div className="mb-4 p-3 rounded-xl bg-red-950/40 border border-red-500/30 text-xs text-red-400">
+          <div className="mb-3.5 p-2.5 rounded-lg bg-red-950/40 border border-red-500/30 text-xs text-red-400">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-3.5">
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-2">
+            <label className="block text-[11px] font-medium text-slate-300 mb-1.5">
               Title *
             </label>
             <input
@@ -315,11 +315,11 @@ export function QuickCaptureModal({
                   ? "e.g. Postgres connection timeout under load"
                   : "e.g. Next.js middleware cannot use Node crypto/socket"
               }
-              className="w-full px-4 py-2.5 rounded-xl border border-slate-700/80 bg-slate-950 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-primary transition"
+              className="w-full h-8 px-3 rounded-lg border border-slate-800 bg-slate-950 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-slate-600 transition"
             />
             {duplicateWarning && (
-              <div className="mt-2 p-2.5 rounded-xl border border-warning/40 bg-warning-subtle text-amber-300 text-xs flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 text-warning shrink-0" />
+              <div className="mt-1.5 p-2 rounded-lg border border-warning/40 bg-warning-subtle text-amber-300 text-xs flex items-center gap-1.5">
+                <AlertCircle className="w-3.5 h-3.5 text-warning shrink-0" />
                 <span>{duplicateWarning}</span>
               </div>
             )}
@@ -327,46 +327,46 @@ export function QuickCaptureModal({
 
           {activeTab === "learning" && (
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-2">
+              <label className="block text-[11px] font-medium text-slate-300 mb-1.5">
                 Knowledge Category *
               </label>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <button
                   type="button"
                   onClick={() => setLearningCategory("gotcha")}
-                  className={`px-3.5 py-2.5 rounded-xl border text-left flex items-center gap-2 transition cursor-pointer ${
+                  className={`px-3 py-2 rounded-lg border text-left flex items-center gap-2 transition cursor-pointer ${
                     learningCategory === "gotcha"
                       ? "bg-amber-500/15 border-amber-500/40 text-amber-300 font-semibold shadow-xs"
                       : "bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-900"
                   }`}
                 >
-                  <Zap className="w-4 h-4 text-amber-400 shrink-0" />
+                  <Zap className="w-3.5 h-3.5 text-amber-400 shrink-0" />
                   <span className="text-xs">Technical Gotcha</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setLearningCategory("pattern")}
-                  className={`px-3.5 py-2.5 rounded-xl border text-left flex items-center gap-2 transition cursor-pointer ${
+                  className={`px-3 py-2 rounded-lg border text-left flex items-center gap-2 transition cursor-pointer ${
                     learningCategory === "pattern"
                       ? "bg-purple-500/15 border-purple-500/40 text-purple-300 font-semibold shadow-xs"
                       : "bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-900"
                   }`}
                 >
-                  <Layers className="w-4 h-4 text-purple-400 shrink-0" />
+                  <Layers className="w-3.5 h-3.5 text-purple-400 shrink-0" />
                   <span className="text-xs">Design Pattern</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setLearningCategory("snippet")}
-                  className={`px-3.5 py-2.5 rounded-xl border text-left flex items-center gap-2 transition cursor-pointer ${
+                  className={`px-3 py-2 rounded-lg border text-left flex items-center gap-2 transition cursor-pointer ${
                     learningCategory === "snippet"
                       ? "bg-sky-500/15 border-sky-500/40 text-sky-300 font-semibold shadow-xs"
                       : "bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200 hover:bg-slate-900"
                   }`}
                 >
-                  <Terminal className="w-4 h-4 text-sky-400 shrink-0" />
+                  <Terminal className="w-3.5 h-3.5 text-sky-400 shrink-0" />
                   <span className="text-xs">CLI Snippet</span>
                 </button>
               </div>
@@ -374,7 +374,7 @@ export function QuickCaptureModal({
           )}
 
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-2 flex items-center justify-between">
+            <label className="block text-[11px] font-medium text-slate-300 mb-1.5 flex items-center justify-between">
               <span>{activeTab === "learning" ? "Note Content *" : "Description"}</span>
               {activeTab === "learning" && (
                 <span className="text-[11px] text-slate-400 font-normal">Mini Markdown Editor</span>
@@ -385,7 +385,7 @@ export function QuickCaptureModal({
                 value={description}
                 onChange={setDescription}
                 placeholder="Explain the gotcha, command, or concept in your own words..."
-                minHeight="min-h-[160px]"
+                minHeight="min-h-[140px]"
                 required
               />
             ) : (
@@ -394,15 +394,15 @@ export function QuickCaptureModal({
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Additional context or notes..."
-                className="w-full px-4 py-3 rounded-xl border border-slate-700/80 bg-slate-950 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-primary transition leading-relaxed"
+                className="w-full px-3 py-2 rounded-lg border border-slate-800 bg-slate-950 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-slate-600 transition leading-relaxed"
               />
             )}
           </div>
 
           {/* Project & Priority Selectors */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-2 flex items-center gap-1.5">
+              <label className="block text-[11px] font-medium text-slate-300 mb-1.5 flex items-center gap-1.5">
                 <FolderKanban className="w-3.5 h-3.5 text-primary" />
                 <span>Project</span>
               </label>
@@ -410,7 +410,7 @@ export function QuickCaptureModal({
                 <select
                   value={projectId}
                   onChange={(e) => setProjectId(e.target.value)}
-                  className="w-full px-4 py-2.5 pr-9 rounded-xl border border-slate-700/80 bg-slate-950 text-xs text-white focus:outline-none focus:border-primary cursor-pointer appearance-none transition"
+                  className="w-full h-8 px-2.5 pr-8 rounded-lg border border-slate-800 bg-slate-950 text-xs text-white focus:outline-none focus:border-slate-600 cursor-pointer appearance-none transition"
                 >
                   <option value="" className="bg-slate-950 text-slate-200">No Project (General)</option>
                   {projects.map((p) => (
@@ -419,27 +419,27 @@ export function QuickCaptureModal({
                     </option>
                   ))}
                 </select>
-                <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-3 pointer-events-none shrink-0" />
+                <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 pointer-events-none shrink-0" />
               </div>
             </div>
 
             {activeTab !== "learning" && (
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-2">
+                <label className="block text-[11px] font-medium text-slate-300 mb-1.5">
                   Priority
                 </label>
                 <div className="relative flex items-center">
                   <select
                     value={priority}
                     onChange={(e) => setPriority(e.target.value as any)}
-                    className="w-full px-4 py-2.5 pr-9 rounded-xl border border-slate-700/80 bg-slate-950 text-xs text-white focus:outline-none focus:border-primary cursor-pointer appearance-none transition"
+                    className="w-full h-8 px-2.5 pr-8 rounded-lg border border-slate-800 bg-slate-950 text-xs text-white focus:outline-none focus:border-slate-600 cursor-pointer appearance-none transition"
                   >
                     <option value="low" className="bg-slate-950 text-slate-200">Low</option>
                     <option value="medium" className="bg-slate-950 text-slate-200">Medium</option>
                     <option value="high" className="bg-slate-950 text-slate-200">High</option>
                     <option value="urgent" className="bg-slate-950 text-slate-200">Urgent</option>
                   </select>
-                  <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-3 pointer-events-none shrink-0" />
+                  <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 pointer-events-none shrink-0" />
                 </div>
               </div>
             )}
@@ -447,9 +447,9 @@ export function QuickCaptureModal({
 
           {/* Dates */}
           {activeTab === "task" && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-2 flex items-center gap-1.5">
+                <label className="block text-[11px] font-medium text-slate-300 mb-1.5 flex items-center gap-1.5">
                   <Calendar className="w-3.5 h-3.5 text-slate-400" />
                   <span>Start Date</span>
                 </label>
@@ -457,12 +457,12 @@ export function QuickCaptureModal({
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-700/80 bg-slate-950 text-xs text-white focus:outline-none focus:border-primary cursor-pointer transition"
+                  className="w-full h-8 px-2.5 rounded-lg border border-slate-800 bg-slate-950 text-xs text-white focus:outline-none focus:border-slate-600 cursor-pointer transition"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-2 flex items-center gap-1.5">
+                <label className="block text-[11px] font-medium text-slate-300 mb-1.5 flex items-center gap-1.5">
                   <Calendar className="w-3.5 h-3.5 text-primary" />
                   <span>Due Date (Deadline)</span>
                 </label>
@@ -470,7 +470,7 @@ export function QuickCaptureModal({
                   type="date"
                   value={dueDate}
                   onChange={(e) => setDueDate(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-700/80 bg-slate-950 text-xs text-white focus:outline-none focus:border-primary cursor-pointer transition"
+                  className="w-full h-8 px-2.5 rounded-lg border border-slate-800 bg-slate-950 text-xs text-white focus:outline-none focus:border-slate-600 cursor-pointer transition"
                 />
               </div>
             </div>
@@ -478,7 +478,7 @@ export function QuickCaptureModal({
 
           {activeTab === "bug" && (
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-2 flex items-center gap-1.5">
+              <label className="block text-[11px] font-medium text-slate-300 mb-1.5 flex items-center gap-1.5">
                 <Calendar className="w-3.5 h-3.5 text-amber-400" />
                 <span>Due Date (Target Resolution)</span>
               </label>
@@ -486,16 +486,16 @@ export function QuickCaptureModal({
                 type="date"
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-700/80 bg-slate-950 text-xs text-white focus:outline-none focus:border-amber-500 cursor-pointer transition"
+                className="w-full h-8 px-2.5 rounded-lg border border-slate-800 bg-slate-950 text-xs text-white focus:outline-none focus:border-slate-600 cursor-pointer transition"
               />
             </div>
           )}
 
           {activeTab === "bug" && (
-            <div className="space-y-4 pt-4 border-t border-slate-800/80">
+            <div className="space-y-3 pt-3 border-t border-slate-800/80">
               {tasksList.length > 0 && (
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-2 flex items-center justify-between">
+                  <label className="block text-[11px] font-medium text-slate-300 mb-1.5 flex items-center justify-between">
                     <span className="flex items-center gap-1.5">
                       <CheckSquare className="w-3.5 h-3.5 text-primary" />
                       <span>Associated Task</span>
@@ -506,7 +506,7 @@ export function QuickCaptureModal({
                     <select
                       value={associatedTaskId}
                       onChange={(e) => setAssociatedTaskId(e.target.value)}
-                      className="w-full px-4 py-2.5 pr-9 rounded-xl border border-slate-700/80 bg-slate-950 text-xs text-white focus:outline-none focus:border-amber-500 cursor-pointer appearance-none transition"
+                      className="w-full h-8 px-2.5 pr-8 rounded-lg border border-slate-800 bg-slate-950 text-xs text-white focus:outline-none focus:border-slate-600 cursor-pointer appearance-none transition"
                     >
                       <option value="" className="bg-slate-950 text-slate-200">No Associated Task (Standalone Bug)</option>
                       {tasksList.map((t) => (
@@ -515,12 +515,12 @@ export function QuickCaptureModal({
                         </option>
                       ))}
                     </select>
-                    <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-3 pointer-events-none shrink-0" />
+                    <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 pointer-events-none shrink-0" />
                   </div>
                 </div>
               )}
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-2">
+                <label className="block text-[11px] font-medium text-slate-300 mb-1.5">
                   Stack Trace / Error Output
                 </label>
                 <textarea
@@ -528,11 +528,11 @@ export function QuickCaptureModal({
                   value={stackTrace}
                   onChange={(e) => setStackTrace(e.target.value)}
                   placeholder="Paste stack trace or error log here..."
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-700/80 bg-slate-950 font-mono text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-amber-500 leading-relaxed transition"
+                  className="w-full px-3 py-2 rounded-lg border border-slate-800 bg-slate-950 font-mono text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-slate-600 leading-relaxed transition"
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-2">
+                <label className="block text-[11px] font-medium text-slate-300 mb-1.5">
                   Reproduction Steps
                 </label>
                 <input
@@ -540,29 +540,29 @@ export function QuickCaptureModal({
                   value={reproSteps}
                   onChange={(e) => setReproSteps(e.target.value)}
                   placeholder="1. Trigger action, 2. Observe crash..."
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-700/80 bg-slate-950 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-amber-500 transition"
+                  className="w-full h-8 px-3 rounded-lg border border-slate-800 bg-slate-950 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-slate-600 transition"
                 />
               </div>
             </div>
           )}
 
-          <div className="flex justify-end gap-3 pt-5 border-t border-slate-800/80 mt-6">
+          <div className="flex justify-end gap-2.5 pt-4 border-t border-slate-800/80 mt-5">
             <button
               type="button"
               onClick={onClose}
-              className="px-5 py-2.5 rounded-xl border border-slate-700 hover:bg-slate-800 text-slate-300 text-xs font-semibold transition cursor-pointer"
+              className="h-8 px-3.5 rounded-lg border border-slate-800 hover:bg-slate-850 hover:border-slate-700 text-slate-300 text-xs font-medium transition cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className={`px-6 py-2.5 rounded-xl disabled:opacity-50 text-white text-xs font-semibold flex items-center gap-2 shadow-md transition cursor-pointer ${
+              className={`h-8 px-4 rounded-lg disabled:opacity-50 text-white text-xs font-medium flex items-center gap-1.5 shadow-xs transition cursor-pointer ${
                 activeTab === "bug"
-                  ? "bg-amber-600 hover:bg-amber-500 shadow-amber-600/25"
+                  ? "bg-amber-600 hover:bg-amber-500 shadow-amber-600/20"
                   : activeTab === "learning"
-                  ? "bg-emerald-600 hover:bg-emerald-500 shadow-emerald-600/25"
-                  : "bg-primary hover:bg-primary-hover shadow-primary/25"
+                  ? "bg-emerald-600 hover:bg-emerald-500 shadow-emerald-600/20"
+                  : "bg-primary hover:bg-primary-hover shadow-primary/20"
               }`}
             >
               {loading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}

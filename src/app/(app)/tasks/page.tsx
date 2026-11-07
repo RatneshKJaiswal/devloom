@@ -122,6 +122,20 @@ export default function TasksPage() {
     loadTasks();
   }, [statusFilter, projectFilter]);
 
+  // Auto-focus and open newly created task if ?selected= query param is present
+  useEffect(() => {
+    if (typeof window === "undefined" || tasks.length === 0) return;
+    const params = new URLSearchParams(window.location.search);
+    const selectedId = params.get("selected");
+    if (!selectedId) return;
+
+    const matched = tasks.find((t) => t.id === selectedId);
+    if (matched) {
+      setEditingTask(matched);
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }, [tasks]);
+
   async function updateStatus(id: string, newStatus: string) {
     try {
       const res = await fetch(`/api/tasks/${id}`, {
