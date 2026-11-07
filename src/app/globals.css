@@ -156,8 +156,7 @@ body {
   input[type="date"],
   input[type="search"],
   input[type="password"],
-  input[type="email"],
-  select {
+  input[type="email"] {
     padding-top: 0.625rem;
     padding-bottom: 0.625rem;
     line-height: 1.25rem;
@@ -167,8 +166,7 @@ body {
   input[type="date"]:not([class*="pl-"]),
   input[type="search"]:not([class*="pl-"]),
   input[type="password"]:not([class*="pl-"]),
-  input[type="email"]:not([class*="pl-"]),
-  select:not([class*="pl-"]) {
+  input[type="email"]:not([class*="pl-"]) {
     padding-left: 0.875rem;
   }
 
@@ -176,8 +174,7 @@ body {
   input[type="date"]:not([class*="pr-"]),
   input[type="search"]:not([class*="pr-"]),
   input[type="password"]:not([class*="pr-"]),
-  input[type="email"]:not([class*="pr-"]),
-  select:not([class*="pr-"]) {
+  input[type="email"]:not([class*="pr-"]) {
     padding-right: 0.875rem;
   }
 

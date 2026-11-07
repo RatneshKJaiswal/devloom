@@ -16,8 +16,10 @@ import {
   Calendar,
   ExternalLink,
   Check,
+  GitCommit,
+  CircleDot,
+  FolderGit2,
 } from "lucide-react";
-import { GoGitCommit, GoIssueOpened, GoRepo, GoCheck } from "react-icons/go";
 import { GithubIcon } from "@/components/icons/github";
 import { GitHubRepoImportModal } from "@/components/github/github-repo-import-modal";
 import { QuickCaptureModal } from "@/components/quick-capture-dialog";
@@ -498,7 +500,7 @@ export default function ProjectsPage() {
                         : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/60"
                     }`}
                   >
-                    <GoGitCommit className="w-4 h-4 text-sky-400" />
+                    <GitCommit className="w-4 h-4 text-sky-400" />
                     <span>Commits</span>
                     {gitHubData.commits && gitHubData.commits.length > 0 && (
                       <span
@@ -525,7 +527,7 @@ export default function ProjectsPage() {
                         : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/60"
                     }`}
                   >
-                    <GoIssueOpened className="w-4 h-4 text-emerald-400" />
+                    <CircleDot className="w-4 h-4 text-emerald-400" />
                     <span>Open Issues</span>
                     {gitHubData.issues && gitHubData.issues.length > 0 && (
                       <span
@@ -664,7 +666,7 @@ export default function ProjectsPage() {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between p-3.5 rounded-xl border border-slate-800 bg-slate-950/80 text-xs">
                     <div className="flex items-center gap-2">
-                      <GoRepo className="w-4 h-4 text-sky-400" />
+                      <FolderGit2 className="w-4 h-4 text-sky-400" />
                       <span className="font-semibold text-white">{gitHubData?.fullName}</span>
                       <span className="text-slate-500">•</span>
                       <span className="text-slate-400">Previous Commits</span>
@@ -692,7 +694,7 @@ export default function ProjectsPage() {
                           className="p-3.5 rounded-xl border border-slate-800 bg-slate-950/60 hover:border-slate-700 transition flex items-start justify-between gap-3 text-xs group"
                         >
                           <div className="flex items-start gap-3 min-w-0 flex-1">
-                            <GoGitCommit className="w-4 h-4 text-sky-400 mt-0.5 shrink-0" />
+                            <GitCommit className="w-4 h-4 text-sky-400 mt-0.5 shrink-0" />
                             <div className="space-y-1 min-w-0">
                               <span className="font-medium text-white block truncate">{c.message}</span>
                               <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-400">
@@ -724,7 +726,7 @@ export default function ProjectsPage() {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between p-3.5 rounded-xl border border-slate-800 bg-slate-950/80 text-xs">
                     <div className="flex items-center gap-2">
-                      <GoIssueOpened className="w-4 h-4 text-emerald-400" />
+                      <CircleDot className="w-4 h-4 text-emerald-400" />
                       <span className="font-semibold text-white">{gitHubData?.fullName}</span>
                       <span className="text-slate-500">•</span>
                       <span className="text-slate-400">Open Issues ({gitHubData?.issues?.length || 0})</span>
@@ -791,7 +793,7 @@ export default function ProjectsPage() {
                           <div className="flex items-center gap-2 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-850">
                             {iss.alreadyImported ? (
                               <span className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1.5">
-                                <GoCheck className="w-3.5 h-3.5" />
+                                <Check className="w-3.5 h-3.5" />
                                 <span>Imported as {iss.importedAs}</span>
                               </span>
                             ) : (
