@@ -65,7 +65,11 @@ export const createLearningSchema = z.object({
   tagIds: z.array(z.string().uuid()).optional(),
 });
 
-export const updateLearningSchema = createLearningSchema.partial();
+export const updateLearningSchema = createLearningSchema.extend({
+  reviewBox: z.number().int().min(1).max(5).optional(),
+  reviewStatus: reviewStatusEnum.optional(),
+  nextReviewAt: emptyStringToNull(z.string().nullable().optional()),
+}).partial();
 
 export const reviewLearningSchema = z.object({
   passed: z.boolean(),

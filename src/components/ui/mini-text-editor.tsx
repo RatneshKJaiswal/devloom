@@ -13,6 +13,8 @@ import {
   Link as LinkIcon,
   Eye,
   Edit3,
+  Maximize2,
+  Minimize2,
 } from "lucide-react";
 import { MarkdownPreview } from "./markdown-preview";
 
@@ -32,6 +34,7 @@ export function MiniTextEditor({
   required = false,
 }: MiniTextEditorProps) {
   const [activeTab, setActiveTab] = useState<"write" | "preview">("write");
+  const [isExpanded, setIsExpanded] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   function insertFormatting(prefix: string, suffix = "", defaultText = "") {
@@ -186,31 +189,47 @@ export function MiniTextEditor({
           </button>
         </div>
 
-        {/* Write / Preview Tab Switcher */}
-        <div className="flex items-center gap-1 p-0.5 rounded-lg bg-slate-950 border border-slate-800 text-[11px]">
+        <div className="flex items-center gap-1.5">
+          {/* Write / Preview Tab Switcher */}
+          <div className="flex items-center gap-1 p-0.5 rounded-lg bg-slate-950 border border-slate-800 text-[11px]">
+            <button
+              type="button"
+              onClick={() => setActiveTab("write")}
+              className={`px-2 py-1 rounded-md font-medium flex items-center gap-1 transition cursor-pointer ${
+                activeTab === "write"
+                  ? "bg-slate-800 text-white shadow-xs"
+                  : "text-slate-400 hover:text-slate-200"
+              }`}
+            >
+              <Edit3 className="w-3 h-3" />
+              <span>Write</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("preview")}
+              className={`px-2 py-1 rounded-md font-medium flex items-center gap-1 transition cursor-pointer ${
+                activeTab === "preview"
+                  ? "bg-slate-800 text-white shadow-xs"
+                  : "text-slate-400 hover:text-slate-200"
+              }`}
+            >
+              <Eye className="w-3 h-3" />
+              <span>Preview</span>
+            </button>
+          </div>
+
+          {/* Expand Height Toggle */}
           <button
             type="button"
-            onClick={() => setActiveTab("write")}
-            className={`px-2 py-1 rounded-md font-medium flex items-center gap-1 transition cursor-pointer ${
-              activeTab === "write"
-                ? "bg-slate-800 text-white shadow-xs"
-                : "text-slate-400 hover:text-slate-200"
-            }`}
+            onClick={() => setIsExpanded(!isExpanded)}
+            title={isExpanded ? "Collapse Editor" : "Expand Editor"}
+            className="p-1.5 rounded-lg border border-slate-800 bg-slate-950 text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
           >
-            <Edit3 className="w-3 h-3" />
-            <span>Write</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab("preview")}
-            className={`px-2 py-1 rounded-md font-medium flex items-center gap-1 transition cursor-pointer ${
-              activeTab === "preview"
-                ? "bg-slate-800 text-white shadow-xs"
-                : "text-slate-400 hover:text-slate-200"
-            }`}
-          >
-            <Eye className="w-3 h-3" />
-            <span>Preview</span>
+            {isExpanded ? (
+              <Minimize2 className="w-3.5 h-3.5" />
+            ) : (
+              <Maximize2 className="w-3.5 h-3.5" />
+            )}
           </button>
         </div>
       </div>
@@ -224,10 +243,16 @@ export function MiniTextEditor({
           onChange={(e) => onChange(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
-          className={`w-full px-4 py-3 bg-transparent text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none resize-y leading-relaxed font-sans ${minHeight}`}
+          className={`w-full px-4 py-3 bg-transparent text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none resize-y leading-relaxed font-sans overflow-y-auto ${
+            isExpanded ? "h-80 sm:h-96" : minHeight
+          }`}
         />
       ) : (
-        <div className={`p-4 bg-slate-950/40 text-xs overflow-y-auto ${minHeight}`}>
+        <div
+          className={`p-4 bg-slate-950/40 text-xs overflow-y-auto leading-relaxed ${
+            isExpanded ? "h-80 sm:h-96" : minHeight
+          }`}
+        >
           {value.trim() ? (
             <MarkdownPreview content={value} />
           ) : (

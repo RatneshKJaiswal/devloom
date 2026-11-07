@@ -166,6 +166,9 @@ export async function updateLearning(
     title: string;
     content: string;
     projectId?: string | null;
+    reviewBox?: number;
+    reviewStatus?: "new" | "learning" | "learned" | "mastered";
+    nextReviewAt?: string | null;
   }>,
   tagIds?: string[]
 ) {
@@ -176,6 +179,18 @@ export async function updateLearning(
   if (data.title !== undefined) updateData.title = data.title;
   if (data.content !== undefined) updateData.content = data.content;
   if (data.projectId !== undefined) updateData.projectId = data.projectId;
+  if (data.reviewBox !== undefined) {
+    const box = Math.max(1, Math.min(5, Math.floor(data.reviewBox)));
+    updateData.reviewBox = box;
+    if (data.nextReviewAt === undefined) {
+      const intervalMs = LEITNER_INTERVALS_MS[box] || LEITNER_INTERVALS_MS[1];
+      updateData.nextReviewAt = new Date(Date.now() + intervalMs);
+    }
+  }
+  if (data.reviewStatus !== undefined) updateData.reviewStatus = data.reviewStatus;
+  if (data.nextReviewAt !== undefined) {
+    updateData.nextReviewAt = data.nextReviewAt ? new Date(data.nextReviewAt) : new Date();
+  }
 
   const [updated] = await db
     .update(learnings)
