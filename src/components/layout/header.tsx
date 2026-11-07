@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { auth, signOut } from "@/lib/auth/config";
 import { LogOut } from "lucide-react";
 import { HeaderActions } from "./header-actions";
@@ -7,20 +8,26 @@ export async function Header() {
 
   const userProfile = (
     <div className="flex items-center gap-2.5 pl-2 sm:pl-3 border-l border-slate-800">
-      {session?.user?.image ? (
-        <img
-          src={session.user.image}
-          alt={session.user.name || "User"}
-          className="w-7 h-7 rounded-full border border-slate-700 object-cover"
-        />
-      ) : (
-        <div className="w-7 h-7 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-xs font-medium text-slate-300">
-          {session?.user?.name?.[0] || "U"}
-        </div>
-      )}
-      <span className="text-xs font-medium text-slate-300 hidden md:inline-block max-w-[120px] truncate">
-        {session?.user?.name || "Developer"}
-      </span>
+      <Link
+        href="/settings"
+        title="View Profile & Settings"
+        className="flex items-center gap-2 hover:opacity-85 transition group cursor-pointer"
+      >
+        {session?.user?.image ? (
+          <img
+            src={session.user.image}
+            alt={session.user.name || "User"}
+            className="w-7 h-7 rounded-full border border-slate-700 object-cover group-hover:border-primary transition"
+          />
+        ) : (
+          <div className="w-7 h-7 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-xs font-medium text-slate-300 group-hover:border-primary transition">
+            {session?.user?.name?.[0] || "U"}
+          </div>
+        )}
+        <span className="text-xs font-medium text-slate-300 hidden md:inline-block max-w-[120px] truncate group-hover:text-white transition">
+          {session?.user?.name || "Developer"}
+        </span>
+      </Link>
 
       <form
         action={async () => {

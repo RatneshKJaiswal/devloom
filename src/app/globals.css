@@ -100,6 +100,32 @@
   --timeline-dep-blocked: #EA4335;
 }
 
+html.light,
+:root[data-theme="light"] {
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --border: #e2e8f0;
+  --border-subtle: #cbd5e1;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+
+  --color-slate-950: #f8fafc;
+  --color-slate-900: #ffffff;
+  --color-slate-850: #f1f5f9;
+  --color-slate-800: #e2e8f0;
+  --color-slate-700: #cbd5e1;
+  --color-slate-600: #94a3b8;
+
+  --timeline-grid: #e2e8f0;
+}
+
+html.light body {
+  background-color: var(--background) !important;
+  color: var(--foreground) !important;
+}
+
 body {
   background-color: var(--background);
   color: var(--foreground);
