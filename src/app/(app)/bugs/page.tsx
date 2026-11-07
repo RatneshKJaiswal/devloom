@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Plus, Bug, Trash2, ChevronDown, ChevronUp, Loader2, Filter, FolderKanban } from "lucide-react";
 import { QuickCaptureModal } from "@/components/quick-capture-dialog";
+import { PRIORITY_CONFIG, BUG_STATUS_CONFIG } from "@/lib/tokens";
 
 export default function BugsPage() {
   const [bugs, setBugs] = useState<any[]>([]);
@@ -85,22 +86,6 @@ export default function BugsPage() {
   function toggleExpand(id: string) {
     setExpandedBugs((prev) => ({ ...prev, [id]: !prev[id] }));
   }
-
-  const priorityColors: Record<string, string> = {
-    low: "text-slate-400 bg-slate-800/80 border-slate-700",
-    medium: "text-blue-400 bg-blue-950/40 border-blue-500/30",
-    high: "text-amber-400 bg-amber-950/40 border-amber-500/30",
-    urgent: "text-red-400 bg-red-950/40 border-red-500/30",
-  };
-
-  const statusColors: Record<string, string> = {
-    open: "text-red-400",
-    confirmed: "text-amber-400",
-    fixing: "text-blue-400",
-    resolved: "text-emerald-400",
-    closed: "text-slate-400",
-    wont_fix: "text-slate-500",
-  };
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
@@ -194,7 +179,7 @@ export default function BugsPage() {
                     <div className="flex flex-wrap items-center gap-2">
                       <span
                         className={`text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded border ${
-                          priorityColors[bug.priority] || priorityColors.medium
+                          PRIORITY_CONFIG[bug.priority]?.badgeClass || PRIORITY_CONFIG.medium.badgeClass
                         }`}
                       >
                         {bug.priority}
@@ -211,11 +196,11 @@ export default function BugsPage() {
                       )}
 
                       <span
-                        className={`text-xs font-medium uppercase tracking-wider ${
-                          statusColors[bug.status] || "text-slate-400"
+                        className={`text-xs font-medium uppercase tracking-wider px-2 py-0.5 rounded border ${
+                          BUG_STATUS_CONFIG[bug.status]?.badgeClass || "text-slate-400 border-slate-700"
                         }`}
                       >
-                        &bull; {bug.status.replace("_", " ")}
+                        {BUG_STATUS_CONFIG[bug.status]?.label || bug.status.replace("_", " ")}
                       </span>
                     </div>
 

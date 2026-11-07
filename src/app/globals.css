@@ -1,17 +1,83 @@
 @import "tailwindcss";
 
+@theme {
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-subtle: var(--primary-subtle);
+
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-warning-subtle: var(--warning-subtle);
+
+  --color-danger: var(--danger);
+  --color-danger-foreground: var(--danger-foreground);
+  --color-danger-subtle: var(--danger-subtle);
+  --color-danger-strong: var(--danger-strong);
+
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-success-subtle: var(--success-subtle);
+
+  --color-phase-planning: var(--phase-planning);
+  --color-phase-design: var(--phase-design);
+  --color-phase-development: var(--phase-development);
+  --color-phase-testing: var(--phase-testing);
+  --color-phase-release: var(--phase-release);
+  --color-phase-maintenance: var(--phase-maintenance);
+
+  --color-timeline-grid: var(--timeline-grid);
+  --color-timeline-today: var(--timeline-today);
+  --color-timeline-bar-task: var(--timeline-bar-task);
+  --color-timeline-bar-milestone: var(--timeline-bar-milestone);
+  --color-timeline-dep-line: var(--timeline-dep-line);
+  --color-timeline-dep-blocked: var(--timeline-dep-blocked);
+}
+
 :root {
   --background: #090d16;
   --foreground: #f1f5f9;
   --card: #0f172a;
   --card-foreground: #f8fafc;
   --border: #1e293b;
-  --primary: #6366f1;
-  --primary-foreground: #ffffff;
+  --border-subtle: #334155;
   --muted: #1e293b;
   --muted-foreground: #94a3b8;
-  --accent: #2563eb;
+  --accent: #4285F4;
   --accent-foreground: #ffffff;
+
+  /* Google-inspired core action and status palette */
+  --primary: #4285F4;
+  --primary-foreground: #ffffff;
+  --primary-subtle: rgba(66, 133, 244, 0.15);
+
+  --warning: #FBBC04;
+  --warning-foreground: #121212;
+  --warning-subtle: rgba(251, 188, 4, 0.15);
+
+  --danger: #EA4335;
+  --danger-foreground: #ffffff;
+  --danger-subtle: rgba(234, 67, 53, 0.15);
+  --danger-strong: #C5221F;
+
+  --success: #34A853;
+  --success-foreground: #ffffff;
+  --success-subtle: rgba(52, 168, 83, 0.15);
+
+  /* SDLC Phase Tokens */
+  --phase-planning: #A855F7;
+  --phase-design: #EC4899;
+  --phase-development: #4285F4;
+  --phase-testing: #FBBC04;
+  --phase-release: #34A853;
+  --phase-maintenance: #64748B;
+
+  /* Gantt & Timeline Tokens */
+  --timeline-grid: #1e293b;
+  --timeline-today: #4285F4;
+  --timeline-bar-task: #4285F4;
+  --timeline-bar-milestone: #FBBC04;
+  --timeline-dep-line: #64748B;
+  --timeline-dep-blocked: #EA4335;
 }
 
 body {
