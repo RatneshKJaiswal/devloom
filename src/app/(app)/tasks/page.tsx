@@ -437,15 +437,15 @@ export default function TasksPage() {
       </div>
 
       {/* Filter and Sort Toolbar */}
-      <div className="flex flex-wrap items-center gap-2.5 p-3.5 rounded-2xl border border-slate-800 bg-slate-900/60">
+      <div className="flex flex-wrap items-center gap-2 p-2 rounded-xl border border-slate-800 bg-slate-900/60">
         {/* Project Filter */}
-        <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-slate-800 bg-slate-950 hover:border-slate-700 transition text-xs text-slate-300">
+        <div className="flex items-center gap-1.5 h-8 px-2.5 rounded-lg border border-slate-800 bg-slate-950 hover:border-slate-700 transition text-xs text-slate-300">
           <FolderKanban className="w-3.5 h-3.5 text-primary shrink-0" />
           <div className="relative flex items-center">
             <select
               value={projectFilter}
               onChange={(e) => setProjectFilter(e.target.value)}
-              className="bg-transparent focus:outline-none cursor-pointer pr-4 appearance-none"
+              className="bg-transparent focus:outline-none cursor-pointer pr-4 appearance-none text-xs font-medium"
             >
               <option value="all" className="bg-slate-950 text-slate-200">All Projects</option>
               {projects.map((p) => (
@@ -459,13 +459,13 @@ export default function TasksPage() {
         </div>
 
         {/* Status Filter */}
-        <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-slate-800 bg-slate-950 hover:border-slate-700 transition text-xs text-slate-300">
+        <div className="flex items-center gap-1.5 h-8 px-2.5 rounded-lg border border-slate-800 bg-slate-950 hover:border-slate-700 transition text-xs text-slate-300">
           <Filter className="w-3.5 h-3.5 text-slate-400 shrink-0" />
           <div className="relative flex items-center">
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="bg-transparent focus:outline-none cursor-pointer pr-4 appearance-none"
+              className="bg-transparent focus:outline-none cursor-pointer pr-4 appearance-none text-xs font-medium"
             >
               <option value="all" className="bg-slate-950 text-slate-200">All Statuses</option>
               <option value="todo" className="bg-slate-950 text-slate-200">To Do</option>
@@ -478,13 +478,13 @@ export default function TasksPage() {
         </div>
 
         {/* Date / Deadline Filter */}
-        <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-slate-800 bg-slate-950 hover:border-slate-700 transition text-xs text-slate-300">
+        <div className="flex items-center gap-1.5 h-8 px-2.5 rounded-lg border border-slate-800 bg-slate-950 hover:border-slate-700 transition text-xs text-slate-300">
           <Calendar className="w-3.5 h-3.5 text-primary shrink-0" />
           <div className="relative flex items-center">
             <select
               value={dateFilter}
               onChange={(e) => setDateFilter(e.target.value)}
-              className="bg-transparent focus:outline-none cursor-pointer pr-4 appearance-none"
+              className="bg-transparent focus:outline-none cursor-pointer pr-4 appearance-none text-xs font-medium"
             >
               <option value="all" className="bg-slate-950 text-slate-200">All Deadlines</option>
               <option value="overdue" className="bg-slate-950 text-slate-200">🔴 Overdue Only</option>
@@ -497,13 +497,13 @@ export default function TasksPage() {
         </div>
 
         {/* Sort By */}
-        <div className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-slate-800 bg-slate-950 hover:border-slate-700 transition text-xs text-slate-300 sm:ml-auto">
+        <div className="flex items-center gap-1.5 h-8 px-2.5 rounded-lg border border-slate-800 bg-slate-950 hover:border-slate-700 transition text-xs text-slate-300 sm:ml-auto">
           <ArrowUpDown className="w-3.5 h-3.5 text-slate-400 shrink-0" />
           <div className="relative flex items-center">
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="bg-transparent focus:outline-none cursor-pointer pr-4 appearance-none"
+              className="bg-transparent focus:outline-none cursor-pointer pr-4 appearance-none text-xs font-medium"
             >
               <option value="newest" className="bg-slate-950 text-slate-200">Sort: Newest First</option>
               <option value="oldest" className="bg-slate-950 text-slate-200">Sort: Oldest First</option>

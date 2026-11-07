@@ -261,13 +261,13 @@ export default function LearningsPage() {
 
         {/* Project Selector */}
         {projects.length > 0 && (
-          <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border border-slate-800 bg-slate-900/70 hover:border-slate-700/80 focus-within:border-primary transition text-xs text-slate-300 shrink-0 min-w-[210px]">
-            <FolderKanban className="w-4 h-4 text-primary shrink-0" />
+          <div className="flex items-center gap-2 h-9 px-3 rounded-lg border border-slate-800 bg-slate-900/70 hover:border-slate-700/80 focus-within:border-primary transition text-xs text-slate-300 shrink-0">
+            <FolderKanban className="w-3.5 h-3.5 text-primary shrink-0" />
             <div className="relative flex-1 min-w-0 flex items-center">
               <select
                 value={projectFilter}
                 onChange={(e) => setProjectFilter(e.target.value)}
-                className="w-full bg-transparent focus:outline-none text-xs font-medium text-slate-200 cursor-pointer pr-5 truncate appearance-none"
+                className="w-full bg-transparent focus:outline-none text-xs font-medium text-slate-200 cursor-pointer pr-4.5 truncate appearance-none"
               >
                 <option value="all" className="bg-slate-950 text-slate-200">
                   All Projects
@@ -278,7 +278,7 @@ export default function LearningsPage() {
                   </option>
                 ))}
               </select>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-0 pointer-events-none shrink-0" />
+              <ChevronDown className="w-3 h-3 text-slate-400 absolute right-0 pointer-events-none shrink-0" />
             </div>
           </div>
         )}
