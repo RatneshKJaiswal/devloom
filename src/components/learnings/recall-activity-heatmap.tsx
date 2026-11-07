@@ -7,8 +7,6 @@ import {
   Calendar,
   Info,
   Trophy,
-  CheckCircle2,
-  Clock,
   Sparkles,
 } from "lucide-react";
 import { calculateRecallHeatmap, HeatmapDay } from "@/lib/heatmap";
@@ -19,21 +17,11 @@ interface RecallActivityHeatmapProps {
     title?: string;
     createdAt?: string | Date | null;
     lastReviewedAt?: string | Date | null;
-    nextReviewAt?: string | Date | null;
-    reviewBox?: number;
-    reviewStatus?: string;
   }>;
   className?: string;
 }
 
-type RangeOption = "year" | "6m" | "3m";
-
 const WEEKDAY_LABELS = ["", "Mon", "", "Wed", "", "Fri", ""];
-
-// Fixed cell size & gap for mathematical alignment between month labels and columns
-const CELL_SIZE_PX = 13;
-const CELL_GAP_PX = 3;
-const COLUMN_STEP_PX = CELL_SIZE_PX + CELL_GAP_PX; // 16px
 
 function formatDisplayDate(dateStr: string): string {
   const [y, m, d] = dateStr.split("-").map(Number);
@@ -63,46 +51,23 @@ function getCellColorClass(day: HeatmapDay): string {
 }
 
 export function RecallActivityHeatmap({ items, className = "" }: RecallActivityHeatmapProps) {
-  const [rangeMode, setRangeMode] = useState<RangeOption>("year");
+  const currentYear = useMemo(() => new Date().getFullYear(), []);
+  const yearOptions = useMemo(
+    () => [currentYear, currentYear - 1, currentYear - 2],
+    [currentYear]
+  );
+  const [selectedYear, setSelectedYear] = useState<number>(currentYear);
   const [hoveredDay, setHoveredDay] = useState<HeatmapDay | null>(null);
 
-  const numWeeks = rangeMode === "year" ? 52 : rangeMode === "6m" ? 26 : 12;
-
   const heatmap = useMemo(() => {
-    return calculateRecallHeatmap(items, new Date(), numWeeks);
-  }, [items, numWeeks]);
-
-  // Leitner spaced-repetition retention stats
-  const leitnerStats = useMemo(() => {
-    const now = new Date();
-    let dueCount = 0;
-    const boxes = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
-    let masteredCount = 0;
-
-    for (const item of items) {
-      const box = Math.min(Math.max(item.reviewBox || 1, 1), 5) as 1 | 2 | 3 | 4 | 5;
-      boxes[box] = (boxes[box] || 0) + 1;
-      if (item.reviewStatus === "mastered" || box === 5) {
-        masteredCount++;
-      }
-      if (item.nextReviewAt && new Date(item.nextReviewAt) <= now) {
-        dueCount++;
-      }
-    }
-
-    return {
-      dueCount,
-      boxes,
-      masteredCount,
-      total: items.length,
-    };
-  }, [items]);
+    return calculateRecallHeatmap(items, selectedYear);
+  }, [items, selectedYear]);
 
   return (
     <div
       className={`rounded-2xl border border-slate-800/90 bg-[#0d0e12]/90 p-5 backdrop-blur-md shadow-xl ${className}`}
     >
-      {/* Top Header: Title, Range Controls & Active Streak */}
+      {/* Top Header: Title, Year Timeline Selector (current, current-1, current-2) & Streak */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5 pb-4 border-b border-slate-800/80">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shadow-sm shadow-emerald-500/10">
@@ -110,52 +75,33 @@ export function RecallActivityHeatmap({ items, className = "" }: RecallActivityH
           </div>
           <div>
             <h2 className="text-base font-semibold text-white tracking-tight flex items-center gap-2">
-              <span>Recall & Review Activity</span>
+              <span>Activity Heatmap</span>
             </h2>
             <p className="text-xs text-slate-400">
-              {heatmap.totalActivities} {heatmap.totalActivities === 1 ? "activity" : "activities"} in the{" "}
-              {rangeMode === "year" ? "past year" : rangeMode === "6m" ? "past 6 months" : "past 12 weeks"}
+              {heatmap.totalActivities} {heatmap.totalActivities === 1 ? "activity" : "activities"} in {selectedYear}
             </p>
           </div>
         </div>
 
-        {/* Top Right: Range Selector (1 Year, 6 Months, 3 Months) & Streak Pill */}
+        {/* Top Right: Year Selector (current, current-1, current-2) & Streak Badge */}
         <div className="flex items-center gap-2.5 self-start sm:self-auto">
-          {/* Segmented Range Selector */}
+          {/* Year Timeline Selector */}
           <div className="flex items-center p-0.5 rounded-lg bg-slate-900 border border-slate-800 text-[11px] font-medium">
-            <button
-              type="button"
-              onClick={() => setRangeMode("year")}
-              className={`px-2.5 py-1 rounded-md transition cursor-pointer ${
-                rangeMode === "year"
-                  ? "bg-slate-800 text-white font-semibold shadow-xs"
-                  : "text-slate-400 hover:text-slate-200"
-              }`}
-            >
-              1 Year
-            </button>
-            <button
-              type="button"
-              onClick={() => setRangeMode("6m")}
-              className={`px-2.5 py-1 rounded-md transition cursor-pointer ${
-                rangeMode === "6m"
-                  ? "bg-slate-800 text-white font-semibold shadow-xs"
-                  : "text-slate-400 hover:text-slate-200"
-              }`}
-            >
-              6 Months
-            </button>
-            <button
-              type="button"
-              onClick={() => setRangeMode("3m")}
-              className={`px-2.5 py-1 rounded-md transition cursor-pointer ${
-                rangeMode === "3m"
-                  ? "bg-slate-800 text-white font-semibold shadow-xs"
-                  : "text-slate-400 hover:text-slate-200"
-              }`}
-            >
-              3 Months
-            </button>
+            <span className="text-slate-500 text-[10px] px-2 font-mono hidden sm:inline">Year:</span>
+            {yearOptions.map((year) => (
+              <button
+                key={year}
+                type="button"
+                onClick={() => setSelectedYear(year)}
+                className={`px-3 py-1 rounded-md transition cursor-pointer font-mono ${
+                  selectedYear === year
+                    ? "bg-slate-800 text-white font-semibold shadow-xs"
+                    : "text-slate-400 hover:text-slate-200"
+                }`}
+              >
+                {year}
+              </button>
+            ))}
           </div>
 
           {/* Active Streak Badge */}
@@ -173,111 +119,88 @@ export function RecallActivityHeatmap({ items, className = "" }: RecallActivityH
         </div>
       </div>
 
-      {/* Mini Quick-Stats Strip */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
-        <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800/80">
+      {/* Mini Quick-Stats Strip (Clean 3-Card Layout) */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
+        <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/80">
           <div className="flex items-center justify-between text-slate-400 text-[11px] font-medium mb-1">
-            <span>Period Activity</span>
+            <span>{selectedYear} Activity</span>
             <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
           </div>
-          <div className="text-lg font-bold text-white tracking-tight">
+          <div className="text-xl font-bold text-white tracking-tight">
             {heatmap.totalActivities}
           </div>
           <div className="text-[10px] text-slate-500 mt-0.5">
-            {heatmap.activeDaysCount} active {heatmap.activeDaysCount === 1 ? "day" : "days"}
+            {heatmap.activeDaysCount} active {heatmap.activeDaysCount === 1 ? "day" : "days"} logged
           </div>
         </div>
 
-        <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800/80">
+        <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/80">
           <div className="flex items-center justify-between text-slate-400 text-[11px] font-medium mb-1">
             <span>Current Streak</span>
             <Flame className="w-3.5 h-3.5 text-amber-400" />
           </div>
-          <div className="text-lg font-bold text-amber-300 tracking-tight">
+          <div className="text-xl font-bold text-amber-300 tracking-tight">
             {heatmap.currentStreak} {heatmap.currentStreak === 1 ? "day" : "days"}
           </div>
           <div className="text-[10px] text-slate-500 mt-0.5">
-            Daily recall consistency
+            {selectedYear === currentYear ? "Daily activity consistency" : `Completed in ${selectedYear}`}
           </div>
         </div>
 
-        <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800/80">
+        <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/80">
           <div className="flex items-center justify-between text-slate-400 text-[11px] font-medium mb-1">
             <span>Longest Streak</span>
             <Trophy className="w-3.5 h-3.5 text-yellow-400" />
           </div>
-          <div className="text-lg font-bold text-white tracking-tight">
+          <div className="text-xl font-bold text-white tracking-tight">
             {heatmap.longestStreak} {heatmap.longestStreak === 1 ? "day" : "days"}
           </div>
           <div className="text-[10px] text-slate-500 mt-0.5">
-            Personal all-time record
-          </div>
-        </div>
-
-        <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800/80">
-          <div className="flex items-center justify-between text-slate-400 text-[11px] font-medium mb-1">
-            <span>Due For Review</span>
-            {leitnerStats.dueCount > 0 ? (
-              <Clock className="w-3.5 h-3.5 text-amber-400" />
-            ) : (
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-            )}
-          </div>
-          <div
-            className={`text-lg font-bold tracking-tight ${
-              leitnerStats.dueCount > 0 ? "text-amber-400" : "text-emerald-400"
-            }`}
-          >
-            {leitnerStats.dueCount > 0 ? `${leitnerStats.dueCount} notes` : "All Done"}
-          </div>
-          <div className="text-[10px] text-slate-500 mt-0.5">
-            {leitnerStats.masteredCount} of {leitnerStats.total} mastered
+            Best record in {selectedYear}
           </div>
         </div>
       </div>
 
-      {/* Main Contribution Grid Area */}
+      {/* Main Contribution Grid Area - Spans 100% Horizontal Space */}
       <div className="overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent">
-        <div className="inline-block min-w-full">
-          {/* Month Labels Header (positioned with exact mathematical column offsets) */}
+        <div className="w-full min-w-[720px]">
+          {/* Month Labels Header (flex-1 matching column grid perfectly) */}
           <div className="flex items-start mb-2 select-none">
             <div className="w-8 shrink-0" />
-            <div
-              className="relative h-4 select-none"
-              style={{ width: `${heatmap.weeks.length * COLUMN_STEP_PX}px` }}
-            >
-              {heatmap.monthLabels.map((m, idx) => (
-                <span
-                  key={idx}
-                  className="absolute text-[11px] font-mono font-medium text-slate-400 whitespace-nowrap"
-                  style={{
-                    left: `${m.colIndex * COLUMN_STEP_PX}px`,
-                  }}
-                >
-                  {m.month}
-                </span>
-              ))}
+            <div className="flex w-full gap-[2px] sm:gap-[3px]">
+              {heatmap.weeks.map((_, colIdx) => {
+                const month = heatmap.monthLabels.find((m) => m.colIndex === colIdx);
+                return (
+                  <div key={colIdx} className="flex-1 min-w-0 relative h-4">
+                    {month && (
+                      <span className="absolute left-0 top-0 text-[11px] font-mono font-medium text-slate-400 whitespace-nowrap">
+                        {month.month}
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
 
-          {/* Weekday labels + Columns */}
-          <div className="flex items-start">
+          {/* Weekday labels + Full-Width Columns */}
+          <div className="flex items-stretch">
             {/* Weekday Labels (Mon, Wed, Fri) */}
-            <div className="flex flex-col gap-[3px] pr-2 pt-[1px] select-none w-8">
+            <div className="flex flex-col gap-[2px] sm:gap-[3px] pr-2 select-none w-8 shrink-0">
               {WEEKDAY_LABELS.map((dayLabel, idx) => (
                 <div
                   key={idx}
-                  className="h-[13px] text-[10px] text-slate-500 font-mono flex items-center justify-end leading-none"
+                  className="flex-1 text-[10px] text-slate-500 font-mono flex items-center justify-end leading-none"
                 >
                   {dayLabel}
                 </div>
               ))}
             </div>
 
-            {/* Weekly Columns */}
-            <div className="flex gap-[3px]">
+            {/* Weekly Columns (w-full flex-1 covering entire space horizontally) */}
+            <div className="flex w-full gap-[2px] sm:gap-[3px]">
               {heatmap.weeks.map((week, colIdx) => (
-                <div key={colIdx} className="flex flex-col gap-[3px]">
+                <div key={colIdx} className="flex-1 min-w-0 flex flex-col gap-[2px] sm:gap-[3px]">
                   {week.map((day, rowIdx) => {
                     const tooltipText = day.isFuture
                       ? `${formatDisplayDate(day.dateStr)} (Upcoming)`
@@ -290,7 +213,7 @@ export function RecallActivityHeatmap({ items, className = "" }: RecallActivityH
                         key={rowIdx}
                         onMouseEnter={() => setHoveredDay(day)}
                         onMouseLeave={() => setHoveredDay(null)}
-                        className={`w-[13px] h-[13px] rounded-[2.5px] border transition-all cursor-pointer relative ${getCellColorClass(
+                        className={`w-full aspect-square rounded-[2px] border transition-all cursor-pointer relative ${getCellColorClass(
                           day
                         )} ${
                           day.isToday
@@ -308,15 +231,15 @@ export function RecallActivityHeatmap({ items, className = "" }: RecallActivityH
         </div>
       </div>
 
-      {/* Heatmap Footer: Live Hover Inspector + Leitner Distribution + Intensity Legend */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 mt-4 pt-3.5 border-t border-slate-800/80 text-xs">
+      {/* Heatmap Footer: Live Hover Inspector + Intensity Legend (Clean, No Due-For-Review) */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-4 pt-3.5 border-t border-slate-800/80 text-xs">
         {/* Left: Interactive Hover Date Inspector */}
         <div className="flex items-center gap-2 min-h-[22px]">
           {hoveredDay ? (
             <span className="text-slate-300 font-mono text-[11px] flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-emerald-400" />
               <strong className="text-white">
-                {hoveredDay.count} {hoveredDay.count === 1 ? "review/entry" : "reviews/entries"}
+                {hoveredDay.count} {hoveredDay.count === 1 ? "activity" : "activities"}
               </strong>{" "}
               on {formatDisplayDate(hoveredDay.dateStr)}
               {hoveredDay.isToday && (
@@ -328,50 +251,13 @@ export function RecallActivityHeatmap({ items, className = "" }: RecallActivityH
           ) : (
             <span className="flex items-center gap-1.5 text-slate-500 text-[11px]">
               <Info className="w-3.5 h-3.5 text-slate-500" />
-              <span>Hover over any square to inspect review & note activity</span>
+              <span>Hover over any square to inspect activity breakdown</span>
             </span>
           )}
         </div>
 
-        {/* Center: Leitner Boxes Mini Distribution */}
-        <div className="flex items-center gap-2 text-[11px] text-slate-400 font-mono self-start lg:self-auto">
-          <span className="text-slate-500 text-[10px]">Leitner Boxes:</span>
-          <div className="flex items-center gap-1">
-            <span
-              className="px-1.5 py-0.5 rounded bg-slate-900 border border-slate-800 text-[10px] text-slate-300"
-              title="Box 1: Daily review"
-            >
-              B1: <strong className="text-white">{leitnerStats.boxes[1]}</strong>
-            </span>
-            <span
-              className="px-1.5 py-0.5 rounded bg-slate-900 border border-slate-800 text-[10px] text-slate-300"
-              title="Box 2: 3-day interval"
-            >
-              B2: <strong className="text-white">{leitnerStats.boxes[2]}</strong>
-            </span>
-            <span
-              className="px-1.5 py-0.5 rounded bg-slate-900 border border-slate-800 text-[10px] text-slate-300"
-              title="Box 3: Weekly interval"
-            >
-              B3: <strong className="text-white">{leitnerStats.boxes[3]}</strong>
-            </span>
-            <span
-              className="px-1.5 py-0.5 rounded bg-slate-900 border border-slate-800 text-[10px] text-slate-300"
-              title="Box 4: Bi-weekly interval"
-            >
-              B4: <strong className="text-white">{leitnerStats.boxes[4]}</strong>
-            </span>
-            <span
-              className="px-1.5 py-0.5 rounded bg-emerald-950/60 border border-emerald-800/80 text-[10px] text-emerald-400"
-              title="Box 5: Mastered (Monthly)"
-            >
-              B5: <strong className="text-emerald-300">{leitnerStats.boxes[5]}</strong>
-            </span>
-          </div>
-        </div>
-
         {/* Right: Less -> More Intensity Swatches Legend */}
-        <div className="flex items-center gap-1.5 self-end lg:self-auto font-mono text-[10px] text-slate-500">
+        <div className="flex items-center gap-1.5 self-end sm:self-auto font-mono text-[10px] text-slate-500">
           <span>Less</span>
           <div className="w-3 h-3 rounded-[2px] bg-[#13151b] border border-[#1e222b]" title="0 activities" />
           <div className="w-3 h-3 rounded-[2px] bg-emerald-950 border border-emerald-800" title="1 activity" />
