@@ -1,20 +1,49 @@
 import { z } from "zod";
 
+const normalizeEntityType = (val: unknown) => {
+  if (typeof val === "string") {
+    const s = val.toLowerCase().trim();
+    if (s === "bug" || s === "defect") return "bug";
+    if (s === "learning" || s === "learn") return "learning";
+    if (s === "task" || s === "todo") return "task";
+    return val;
+  }
+  return val;
+};
+
+const normalizePriority = (val: unknown) => {
+  if (typeof val === "string") {
+    const s = val.toLowerCase().trim();
+    if (s.includes("urgent") || s.includes("critical") || s.includes("blocker")) return "urgent";
+    if (s.includes("high")) return "high";
+    if (s.includes("low")) return "low";
+  }
+  return "medium";
+};
+
 export const smartCaptureOutputSchema = z.object({
-  entityType: z.enum(["task", "bug", "learning"]),
-  title: z.string().min(1).max(120),
-  description: z.string().default(""),
-  priority: z.enum(["low", "medium", "high", "urgent"]).default("medium"),
-  dueDate: z.string().optional().nullable(),
-  suggestedProjectName: z.string().optional().nullable(),
-  tags: z.array(z.string()).max(5).default([]),
+  entityType: z.preprocess(normalizeEntityType, z.enum(["task", "bug", "learning"])),
+  title: z.preprocess((val) => (typeof val === "string" ? val.slice(0, 200) : "Untitled Item"), z.string().min(1).default("Untitled Item")),
+  description: z.preprocess((val) => (typeof val === "string" ? val : ""), z.string().default("")),
+  priority: z.preprocess(normalizePriority, z.enum(["low", "medium", "high", "urgent"])),
+  dueDate: z.preprocess((val) => (val === "" ? null : val), z.string().optional().nullable()),
+  suggestedProjectName: z.preprocess((val) => (val === "" ? null : val), z.string().optional().nullable()),
+  tags: z.preprocess(
+    (val) => (Array.isArray(val) ? val.filter((t) => typeof t === "string") : []),
+    z.array(z.string()).default([])
+  ),
   bugDetails: z
-    .object({
-      stackTrace: z.string().optional(),
-      reproSteps: z.string().optional(),
-      suspectedCause: z.string().optional(),
-    })
-    .optional(),
+    .preprocess(
+      (val) => (val && typeof val === "object" ? val : null),
+      z
+        .object({
+          stackTrace: z.preprocess((v) => (v === "" ? null : v), z.string().optional().nullable()),
+          reproSteps: z.preprocess((v) => (v === "" ? null : v), z.string().optional().nullable()),
+          suspectedCause: z.preprocess((v) => (v === "" ? null : v), z.string().optional().nullable()),
+        })
+        .optional()
+        .nullable()
+    ),
 });
 
 export type SmartCaptureOutput = z.infer<typeof smartCaptureOutputSchema>;

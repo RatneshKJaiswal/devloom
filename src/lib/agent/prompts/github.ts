@@ -2,23 +2,93 @@ import { z } from "zod";
 import { GitHubMetadata } from "@/lib/github/client";
 import { ParsedGitHubUrl } from "@/lib/github/parser";
 
+const normalizeEntityType = (val: unknown) => {
+  if (typeof val === "string") {
+    const s = val.toLowerCase().trim();
+    if (s.includes("bug") || s.includes("defect") || s.includes("crash") || s.includes("error") || s.includes("fix")) return "bug";
+    if (s.includes("learn") || s.includes("note") || s.includes("tip") || s.includes("doc")) return "learning";
+    return "task";
+  }
+  return "task";
+};
+
+const normalizePriority = (val: unknown) => {
+  if (typeof val === "string") {
+    const s = val.toLowerCase().trim();
+    if (s.includes("urgent") || s.includes("critical") || s.includes("blocker")) return "urgent";
+    if (s.includes("high")) return "high";
+    if (s.includes("low")) return "low";
+  }
+  return "medium";
+};
+
 export const gitHubContextOutputSchema = z.object({
-  entityType: z.enum(["task", "bug", "learning"]),
-  title: z.string().min(1).max(120),
-  description: z.string().default(""),
-  priority: z.enum(["low", "medium", "high", "urgent"]).default("medium"),
-  suggestedProjectName: z.string().optional().nullable(),
-  tags: z.array(z.string()).max(5).default([]),
+  entityType: z.preprocess(normalizeEntityType, z.enum(["task", "bug", "learning"])),
+  title: z.preprocess((val) => (typeof val === "string" ? val.slice(0, 200) : "Untitled GitHub Item"), z.string().min(1).default("Untitled GitHub Item")),
+  description: z.preprocess((val) => (typeof val === "string" ? val : ""), z.string().default("")),
+  priority: z.preprocess(normalizePriority, z.enum(["low", "medium", "high", "urgent"])),
+  suggestedProjectName: z.preprocess((val) => (val === "" ? null : val), z.string().optional().nullable()),
+  tags: z.preprocess(
+    (val) => (Array.isArray(val) ? val.filter((t) => typeof t === "string") : []),
+    z.array(z.string()).default([])
+  ),
   bugDetails: z
-    .object({
-      stackTrace: z.string().optional(),
-      reproSteps: z.string().optional(),
-      suspectedCause: z.string().optional(),
-    })
-    .optional(),
+    .preprocess(
+      (val) => (val && typeof val === "object" ? val : null),
+      z
+        .object({
+          stackTrace: z.preprocess((v) => (v === "" ? null : v), z.string().optional().nullable()),
+          reproSteps: z.preprocess((v) => (v === "" ? null : v), z.string().optional().nullable()),
+          suspectedCause: z.preprocess((v) => (v === "" ? null : v), z.string().optional().nullable()),
+        })
+        .optional()
+        .nullable()
+    ),
 });
 
 export type GitHubContextOutput = z.infer<typeof gitHubContextOutputSchema>;
+
+export const gitHubContextJsonSchema = {
+  type: "OBJECT",
+  properties: {
+    entityType: {
+      type: "STRING",
+      enum: ["task", "bug", "learning"],
+      description: "Classify as task, bug, or learning based on GitHub context",
+    },
+    title: {
+      type: "STRING",
+      description: "Concise title for the item",
+    },
+    description: {
+      type: "STRING",
+      description: "Structured markdown summary of the issue or PR",
+    },
+    priority: {
+      type: "STRING",
+      enum: ["low", "medium", "high", "urgent"],
+      description: "Estimated urgency or severity",
+    },
+    suggestedProjectName: {
+      type: "STRING",
+      description: "Repository name or inferred project name",
+    },
+    tags: {
+      type: "ARRAY",
+      items: { type: "STRING" },
+      description: "1 to 4 technology or topic labels",
+    },
+    bugDetails: {
+      type: "OBJECT",
+      properties: {
+        stackTrace: { type: "STRING" },
+        reproSteps: { type: "STRING" },
+        suspectedCause: { type: "STRING" },
+      },
+    },
+  },
+  required: ["entityType", "title"],
+};
 
 export function buildGitHubContextPrompt(
   parsedUrl: ParsedGitHubUrl,
@@ -64,5 +134,6 @@ Guidelines:
     systemInstruction,
     userPrompt,
     schema: gitHubContextOutputSchema,
+    jsonSchema: gitHubContextJsonSchema,
   };
 }

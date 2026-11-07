@@ -48,4 +48,22 @@ describe("Agent GitHub Context Prompt & Injection Containment", () => {
     const parsed = gitHubContextOutputSchema.safeParse(validCandidate);
     expect(parsed.success).toBe(true);
   });
+
+  it("should gracefully auto-heal when model returns bugDetails as null and entityType as issue", () => {
+    const rawModelOutput = {
+      entityType: "issue",
+      title: "Add food tracking filter",
+      description: "Users want to filter meals by date.",
+      priority: "medium",
+      bugDetails: null,
+      tags: ["enhancement"],
+    };
+
+    const parsed = gitHubContextOutputSchema.safeParse(rawModelOutput);
+    expect(parsed.success).toBe(true);
+    if (parsed.success) {
+      expect(parsed.data.entityType).toBe("task");
+      expect(parsed.data.bugDetails).toBeNull();
+    }
+  });
 });
