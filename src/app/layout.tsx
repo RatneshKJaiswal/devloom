@@ -18,20 +18,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark">
-      <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(function(){
-              try {
-                localStorage.removeItem('devloom-theme');
-                document.documentElement.classList.remove('light');
-                document.documentElement.classList.add('dark');
-              } catch(e) {}
-            })()`,
-          }}
-        />
-      </head>
+    <html lang="en" className="dark" suppressHydrationWarning>
       <body className="antialiased min-h-screen bg-slate-950 text-slate-100">
         {children}
       </body>
