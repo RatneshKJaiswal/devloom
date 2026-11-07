@@ -42,11 +42,26 @@ export const authConfig: NextAuthConfig = {
       const isLoggedIn = !!auth?.user;
       const { pathname } = nextUrl;
 
+      // 1. Static installation and CLI scripts are public
+      if (
+        pathname === "/install.sh" ||
+        pathname === "/devloom.sh" ||
+        pathname === "/devloom"
+      ) {
+        return true;
+      }
+
+      // 2. API routes handle their own JSON authentication (Bearer PAT or session cookie)
+      // They must NEVER be redirected to the HTML /login page
+      if (pathname.startsWith("/api/")) {
+        return true;
+      }
+
+      // 3. Public landing and auth pages
       const isPublicRoute =
         pathname === "/" ||
         pathname === "/login" ||
-        pathname === "/privacy" ||
-        pathname.startsWith("/api/auth");
+        pathname === "/privacy";
 
       if (!isLoggedIn && !isPublicRoute) {
         return false;
