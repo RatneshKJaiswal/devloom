@@ -638,7 +638,7 @@ export function ProjectTimelineView({
             <div className="flex items-center gap-2">
               <span className="text-xs font-semibold text-white tracking-tight">Timeline & Gantt</span>
               <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded-full bg-slate-850 text-slate-300 border border-slate-700">
-                {scheduledTasks.length} dated • {milestones.length} milestones
+                {scheduledTasks.length} tasks • {milestones.length} milestones
               </span>
             </div>
             <p className="text-[11px] text-slate-400 mt-0.5 hidden sm:block">
@@ -833,15 +833,6 @@ export function ProjectTimelineView({
 
             {/* Vertical Guide Lines + Canvas Body */}
             <div className="relative min-h-[340px] py-4">
-              {/* Today Guideline with Glowing Indicator */}
-              <div
-                style={{ left: `${todayX + cellWidth / 2}px` }}
-                className="absolute top-0 bottom-0 w-[2px] bg-primary z-20 pointer-events-none shadow-[0_0_8px_rgba(66,133,244,0.6)]"
-              >
-                <div className="sticky top-2 -ml-6 px-1.5 py-0.5 rounded-full bg-primary text-white text-[9px] font-bold tracking-wider uppercase font-mono shadow-lg border border-blue-300/40 text-center">
-                  Today
-                </div>
-              </div>
 
               {/* Milestone vertical dashed drop lines */}
               {milestones.map((m) => {
@@ -1015,11 +1006,6 @@ export function ProjectTimelineView({
 
                 {/* 3. Scheduled Tasks Bars with Gantt Drag Handles */}
                 <div className="space-y-2 pt-1">
-                  <div className="text-[10px] uppercase font-bold tracking-wider text-slate-400 pl-1 flex items-center gap-1.5">
-                    <CheckSquare className="w-3.5 h-3.5 text-primary" />
-                    <span>Dated Tasks (Interactive Gantt)</span>
-                  </div>
-
                   {scheduledTasks.length === 0 ? (
                     <div className="p-4 text-xs text-slate-500 italic bg-slate-900/40 rounded-xl border border-slate-800">
                       No tasks have dates assigned yet. Click "Add to Gantt" above or schedule tasks from the tray below.
