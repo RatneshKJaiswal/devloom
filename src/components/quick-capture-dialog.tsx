@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { CheckSquare, Bug, Brain, X, Loader2, FolderKanban, Calendar, AlertCircle } from "lucide-react";
+import { MiniTextEditor } from "@/components/ui/mini-text-editor";
+import { formatTaskId } from "@/lib/identifiers";
 
 interface QuickCaptureModalProps {
   isOpen: boolean;
@@ -33,10 +35,12 @@ export function QuickCaptureModal({
   // Duplicate detection state
   const [duplicateWarning, setDuplicateWarning] = useState<string | null>(null);
 
-  // Bug fields
+  // Bug fields & associated task
   const [stackTrace, setStackTrace] = useState("");
   const [reproSteps, setReproSteps] = useState("");
   const [suspectedCause, setSuspectedCause] = useState("");
+  const [tasksList, setTasksList] = useState<any[]>([]);
+  const [associatedTaskId, setAssociatedTaskId] = useState<string>("");
 
   // State
   const [loading, setLoading] = useState(false);
@@ -70,6 +74,11 @@ export function QuickCaptureModal({
       fetch("/api/projects")
         .then((r) => (r.ok ? r.json() : []))
         .then((data) => setProjects(Array.isArray(data) ? data : []))
+        .catch(() => {});
+
+      fetch("/api/tasks")
+        .then((r) => (r.ok ? r.json() : []))
+        .then((data) => setTasksList(Array.isArray(data) ? data : []))
         .catch(() => {});
     }
   }, [isOpen, defaultProjectId]);
@@ -133,6 +142,7 @@ export function QuickCaptureModal({
           description: description.trim() || undefined,
           priority,
           projectId: projectId.trim() || undefined,
+          taskId: associatedTaskId.trim() || undefined,
           startDate: startDate ? startDate : undefined,
           dueDate: dueDate ? dueDate : undefined,
           stackTrace: stackTrace.trim() || undefined,
@@ -294,21 +304,29 @@ export function QuickCaptureModal({
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1">
-              {activeTab === "learning" ? "Note Content *" : "Description"}
+            <label className="block text-xs font-medium text-slate-300 mb-1.5 flex items-center justify-between">
+              <span>{activeTab === "learning" ? "Note Content *" : "Description"}</span>
+              {activeTab === "learning" && (
+                <span className="text-[11px] text-slate-400 font-normal">Mini Markdown Editor</span>
+              )}
             </label>
-            <textarea
-              required={activeTab === "learning"}
-              rows={3}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder={
-                activeTab === "learning"
-                  ? "Explain the gotcha, command, or concept in your own words..."
-                  : "Additional context or notes..."
-              }
-              className="w-full px-3.5 py-2 rounded-xl border border-slate-700 bg-slate-950 text-sm text-white placeholder:text-slate-400 focus:outline-none focus:border-primary"
-            />
+            {activeTab === "learning" ? (
+              <MiniTextEditor
+                value={description}
+                onChange={setDescription}
+                placeholder="Explain the gotcha, command, or concept in your own words..."
+                minHeight="min-h-[160px]"
+                required
+              />
+            ) : (
+              <textarea
+                rows={3}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Additional context or notes..."
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-700 bg-slate-950 text-sm text-white placeholder:text-slate-400 focus:outline-none focus:border-primary"
+              />
+            )}
           </div>
 
           {/* Project & Priority Selectors */}
@@ -399,6 +417,29 @@ export function QuickCaptureModal({
 
           {activeTab === "bug" && (
             <div className="space-y-3 pt-2 border-t border-slate-800">
+              {tasksList.length > 0 && (
+                <div>
+                  <label className="block text-xs font-medium text-slate-300 mb-1 flex items-center justify-between">
+                    <span className="flex items-center gap-1.5">
+                      <CheckSquare className="w-3.5 h-3.5 text-primary" />
+                      <span>Associated Task</span>
+                    </span>
+                    <span className="text-[11px] text-slate-400 font-normal">Optional</span>
+                  </label>
+                  <select
+                    value={associatedTaskId}
+                    onChange={(e) => setAssociatedTaskId(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-700 bg-slate-950 text-xs text-white focus:outline-none focus:border-amber-500 cursor-pointer"
+                  >
+                    <option value="">No Associated Task (Standalone Bug)</option>
+                    {tasksList.map((t) => (
+                      <option key={t.id} value={t.id}>
+                        {formatTaskId(t)}: {t.title} ({t.status})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
               <div>
                 <label className="block text-xs font-medium text-slate-300 mb-1">
                   Stack Trace / Error Output
@@ -430,14 +471,14 @@ export function QuickCaptureModal({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl border border-slate-700 hover:bg-slate-800 text-slate-300 text-xs font-medium transition cursor-pointer"
+              className="px-4 py-2.5 rounded-xl border border-slate-700 hover:bg-slate-800 text-slate-300 text-xs font-medium transition cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className={`px-5 py-2 rounded-xl disabled:opacity-50 text-white text-xs font-medium flex items-center gap-1.5 shadow-md transition cursor-pointer ${
+              className={`px-5 py-2.5 rounded-xl disabled:opacity-50 text-white text-xs font-medium flex items-center gap-1.5 shadow-md transition cursor-pointer ${
                 activeTab === "bug"
                   ? "bg-amber-600 hover:bg-amber-500 shadow-amber-600/20"
                   : activeTab === "learning"
