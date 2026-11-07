@@ -1,5 +1,5 @@
 /**
- * Pure 12-week GitHub-style activity grid calculation for Leitner Knowledge Base.
+ * Pure GitHub-style yearly & multi-week activity grid calculation for Leitner Knowledge Base.
  */
 
 export interface HeatmapDay {
@@ -11,11 +11,12 @@ export interface HeatmapDay {
 }
 
 export interface HeatmapGridResult {
-  weeks: HeatmapDay[][]; // 12 columns, 7 rows each
+  weeks: HeatmapDay[][]; // numWeeks columns, 7 rows each
   monthLabels: Array<{ month: string; colIndex: number }>;
   totalActivities: number;
   currentStreak: number;
   longestStreak: number;
+  activeDaysCount: number;
 }
 
 function formatDate(d: Date): string {
@@ -27,7 +28,8 @@ function formatDate(d: Date): string {
 
 export function calculateRecallHeatmap(
   items: Array<{ createdAt?: string | Date | null; lastReviewedAt?: string | Date | null }>,
-  referenceDate: Date = new Date()
+  referenceDate: Date = new Date(),
+  numWeeks: number = 52
 ): HeatmapGridResult {
   const today = new Date(referenceDate);
   today.setHours(0, 0, 0, 0);
@@ -55,26 +57,30 @@ export function calculateRecallHeatmap(
   const daysUntilSaturday = 6 - endOfWeek.getDay();
   endOfWeek.setDate(endOfWeek.getDate() + daysUntilSaturday);
 
-  // 12 weeks = 84 days total
+  // numWeeks * 7 days total (e.g. 52 * 7 = 364 days)
   const startDate = new Date(endOfWeek);
-  startDate.setDate(startDate.getDate() - (12 * 7 - 1));
+  startDate.setDate(startDate.getDate() - (numWeeks * 7 - 1));
 
   const weeks: HeatmapDay[][] = [];
   const monthLabels: Array<{ month: string; colIndex: number }> = [];
   let lastMonth = -1;
 
   let cursor = new Date(startDate);
-  for (let w = 0; w < 12; w++) {
+  for (let w = 0; w < numWeeks; w++) {
     const week: HeatmapDay[] = [];
 
     // Check if new month starts in this week column
     const monthAtStartOfWeek = cursor.getMonth();
     if (monthAtStartOfWeek !== lastMonth) {
       const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-      monthLabels.push({
-        month: monthNames[monthAtStartOfWeek],
-        colIndex: w,
-      });
+      // Guard against month label crowding: require at least 2 columns between labels and don't place on the last column
+      const lastLabelCol = monthLabels.length > 0 ? monthLabels[monthLabels.length - 1].colIndex : -99;
+      if (w - lastLabelCol >= 2 && w < numWeeks - 1) {
+        monthLabels.push({
+          month: monthNames[monthAtStartOfWeek],
+          colIndex: w,
+        });
+      }
       lastMonth = monthAtStartOfWeek;
     }
 
@@ -98,12 +104,16 @@ export function calculateRecallHeatmap(
     weeks.push(week);
   }
 
-  // Calculate total activities in the 12-week window
+  // Calculate total activities and active days in the window
   let totalActivities = 0;
+  let activeDaysCount = 0;
   for (const week of weeks) {
     for (const day of week) {
       if (!day.isFuture) {
         totalActivities += day.count;
+        if (day.count > 0) {
+          activeDaysCount++;
+        }
       }
     }
   }
@@ -113,7 +123,7 @@ export function calculateRecallHeatmap(
   let longestStreak = 0;
   let tempStreak = 0;
 
-  // Streak check over the last 84 days up to today
+  // Streak check over the day list up to today
   const dayList: HeatmapDay[] = [];
   for (const week of weeks) {
     for (const day of week) {
@@ -156,5 +166,6 @@ export function calculateRecallHeatmap(
     totalActivities,
     currentStreak,
     longestStreak,
+    activeDaysCount,
   };
 }
