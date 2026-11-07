@@ -17,6 +17,8 @@ import {
   ChevronRight,
   CalendarPlus,
   Plus,
+  FolderKanban,
+  Sparkles,
 } from "lucide-react";
 import { TASK_STATUS_CONFIG, PRIORITY_CONFIG } from "@/lib/tokens";
 import type { DependencyWithDetails } from "@/lib/dal/dependencies";
@@ -72,6 +74,8 @@ interface ProjectTimelineProps {
   };
   tasks: Array<{
     id: string;
+    task_number?: number | null;
+    taskNumber?: number | null;
     title: string;
     status: string;
     priority: string;
@@ -270,8 +274,37 @@ export function ProjectTimelineView({
     };
   }, [project, milestones, scheduledTasks, resolution]);
 
-  const cellWidth = resolution === "day" ? 36 : 14;
+  const cellWidth = resolution === "day" ? 38 : 16;
   const timelineWidth = totalDays * cellWidth;
+
+  // Month-Year groups for the sticky header
+  const monthGroups = useMemo(() => {
+    const groups: Array<{
+      key: string;
+      label: string;
+      year: number;
+      daysCount: number;
+      width: number;
+    }> = [];
+
+    for (const d of datesList) {
+      const key = `${d.getFullYear()}-${d.getMonth()}`;
+      const lastGroup = groups[groups.length - 1];
+      if (lastGroup && lastGroup.key === key) {
+        lastGroup.daysCount += 1;
+        lastGroup.width += cellWidth;
+      } else {
+        groups.push({
+          key,
+          label: d.toLocaleDateString("en-US", { month: "short", year: "numeric" }),
+          year: d.getFullYear(),
+          daysCount: 1,
+          width: cellWidth,
+        });
+      }
+    }
+    return groups;
+  }, [datesList, cellWidth]);
 
   function dateToX(dateVal: string | Date): number {
     const d = typeof dateVal === "string" ? parseDateOnly(toDateStr(dateVal)) : new Date(dateVal);
@@ -282,8 +315,23 @@ export function ProjectTimelineView({
 
   const todayX = dateToX(new Date());
 
-  const taskRowHeight = 36;
-  const tasksStartY = 110;
+  // Task layout measurements
+  const taskRowHeight = 40; // 32px bar row + 8px gap
+  const hasHorizon = !!(project.startDate && project.targetDate);
+  const hasMilestones = milestones.length > 0;
+
+  // Pixel-accurate Y calculation for SVG connector lines
+  const computedTasksStartY = useMemo(() => {
+    let y = 16; // py-4 canvas body padding
+    if (hasHorizon) {
+      y += 62; // Horizon section (label + bar + spacing)
+    }
+    if (hasMilestones) {
+      y += 68; // Milestones section (label + diamonds + spacing)
+    }
+    y += 32; // Tasks section label & margin
+    return y;
+  }, [hasHorizon, hasMilestones]);
 
   const taskIndexMap = useMemo(() => {
     const map = new Map<string, number>();
@@ -560,26 +608,35 @@ export function ProjectTimelineView({
   return (
     <div className="space-y-4 relative">
       {/* Timeline Controls Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl border border-slate-800 bg-slate-950/80">
-        <div className="flex items-center gap-2 flex-wrap">
-          <Calendar className="w-4 h-4 text-primary" />
-          <span className="text-xs font-semibold text-white">Project Timeline</span>
-          <span className="text-[11px] text-slate-400">
-            ({scheduledTasks.length} dated tasks, {milestones.length} milestones, {dependencies.length} dependencies)
-          </span>
-          <span className="text-[10px] text-slate-400 font-mono hidden md:inline ml-2 px-1.5 py-0.5 rounded border border-slate-800 bg-slate-900/60">
-            Alt+←/→: shift 1d • Drag bar or handles
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl border border-slate-800 bg-[#1a1b1f] shadow-sm">
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <div className="p-1.5 rounded-lg bg-primary-subtle text-primary border border-primary/25">
+            <Calendar className="w-4 h-4" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold text-white tracking-tight">Timeline & Gantt</span>
+              <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded-full bg-slate-850 text-slate-300 border border-slate-700">
+                {scheduledTasks.length} dated • {milestones.length} milestones
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-400 mt-0.5 hidden sm:block">
+              Interactive SDLC timeline with dependencies, milestones, and drag scheduling.
+            </p>
+          </div>
+          <span className="text-[10px] text-slate-400 font-mono hidden lg:inline ml-1 px-2 py-0.5 rounded border border-slate-800 bg-slate-900">
+            Alt+←/→: shift 1d • Drag edge handles to resize
           </span>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
           {/* Scroll Navigation Controls */}
-          <div className="flex items-center gap-1 p-0.5 rounded-lg border border-slate-800 bg-slate-900">
+          <div className="flex items-center gap-0.5 p-0.5 rounded-xl border border-slate-800 bg-[#121316]">
             <button
               type="button"
               onClick={() => scrollByOffset(-320)}
               title="Scroll left"
-              className="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-white transition cursor-pointer"
+              className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition cursor-pointer"
             >
               <ChevronLeft className="w-3.5 h-3.5" />
             </button>
@@ -587,7 +644,7 @@ export function ProjectTimelineView({
               type="button"
               onClick={scrollToToday}
               title="Center Today"
-              className="px-2 py-0.5 rounded bg-primary/20 hover:bg-primary/30 text-primary text-[11px] font-medium flex items-center gap-1 transition cursor-pointer"
+              className="px-2.5 py-1 rounded-lg bg-primary/20 hover:bg-primary/30 text-primary text-[11px] font-semibold flex items-center gap-1.5 transition cursor-pointer border border-primary/30"
             >
               <Clock className="w-3 h-3" />
               <span>Today</span>
@@ -596,7 +653,7 @@ export function ProjectTimelineView({
               type="button"
               onClick={() => scrollByOffset(320)}
               title="Scroll right"
-              className="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-white transition cursor-pointer"
+              className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition cursor-pointer"
             >
               <ChevronRight className="w-3.5 h-3.5" />
             </button>
@@ -606,30 +663,30 @@ export function ProjectTimelineView({
           <button
             type="button"
             onClick={() => openScheduleDialog()}
-            className="px-2.5 py-1 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-medium flex items-center gap-1.5 transition shadow-sm cursor-pointer"
+            className="px-3 py-1.5 rounded-xl bg-primary hover:bg-primary-hover text-white text-xs font-medium flex items-center gap-1.5 transition shadow-sm shadow-primary/20 cursor-pointer"
           >
             <CalendarPlus className="w-3.5 h-3.5" />
-            <span>Add Task to Gantt</span>
+            <span>Add to Gantt</span>
           </button>
 
           {/* Manage Dependencies Trigger */}
           <button
             type="button"
             onClick={() => setIsDepModalOpen(true)}
-            className="px-2.5 py-1 rounded-lg border border-slate-800 bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs font-medium flex items-center gap-1.5 transition cursor-pointer"
+            className="px-3 py-1.5 rounded-xl border border-slate-700 bg-slate-850 hover:bg-slate-800 text-slate-200 text-xs font-medium flex items-center gap-1.5 transition cursor-pointer shadow-sm"
           >
             <Link2 className="w-3.5 h-3.5 text-primary" />
             <span>Dependencies ({dependencies.length})</span>
           </button>
 
           {/* Day / Week Resolution Toggle */}
-          <div className="flex items-center p-0.5 rounded-lg border border-slate-800 bg-slate-900 text-[11px]">
+          <div className="flex items-center p-0.5 rounded-xl border border-slate-800 bg-[#121316] text-[11px]">
             <button
               type="button"
               onClick={() => setResolution("day")}
-              className={`px-2.5 py-1 rounded-md transition cursor-pointer ${
+              className={`px-3 py-1 rounded-lg transition cursor-pointer ${
                 resolution === "day"
-                  ? "bg-primary text-white font-medium"
+                  ? "bg-primary text-white font-medium shadow-sm"
                   : "text-slate-400 hover:text-white"
               }`}
             >
@@ -638,9 +695,9 @@ export function ProjectTimelineView({
             <button
               type="button"
               onClick={() => setResolution("week")}
-              className={`px-2.5 py-1 rounded-md transition cursor-pointer ${
+              className={`px-3 py-1 rounded-lg transition cursor-pointer ${
                 resolution === "week"
-                  ? "bg-primary text-white font-medium"
+                  ? "bg-primary text-white font-medium shadow-sm"
                   : "text-slate-400 hover:text-white"
               }`}
             >
@@ -651,13 +708,28 @@ export function ProjectTimelineView({
       </div>
 
       {/* Timeline Canvas Container with Horizontal Scroll */}
-      <div className="rounded-xl border border-slate-800 bg-slate-950 overflow-hidden">
+      <div className="rounded-2xl border border-slate-800 bg-[#121316] overflow-hidden shadow-md">
         <div ref={scrollContainerRef} className="overflow-x-auto scroll-smooth scrollbar-thin">
           <div style={{ width: `${timelineWidth}px` }} className="relative select-none">
-            {/* Header: Date Columns */}
-            <div className="flex border-b border-slate-800 bg-slate-900/60 sticky top-0 z-20 h-10">
+            {/* Header: Row 1 - Month / Year Bands */}
+            <div className="flex border-b border-slate-800 bg-[#1a1b1f] sticky top-0 z-30 h-7 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+              {monthGroups.map((group) => (
+                <div
+                  key={group.key}
+                  style={{ width: `${group.width}px` }}
+                  className="shrink-0 px-2.5 flex items-center border-r border-slate-800 truncate bg-[#16171c]"
+                >
+                  <span className="truncate">{group.label}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Header: Row 2 - Date Columns */}
+            <div className="flex border-b border-slate-800 bg-[#1a1b1f]/95 sticky top-7 z-20 h-10">
               {datesList.map((d, idx) => {
                 const isSunday = d.getDay() === 0;
+                const isSaturday = d.getDay() === 6;
+                const isWeekend = isSunday || isSaturday;
                 const isMonday = d.getDay() === 1;
                 const isFirstOfMonth = d.getDate() === 1;
                 const isToday = d.toDateString() === new Date().toDateString();
@@ -666,12 +738,12 @@ export function ProjectTimelineView({
                   <div
                     key={idx}
                     style={{ width: `${cellWidth}px` }}
-                    className={`shrink-0 flex flex-col justify-center items-center text-[10px] border-r border-slate-800/40 ${
+                    className={`shrink-0 flex flex-col justify-center items-center text-[10px] border-r border-slate-800/40 transition-colors ${
                       isToday
-                        ? "bg-primary-subtle text-primary font-bold"
-                        : isSunday
+                        ? "bg-primary-subtle text-primary font-bold shadow-inner"
+                        : isWeekend
                         ? "bg-slate-900/40 text-slate-500"
-                        : "text-slate-400"
+                        : "text-slate-400 hover:text-slate-200"
                     }`}
                     title={d.toLocaleDateString("en-US", {
                       weekday: "short",
@@ -681,16 +753,18 @@ export function ProjectTimelineView({
                   >
                     {resolution === "day" ? (
                       <>
-                        <span className="text-[9px] uppercase opacity-75">
+                        <span className="text-[9px] uppercase opacity-75 font-medium">
                           {d.toLocaleDateString("en-US", { weekday: "narrow" })}
                         </span>
-                        <span className="font-mono">{d.getDate()}</span>
+                        <span className="font-mono text-[10px] font-semibold">{d.getDate()}</span>
                       </>
                     ) : isMonday || isFirstOfMonth ? (
-                      <span className="font-mono text-[9px] truncate">
+                      <span className="font-mono text-[9px] truncate font-medium">
                         {d.toLocaleDateString("en-US", { month: "numeric", day: "numeric" })}
                       </span>
-                    ) : null}
+                    ) : (
+                      <span className="w-1 h-1 rounded-full bg-slate-800" />
+                    )}
                   </div>
                 );
               })}
@@ -698,31 +772,53 @@ export function ProjectTimelineView({
 
             {/* Vertical Guide Lines + Canvas Body */}
             <div className="relative min-h-[340px] py-4">
-              {/* Today Guideline */}
+              {/* Today Guideline with Glowing Indicator */}
               <div
                 style={{ left: `${todayX + cellWidth / 2}px` }}
-                className="absolute top-0 bottom-0 w-[2px] bg-primary z-10 pointer-events-none"
+                className="absolute top-0 bottom-0 w-[2px] bg-primary z-20 pointer-events-none shadow-[0_0_8px_rgba(66,133,244,0.6)]"
               >
-                <div className="sticky top-1 -ml-6 px-1.5 py-0.5 rounded bg-primary text-white text-[9px] font-bold tracking-wider uppercase font-mono shadow-md">
+                <div className="sticky top-2 -ml-6 px-1.5 py-0.5 rounded-full bg-primary text-white text-[9px] font-bold tracking-wider uppercase font-mono shadow-lg border border-blue-300/40 text-center">
                   Today
                 </div>
               </div>
 
-              {/* Background vertical day lines */}
-              <div className="absolute inset-0 flex pointer-events-none">
-                {datesList.map((d, idx) => (
+              {/* Milestone vertical dashed drop lines */}
+              {milestones.map((m) => {
+                const mx = dateToX(m.targetDate) + cellWidth / 2;
+                return (
                   <div
-                    key={idx}
-                    style={{ width: `${cellWidth}px` }}
-                    className="shrink-0 border-r border-slate-900/60 h-full"
+                    key={`milestone-drop-${m.id}`}
+                    style={{ left: `${mx}px` }}
+                    className="absolute top-0 bottom-0 w-[1px] border-l border-dashed border-amber-500/30 pointer-events-none z-10"
                   />
-                ))}
+                );
+              })}
+
+              {/* Background vertical day lines and weekend shading */}
+              <div className="absolute inset-0 flex pointer-events-none">
+                {datesList.map((d, idx) => {
+                  const isWeekend = d.getDay() === 0 || d.getDay() === 6;
+                  const isToday = d.toDateString() === new Date().toDateString();
+                  return (
+                    <div
+                      key={idx}
+                      style={{ width: `${cellWidth}px` }}
+                      className={`shrink-0 border-r border-slate-800/30 h-full ${
+                        isToday
+                          ? "bg-primary/[0.04]"
+                          : isWeekend
+                          ? "bg-slate-900/35"
+                          : ""
+                      }`}
+                    />
+                  );
+                })}
               </div>
 
               {/* SVG Dependency Connector Curves Overlay */}
               <svg
                 style={{ width: `${timelineWidth}px` }}
-                className="absolute inset-0 h-full pointer-events-none z-10"
+                className="absolute inset-0 h-full pointer-events-none z-15"
               >
                 <defs>
                   <marker
@@ -734,7 +830,7 @@ export function ProjectTimelineView({
                     markerHeight="5"
                     orient="auto-start-reverse"
                   >
-                    <path d="M 0 1 L 10 5 L 0 9 z" fill="#64748B" />
+                    <path d="M 0 1 L 10 5 L 0 9 z" fill="#60A5FA" />
                   </marker>
                   <marker
                     id="arrow-blocked"
@@ -762,14 +858,14 @@ export function ProjectTimelineView({
                   const succStart = succTask.startDate || succTask.dueDate!;
 
                   const x1 = dateToX(predEnd) + cellWidth;
-                  const y1 = tasksStartY + predIdx * taskRowHeight + 14;
+                  const y1 = computedTasksStartY + predIdx * taskRowHeight + 14;
 
                   const x2 = dateToX(succStart);
-                  const y2 = tasksStartY + succIdx * taskRowHeight + 14;
+                  const y2 = computedTasksStartY + succIdx * taskRowHeight + 14;
 
                   const isBlocked = dep.predecessorStatus !== "done";
-                  const c1x = x1 + Math.max(Math.abs(x2 - x1) / 2, 20);
-                  const c2x = x2 - Math.max(Math.abs(x2 - x1) / 2, 20);
+                  const c1x = x1 + Math.max(Math.abs(x2 - x1) / 2, 24);
+                  const c2x = x2 - Math.max(Math.abs(x2 - x1) / 2, 24);
 
                   const pathD = `M ${x1} ${y1} C ${c1x} ${y1}, ${c2x} ${y2}, ${x2} ${y2}`;
 
@@ -778,25 +874,26 @@ export function ProjectTimelineView({
                       key={dep.id}
                       d={pathD}
                       fill="none"
-                      stroke={isBlocked ? "var(--timeline-dep-blocked)" : "var(--timeline-dep-line)"}
+                      stroke={isBlocked ? "#EA4335" : "#60A5FA"}
                       strokeWidth={isBlocked ? 2 : 1.5}
                       strokeDasharray={isBlocked ? "4 3" : undefined}
                       markerEnd={isBlocked ? "url(#arrow-blocked)" : "url(#arrow-resolved)"}
-                      className="transition-all opacity-80 hover:opacity-100"
+                      className="transition-all opacity-85 hover:opacity-100"
                     />
                   );
                 })}
               </svg>
 
-              <div className="space-y-4 relative z-10 px-2">
+              <div className="space-y-4 relative z-10 px-3">
                 {/* 1. Project Duration Envelope */}
                 {project.startDate && project.targetDate && (
                   <div className="space-y-1">
-                    <div className="text-[10px] uppercase font-bold tracking-wider text-slate-400 pl-1">
-                      Project Horizon
+                    <div className="text-[10px] uppercase font-bold tracking-wider text-slate-400 pl-1 flex items-center gap-1.5">
+                      <FolderKanban className="w-3.5 h-3.5 text-primary" />
+                      <span>Project Horizon</span>
                     </div>
 
-                    <div className="relative h-6 flex items-center">
+                    <div className="relative h-7 flex items-center">
                       {(() => {
                         const startX = dateToX(project.startDate);
                         const endX = dateToX(project.targetDate) + cellWidth;
@@ -805,10 +902,13 @@ export function ProjectTimelineView({
                         return (
                           <div
                             style={{ left: `${startX}px`, width: `${width}px` }}
-                            className="absolute h-5 rounded-md border border-primary/50 bg-primary/20 flex items-center px-2 text-xs text-white font-medium truncate"
+                            className="absolute h-6 rounded-lg border border-blue-500/40 bg-gradient-to-r from-blue-600/25 via-indigo-600/20 to-blue-500/15 flex items-center px-2.5 text-xs text-white font-medium truncate shadow-sm backdrop-blur-sm"
                             title={`Project: ${project.name} (${project.startDate} to ${project.targetDate})`}
                           >
-                            <span className="truncate">{project.name}</span>
+                            <span className="truncate font-semibold">{project.name}</span>
+                            <span className="ml-auto text-[10px] font-mono text-blue-300 opacity-80 shrink-0">
+                              {project.startDate} → {project.targetDate}
+                            </span>
                           </div>
                         );
                       })()}
@@ -819,8 +919,8 @@ export function ProjectTimelineView({
                 {/* 2. Milestones Row */}
                 {milestones.length > 0 && (
                   <div className="space-y-1 pt-1">
-                    <div className="text-[10px] uppercase font-bold tracking-wider text-amber-400 pl-1 flex items-center gap-1">
-                      <Flag className="w-3 h-3" />
+                    <div className="text-[10px] uppercase font-bold tracking-wider text-amber-400 pl-1 flex items-center gap-1.5">
+                      <Flag className="w-3.5 h-3.5" />
                       <span>Milestones</span>
                     </div>
 
@@ -832,17 +932,17 @@ export function ProjectTimelineView({
                           <div
                             key={m.id}
                             style={{ left: `${x}px` }}
-                            className="absolute -translate-x-1/2 flex flex-col items-center group cursor-pointer"
+                            className="absolute -translate-x-1/2 flex flex-col items-center group cursor-pointer z-20"
                             title={`${m.title} (${m.targetDate}) - ${m.isCompleted ? "Completed" : "Pending"}`}
                           >
                             <div
                               className={`w-3.5 h-3.5 rotate-45 border shadow-sm transition-transform group-hover:scale-125 ${
                                 m.isCompleted
-                                  ? "bg-success border-success-foreground"
-                                  : "bg-warning border-amber-600 animate-pulse"
+                                  ? "bg-emerald-500 border-emerald-300 shadow-emerald-500/30"
+                                  : "bg-amber-500 border-amber-300 animate-pulse shadow-amber-500/30"
                               }`}
                             />
-                            <span className="text-[10px] font-semibold text-slate-200 mt-1 whitespace-nowrap bg-slate-900/90 px-1 rounded border border-slate-800">
+                            <span className="text-[10px] font-semibold text-slate-200 mt-1.5 whitespace-nowrap bg-[#1a1b1f] px-2 py-0.5 rounded-md border border-slate-700 shadow-md">
                               {m.title}
                             </span>
                           </div>
@@ -853,24 +953,24 @@ export function ProjectTimelineView({
                 )}
 
                 {/* 3. Scheduled Tasks Bars with Gantt Drag Handles */}
-                <div className="space-y-2 pt-2">
-                  <div className="text-[10px] uppercase font-bold tracking-wider text-slate-400 pl-1 flex items-center gap-1">
-                    <CheckSquare className="w-3 h-3 text-primary" />
+                <div className="space-y-2 pt-1">
+                  <div className="text-[10px] uppercase font-bold tracking-wider text-slate-400 pl-1 flex items-center gap-1.5">
+                    <CheckSquare className="w-3.5 h-3.5 text-primary" />
                     <span>Dated Tasks (Interactive Gantt)</span>
                   </div>
 
                   {scheduledTasks.length === 0 ? (
-                    <div className="p-4 text-xs text-slate-500 italic">
-                      No tasks have dates assigned yet. Tasks with due dates will appear as bars here.
+                    <div className="p-4 text-xs text-slate-500 italic bg-[#1a1b1f]/40 rounded-xl border border-slate-800">
+                      No tasks have dates assigned yet. Click "Add to Gantt" above or schedule tasks from the tray below.
                     </div>
                   ) : (
-                    scheduledTasks.map((t) => {
+                    scheduledTasks.map((t, idx) => {
                       const taskStart = toDateStr(t.startDate || t.dueDate!);
                       const taskEnd = toDateStr(t.dueDate || t.startDate!);
 
                       const startX = dateToX(taskStart);
                       const endX = dateToX(taskEnd) + cellWidth;
-                      const width = Math.max(endX - startX, 32);
+                      const width = Math.max(endX - startX, 36);
 
                       const isDone = t.status === "done";
                       const blockedInfo = blockedMap.get(t.id);
@@ -880,8 +980,16 @@ export function ProjectTimelineView({
                       const priorityColor =
                         PRIORITY_CONFIG[t.priority]?.badgeClass || "border-slate-700 text-slate-300";
 
+                      const taskNum = t.task_number || t.taskNumber;
+                      const taskSpanDays = Math.max(
+                        1,
+                        Math.round(
+                          (parseDateOnly(taskEnd).getTime() - parseDateOnly(taskStart).getTime()) / 86400000
+                        ) + 1
+                      );
+
                       return (
-                        <div key={t.id} className="relative h-7 flex items-center group">
+                        <div key={t.id} className="relative h-8 flex items-center group">
                           {/* Task Bar with Handles & Drag Handlers */}
                           <div
                             tabIndex={0}
@@ -893,22 +1001,29 @@ export function ProjectTimelineView({
                             aria-valuetext={`${taskStart} to ${taskEnd}`}
                             onKeyDown={(e) => handleKeyDown(e, t)}
                             style={{ left: `${startX}px`, width: `${width}px` }}
-                            className={`absolute h-6 rounded-md border text-xs flex items-center justify-between gap-1 shadow-sm select-none cursor-grab active:cursor-grabbing outline-none focus:ring-2 focus:ring-primary/80 ${
+                            className={`absolute h-7 rounded-lg border text-xs flex items-center justify-between gap-1 select-none cursor-grab active:cursor-grabbing outline-none focus:ring-2 focus:ring-primary/80 transition-shadow ${
                               isCurrentlyDragging
-                                ? "ring-2 ring-primary bg-primary/40 border-primary z-30"
+                                ? "ring-2 ring-primary bg-primary/40 border-primary z-30 shadow-lg shadow-primary/30"
                                 : isDone
-                                ? "bg-slate-900/80 border-slate-700 text-slate-500 line-through"
+                                ? "bg-emerald-950/25 border-emerald-500/30 text-slate-400 hover:border-emerald-500/50"
                                 : isBlocked
-                                ? "bg-danger-subtle border-danger/60 text-white hover:border-danger"
-                                : "bg-primary/20 border-primary/50 text-white hover:border-primary hover:bg-primary/30"
+                                ? "bg-rose-950/40 border-rose-500/60 text-white hover:border-rose-400 shadow-sm shadow-rose-950/30"
+                                : "bg-gradient-to-r from-blue-600/30 via-blue-500/20 to-blue-600/25 border-blue-500/50 text-white hover:border-blue-400 hover:bg-blue-600/35 shadow-sm shadow-blue-500/10"
                             }`}
                             onPointerDown={(e) => handlePointerDown(e, t, "move")}
                             onPointerMove={handlePointerMove}
                             onPointerUp={handlePointerUp}
                             title={`${t.title} (${taskStart} to ${taskEnd})${
                               isBlocked ? ` - BLOCKED by: ${blockedInfo?.blockers.join(", ")}` : ""
-                            } • Drag bar or resize edges`}
+                            } • Drag bar to move, drag edges to resize`}
                           >
+                            {/* Dragging Floating Date Preview Tooltip */}
+                            {isCurrentlyDragging && (
+                              <div className="absolute -top-7 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded bg-slate-900 border border-primary text-primary text-[10px] font-mono font-bold whitespace-nowrap shadow-xl pointer-events-none z-40">
+                                {taskStart} → {taskEnd} ({taskSpanDays}d)
+                              </div>
+                            )}
+
                             {/* Left Handle: Resize Start Date */}
                             <div
                               role="button"
@@ -916,21 +1031,34 @@ export function ProjectTimelineView({
                               onPointerDown={(e) => handlePointerDown(e, t, "resize-start")}
                               onPointerMove={handlePointerMove}
                               onPointerUp={handlePointerUp}
-                              className="absolute left-0 top-0 bottom-0 w-2.5 cursor-ew-resize hover:bg-white/30 rounded-l flex items-center justify-center opacity-0 group-hover:opacity-100 transition z-20"
+                              className="absolute left-0 top-0 bottom-0 w-3 cursor-ew-resize hover:bg-white/20 rounded-l-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-20"
                             >
-                              <div className="w-[2px] h-3 bg-white/70 rounded-full" />
+                              <div className="w-[3px] h-3.5 bg-white/70 rounded-full" />
                             </div>
 
                             {/* Center Content */}
-                            <div className="flex items-center gap-1.5 truncate px-2 pointer-events-none">
-                              {isBlocked && (
-                                <Lock className="w-3 h-3 text-red-400 shrink-0 animate-pulse" />
-                              )}
-                              <span className="truncate font-medium text-[11px]">{t.title}</span>
+                            <div className="flex items-center gap-1.5 truncate px-2.5 pointer-events-none min-w-0">
+                              {/* Task Unique ID */}
+                              <span className="font-mono text-[9px] font-bold px-1.5 py-0.5 rounded bg-black/40 text-blue-300 border border-blue-500/30 shrink-0">
+                                {taskNum ? `TSK-${taskNum}` : `#${idx + 1}`}
+                              </span>
+
+                              {/* Status indicator */}
+                              {isDone ? (
+                                <Check className="w-3 h-3 text-emerald-400 shrink-0" />
+                              ) : isBlocked ? (
+                                <Lock className="w-3 h-3 text-rose-400 shrink-0 animate-pulse" />
+                              ) : null}
+
+                              {/* Title */}
+                              <span className={`truncate font-medium text-[11px] ${isDone ? "line-through text-slate-400" : "text-white"}`}>
+                                {t.title}
+                              </span>
                             </div>
 
+                            {/* Priority badge */}
                             <span
-                              className={`text-[8px] uppercase font-bold px-1 py-0.2 rounded border shrink-0 mr-1.5 pointer-events-none ${priorityColor}`}
+                              className={`text-[8px] uppercase font-bold px-1.5 py-0.2 rounded border shrink-0 mr-2 pointer-events-none ml-auto ${priorityColor}`}
                             >
                               {t.priority}
                             </span>
@@ -942,9 +1070,9 @@ export function ProjectTimelineView({
                               onPointerDown={(e) => handlePointerDown(e, t, "resize-due")}
                               onPointerMove={handlePointerMove}
                               onPointerUp={handlePointerUp}
-                              className="absolute right-0 top-0 bottom-0 w-2.5 cursor-ew-resize hover:bg-white/30 rounded-r flex items-center justify-center opacity-0 group-hover:opacity-100 transition z-20"
+                              className="absolute right-0 top-0 bottom-0 w-3 cursor-ew-resize hover:bg-white/20 rounded-r-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-20"
                             >
-                              <div className="w-[2px] h-3 bg-white/70 rounded-full" />
+                              <div className="w-[3px] h-3.5 bg-white/70 rounded-full" />
                             </div>
                           </div>
                         </div>
@@ -997,7 +1125,7 @@ export function ProjectTimelineView({
 
           {/* Undo Snackbar */}
           {undoAction && (
-            <div className="p-3 rounded-xl border border-slate-700 bg-slate-900/95 text-white text-xs shadow-2xl flex items-center justify-between gap-3 backdrop-blur-sm">
+            <div className="p-3 rounded-xl border border-slate-700 bg-[#1a1b1f]/95 text-white text-xs shadow-2xl flex items-center justify-between gap-3 backdrop-blur-sm">
               <div className="flex items-center gap-2 truncate">
                 <Check className="w-4 h-4 text-success shrink-0" />
                 <span className="truncate">Rescheduled "{undoAction.title}"</span>
@@ -1028,69 +1156,75 @@ export function ProjectTimelineView({
 
       {/* Unscheduled Tasks Tray */}
       {unscheduledTasks.length > 0 && (
-        <div className="p-4 rounded-xl border border-slate-800 bg-slate-950/60 space-y-2">
+        <div className="p-4 rounded-2xl border border-slate-800 bg-[#1a1b1f] shadow-sm space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5 text-slate-500" />
+            <span className="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
+              <Clock className="w-4 h-4 text-slate-400" />
               <span>Unscheduled Tasks ({unscheduledTasks.length})</span>
             </span>
-            <span className="text-[11px] text-slate-500">
-              Tasks without dates • Click schedule or drag onto timeline
+            <span className="text-[11px] text-slate-400">
+              Tasks without dates • Click schedule to assign timeline dates
             </span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 pt-1">
-            {unscheduledTasks.map((t) => (
-              <div
-                key={t.id}
-                className="p-3 rounded-lg border border-slate-800/80 bg-slate-900/40 hover:border-slate-700 transition flex items-center justify-between gap-3 text-xs group"
-              >
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="text-slate-200 truncate font-medium">{t.title}</span>
-                  <span
-                    className={`text-[9px] uppercase font-bold px-1.5 py-0.5 rounded border shrink-0 ${
-                      PRIORITY_CONFIG[t.priority]?.badgeClass || "border-slate-700 text-slate-400"
-                    }`}
-                  >
-                    {t.priority}
-                  </span>
-                </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+            {unscheduledTasks.map((t, idx) => {
+              const taskNum = t.task_number || t.taskNumber;
+              return (
+                <div
+                  key={t.id}
+                  className="p-3 rounded-xl border border-slate-800 bg-[#121316] hover:border-slate-700 transition flex items-center justify-between gap-3 text-xs group shadow-sm"
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="font-mono text-[9px] font-bold px-1.5 py-0.5 rounded bg-slate-850 text-slate-300 border border-slate-700 shrink-0">
+                      {taskNum ? `TSK-${taskNum}` : `#${idx + 1}`}
+                    </span>
+                    <span className="text-slate-200 truncate font-medium">{t.title}</span>
+                    <span
+                      className={`text-[9px] uppercase font-bold px-1.5 py-0.5 rounded border shrink-0 ${
+                        PRIORITY_CONFIG[t.priority]?.badgeClass || "border-slate-700 text-slate-400"
+                      }`}
+                    >
+                      {t.priority}
+                    </span>
+                  </div>
 
-                <div className="flex items-center gap-1.5 shrink-0">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      executeReschedule(
-                        t.id,
-                        toDateStr(new Date()),
-                        toDateStr(new Date()),
-                        t.version || 1
-                      )
-                    }
-                    title="Schedule for Today"
-                    className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-medium transition cursor-pointer"
-                  >
-                    Today
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => openScheduleDialog(t.id)}
-                    className="px-2 py-0.5 rounded bg-primary/20 hover:bg-primary/30 text-primary border border-primary/40 text-[11px] font-medium flex items-center gap-1 transition cursor-pointer"
-                  >
-                    <CalendarPlus className="w-3 h-3" />
-                    <span>Schedule</span>
-                  </button>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        executeReschedule(
+                          t.id,
+                          toDateStr(new Date()),
+                          toDateStr(new Date()),
+                          t.version || 1
+                        )
+                      }
+                      title="Schedule for Today"
+                      className="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-[11px] font-medium transition cursor-pointer"
+                    >
+                      Today
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => openScheduleDialog(t.id)}
+                      className="px-2.5 py-1 rounded-lg bg-primary/20 hover:bg-primary/30 text-primary border border-primary/40 text-[11px] font-medium flex items-center gap-1 transition cursor-pointer"
+                    >
+                      <CalendarPlus className="w-3 h-3" />
+                      <span>Schedule</span>
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
 
       {/* Schedule Unscheduled Task Modal */}
       {scheduleModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900 p-6 space-y-4 shadow-2xl">
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="w-full max-w-md rounded-2xl border border-slate-800 bg-[#1a1b1f] p-6 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <h3 className="text-sm font-semibold text-white flex items-center gap-2">
                 <CalendarPlus className="w-4 h-4 text-primary" />
@@ -1105,15 +1239,15 @@ export function ProjectTimelineView({
               </button>
             </div>
 
-            <div className="space-y-3 text-xs">
+            <div className="space-y-3.5 text-xs">
               <div>
-                <label className="block text-slate-300 font-medium mb-1">
+                <label className="block text-slate-300 font-medium mb-1.5">
                   Select Unscheduled Task
                 </label>
                 <select
                   value={selectedUnscheduledTaskId}
                   onChange={(e) => setSelectedUnscheduledTaskId(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg border border-slate-700 bg-slate-950 text-white focus:outline-none focus:border-primary"
+                  className="w-full rounded-xl border border-slate-700 bg-[#121316] text-white focus:outline-none focus:border-primary"
                 >
                   {unscheduledTasks.map((t) => (
                     <option key={t.id} value={t.id}>
@@ -1125,27 +1259,27 @@ export function ProjectTimelineView({
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-300 font-medium mb-1">Start Date</label>
+                  <label className="block text-slate-300 font-medium mb-1.5">Start Date</label>
                   <input
                     type="date"
                     value={scheduleStartDate}
                     onChange={(e) => setScheduleStartDate(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-700 bg-slate-950 text-white focus:outline-none focus:border-primary"
+                    className="w-full rounded-xl border border-slate-700 bg-[#121316] text-white focus:outline-none focus:border-primary"
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-300 font-medium mb-1">Due Date</label>
+                  <label className="block text-slate-300 font-medium mb-1.5">Due Date</label>
                   <input
                     type="date"
                     value={scheduleDueDate}
                     onChange={(e) => setScheduleDueDate(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-700 bg-slate-950 text-white focus:outline-none focus:border-primary"
+                    className="w-full rounded-xl border border-slate-700 bg-[#121316] text-white focus:outline-none focus:border-primary"
                   />
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center justify-between pt-2 border-t border-slate-800">
+            <div className="flex items-center justify-between pt-3 border-t border-slate-800">
               <button
                 type="button"
                 onClick={() => {
@@ -1162,14 +1296,14 @@ export function ProjectTimelineView({
                 <button
                   type="button"
                   onClick={() => setScheduleModalOpen(false)}
-                  className="px-3 py-1.5 rounded-lg border border-slate-700 hover:bg-slate-800 text-slate-300 text-xs transition cursor-pointer"
+                  className="px-3.5 py-2 rounded-xl border border-slate-700 hover:bg-slate-800 text-slate-300 text-xs transition cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="button"
                   onClick={handleScheduleConfirm}
-                  className="px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-medium shadow-md shadow-primary/20 transition cursor-pointer"
+                  className="px-4 py-2 rounded-xl bg-primary hover:bg-primary-hover text-white text-xs font-medium shadow-md shadow-primary/20 transition cursor-pointer"
                 >
                   Place on Gantt
                 </button>
