@@ -26,6 +26,7 @@ import { ProjectTimelineView } from "@/components/project/project-timeline-view"
 import { SDLC_PHASE_CONFIG } from "@/lib/tokens";
 
 import { formatTaskId, formatBugId } from "@/lib/identifiers";
+import { stripMarkdown } from "@/components/ui/markdown-preview";
 
 export default function ProjectsPage() {
   const router = useRouter();
@@ -355,7 +356,13 @@ export default function ProjectsPage() {
                 className="px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-medium flex items-center gap-1.5 transition cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" />
-                <span>Add Item to this Project</span>
+                <span>
+                  {activeTab === "bugs"
+                    ? "Add Bug to this Project"
+                    : activeTab === "learnings"
+                    ? "Add Learning to this Project"
+                    : "Add Task to this Project"}
+                </span>
               </button>
 
               <button
@@ -562,7 +569,7 @@ export default function ProjectsPage() {
                             <span className="font-semibold text-white">{task.title}</span>
                           </div>
                           {task.description && (
-                            <p className="text-slate-400 text-[11px] line-clamp-1">{task.description}</p>
+                            <p className="text-slate-400 text-[11px] line-clamp-1">{stripMarkdown(task.description)}</p>
                           )}
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
@@ -599,7 +606,7 @@ export default function ProjectsPage() {
                             <span className="font-semibold text-white">{bug.title}</span>
                           </div>
                           {bug.description && (
-                            <p className="text-slate-400 text-[11px] line-clamp-1">{bug.description}</p>
+                            <p className="text-slate-400 text-[11px] line-clamp-1">{stripMarkdown(bug.description)}</p>
                           )}
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
@@ -630,7 +637,7 @@ export default function ProjectsPage() {
                       >
                         <div className="space-y-1">
                           <span className="font-semibold text-white">{learning.title}</span>
-                          <p className="text-slate-400 text-[11px] line-clamp-1">{learning.content}</p>
+                          <p className="text-slate-400 text-[11px] line-clamp-1">{stripMarkdown(learning.content)}</p>
                         </div>
                         <span className="text-[10px] uppercase px-1.5 py-0.5 rounded bg-emerald-950/40 text-emerald-300 border border-emerald-500/20">
                           Box {learning.reviewBox}
@@ -919,6 +926,14 @@ export default function ProjectsPage() {
         isOpen={isQuickCaptureOpen}
         onClose={() => setIsQuickCaptureOpen(false)}
         defaultProjectId={selectedProjectId}
+        defaultTab={
+          activeTab === "bugs"
+            ? "bug"
+            : activeTab === "learnings"
+            ? "learning"
+            : "task"
+        }
+        lockTab={selectedProjectId ? true : false}
         onSuccess={() => {
           if (selectedProjectId) loadProjectDetails(selectedProjectId);
           loadProjects();

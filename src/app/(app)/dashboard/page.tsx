@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { CheckSquare, Bug, Brain, Sparkles, ArrowRight, Plus, FileText, Loader2 } from "lucide-react";
+import { CheckSquare, Bug, Brain, ArrowRight, Plus, FileText, Loader2 } from "lucide-react";
+import { AIIcon } from "@/components/icons/ai";
 import Link from "next/link";
 import { QuickCaptureModal } from "@/components/quick-capture-dialog";
 import { AIPlannerModal } from "@/components/agent/ai-planner-modal";
@@ -95,7 +96,7 @@ export default function DashboardPage() {
             }}
             className="px-3.5 py-2 rounded-xl border border-primary/30 bg-primary-subtle hover:bg-primary/20 text-primary text-xs font-medium flex items-center gap-1.5 transition cursor-pointer"
           >
-            <Sparkles className="w-3.5 h-3.5 text-primary" />
+            <AIIcon className="w-3.5 h-3.5 text-primary" />
             <span>AI Daily Plan</span>
           </button>
 
@@ -161,11 +162,17 @@ export default function DashboardPage() {
         <div className="p-5 rounded-2xl border border-slate-800 bg-slate-900/40">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-slate-400">Agent Quota</span>
-            <Sparkles className="w-4 h-4 text-primary" />
+            <AIIcon className="w-4 h-4 text-primary" />
           </div>
-          <div className="mt-3 text-3xl font-bold text-white">50 / 50</div>
+          <div className="mt-3 text-3xl font-bold text-white">
+            {analytics?.agentQuota
+              ? `${analytics.agentQuota.remainingRequests} / ${analytics.agentQuota.maxRequests}`
+              : "50 / 50"}
+          </div>
           <div className="mt-2 text-[11px] text-slate-400">
-            Resets daily at 00:00 UTC
+            {analytics?.agentQuota
+              ? `${analytics.agentQuota.usedRequests} ops used today • Resets at 00:00 UTC`
+              : "Resets daily at 00:00 UTC"}
           </div>
         </div>
       </div>

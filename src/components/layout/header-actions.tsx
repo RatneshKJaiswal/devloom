@@ -22,6 +22,7 @@ import clsx from "clsx";
 import { QuickCaptureModal } from "@/components/quick-capture-dialog";
 import { SmartCaptureModal } from "@/components/smart-capture-dialog";
 import { SearchModal } from "@/components/search-modal";
+import { ThemeSwitcher } from "@/components/theme-switcher";
 
 const mobileNavItems = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -121,6 +122,9 @@ export function HeaderActions({ userProfile }: HeaderActionsProps) {
           <Plus className="w-3.5 h-3.5" />
           <span className="hidden md:inline">{pathname?.startsWith("/bugs") ? "Add Bug" : pathname?.startsWith("/tasks") ? "Add Task" : pathname?.startsWith("/learnings") ? "Add Note" : "Add"}</span>
         </button>
+
+        {/* Theme Switcher Toggle */}
+        <ThemeSwitcher />
 
         {userProfile}
       </div>

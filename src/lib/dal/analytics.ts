@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { projects, tasks, bugs } from "@/lib/db/schema";
+import { getUserQuotaUsage } from "@/lib/agent/quota";
 import { withUserScope } from "./base";
 import { eq, sql, and } from "drizzle-orm";
 
@@ -33,11 +34,18 @@ export interface DashboardAnalytics {
     completedTasks: number;
   }>;
   totalActiveTasks: number;
+  agentQuota?: {
+    usedRequests: number;
+    maxRequests: number;
+    remainingRequests: number;
+    usedTokens: number;
+    maxTokens: number;
+  };
 }
 
 export async function getDashboardAnalytics(userId: string): Promise<DashboardAnalytics> {
-  // Run 3 optimized aggregate queries in parallel
-  const [taskStats, bugStats, completedTaskRows] = await Promise.all([
+  // Run queries in parallel including real-time agent quota
+  const [taskStats, bugStats, completedTaskRows, agentQuota] = await Promise.all([
     // Query 1: Project-scoped task aggregates (Overdue, Due Soon, Status Breakdown)
     db
       .select({
@@ -85,6 +93,15 @@ export async function getDashboardAnalytics(userId: string): Promise<DashboardAn
           )
         )
       ),
+
+    // Query 4: Live Agent Quota consumption
+    getUserQuotaUsage(userId).catch(() => ({
+      usedRequests: 0,
+      maxRequests: 50,
+      remainingRequests: 50,
+      usedTokens: 0,
+      maxTokens: 100000,
+    })),
   ]);
 
   // Transform Query 1 into Due Tasks & Status Distribution
@@ -184,5 +201,6 @@ export async function getDashboardAnalytics(userId: string): Promise<DashboardAn
     },
     completedVelocity,
     totalActiveTasks,
+    agentQuota,
   };
 }

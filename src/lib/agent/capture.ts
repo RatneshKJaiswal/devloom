@@ -49,17 +49,55 @@ export async function processSmartCapture({
   // 5. Generate structured output
   const result: AgentResult<SmartCaptureOutput> = await agentClient.generate(promptConfig);
 
-  if (!result.success) {
-    return { success: false, error: result.error };
+  let candidate: SmartCaptureOutput;
+
+  if (result.success) {
+    candidate = result.data;
+    // Record usage metrics (tokens & estimated cost)
+    await recordAgentUsage(userId, {
+      inputTokens: result.usage.inputTokens,
+      outputTokens: result.usage.outputTokens,
+    });
+  } else {
+    console.warn("AI generation failed for smart capture; falling back to deterministic extraction:", result.error);
+    const lines = rawInput.trim().split("\n").map((l) => l.trim()).filter(Boolean);
+    const firstLine = lines[0] || "Quick Captured Item";
+    const title = firstLine.replace(/^[#\-\*\d\.\s]+/, "").slice(0, 120);
+    const lower = rawInput.toLowerCase();
+    const isBug =
+      lower.includes("error") ||
+      lower.includes("exception") ||
+      lower.includes("fail") ||
+      lower.includes("crash") ||
+      lower.includes("traceback") ||
+      lower.includes("bug");
+    const isLearning =
+      lower.includes("note:") ||
+      lower.includes("learned:") ||
+      lower.includes("til:") ||
+      lower.includes("concept:");
+    const entityType: "task" | "bug" | "learning" = isBug ? "bug" : isLearning ? "learning" : "task";
+    const isUrgent = lower.includes("urgent") || lower.includes("critical") || lower.includes("asap");
+    const isHigh = lower.includes("high") || lower.includes("blocker");
+    const priority: "low" | "medium" | "high" | "urgent" = isUrgent ? "urgent" : isHigh ? "high" : "medium";
+
+    candidate = {
+      entityType,
+      title,
+      description: rawInput.trim(),
+      priority,
+      dueDate: null,
+      suggestedProjectName: projectNames[0] || null,
+      tags: [],
+      bugDetails: isBug
+        ? {
+            stackTrace: rawInput.includes("at ") || rawInput.includes("Error:") ? rawInput : null,
+            reproSteps: null,
+            suspectedCause: null,
+          }
+        : null,
+    };
   }
-
-  const candidate = result.data;
-
-  // 6. Record usage metrics (tokens & estimated cost)
-  await recordAgentUsage(userId, {
-    inputTokens: result.usage.inputTokens,
-    outputTokens: result.usage.outputTokens,
-  });
 
   // 7. Auto-save if requested
   let savedRecord: any = null;
@@ -101,8 +139,8 @@ export async function processSmartCapture({
     candidate,
     savedRecord,
     usage: {
-      inputTokens: result.usage.inputTokens,
-      outputTokens: result.usage.outputTokens,
+      inputTokens: result.success ? result.usage.inputTokens : 0,
+      outputTokens: result.success ? result.usage.outputTokens : 0,
     },
   };
 }

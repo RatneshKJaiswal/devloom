@@ -624,12 +624,12 @@ export function ProjectTimelineView({
     <div
       className={
         isExpanded
-          ? "fixed inset-0 z-50 bg-[#121316] p-4 sm:p-6 flex flex-col h-screen w-screen overflow-hidden space-y-4 shadow-2xl animate-in fade-in duration-200"
+          ? "fixed inset-0 z-50 bg-slate-950 p-4 sm:p-6 flex flex-col h-screen w-screen overflow-hidden space-y-4 shadow-2xl animate-in fade-in duration-200"
           : "space-y-4 relative"
       }
     >
       {/* Timeline Controls Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl border border-slate-800 bg-[#1a1b1f] shadow-sm shrink-0">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl border border-slate-800 bg-slate-900 shadow-sm shrink-0">
         <div className="flex items-center gap-2.5 flex-wrap">
           <div className="p-1.5 rounded-lg bg-primary-subtle text-primary border border-primary/25">
             <Calendar className="w-4 h-4" />
@@ -652,7 +652,7 @@ export function ProjectTimelineView({
 
         <div className="flex flex-wrap items-center gap-2">
           {/* Zoom In / Zoom Out Controls */}
-          <div className="flex items-center gap-0.5 p-0.5 rounded-xl border border-slate-800 bg-[#121316]">
+          <div className="flex items-center gap-0.5 p-0.5 rounded-xl border border-slate-800 bg-slate-950">
             <button
               type="button"
               onClick={() => setZoomScale((prev) => Math.max(0.75, Number((prev - 0.25).toFixed(2))))}
@@ -677,7 +677,7 @@ export function ProjectTimelineView({
           </div>
 
           {/* Scroll Navigation Controls */}
-          <div className="flex items-center gap-0.5 p-0.5 rounded-xl border border-slate-800 bg-[#121316]">
+          <div className="flex items-center gap-0.5 p-0.5 rounded-xl border border-slate-800 bg-slate-950">
             <button
               type="button"
               onClick={() => scrollByOffset(-320)}
@@ -726,7 +726,7 @@ export function ProjectTimelineView({
           </button>
 
           {/* Day / Week Resolution Toggle */}
-          <div className="flex items-center p-0.5 rounded-xl border border-slate-800 bg-[#121316] text-[11px]">
+          <div className="flex items-center p-0.5 rounded-xl border border-slate-800 bg-slate-950 text-[11px]">
             <button
               type="button"
               onClick={() => setResolution("day")}
@@ -765,7 +765,7 @@ export function ProjectTimelineView({
       </div>
 
       {/* Timeline Canvas Container with Horizontal Scroll */}
-      <div className={`rounded-2xl border border-slate-800 bg-[#121316] overflow-hidden shadow-md ${isExpanded ? "flex-1 min-h-0 flex flex-col" : ""}`}>
+      <div className={`rounded-2xl border border-slate-800 bg-slate-950 overflow-hidden shadow-md ${isExpanded ? "flex-1 min-h-0 flex flex-col" : ""}`}>
         <div
           ref={scrollContainerRef}
           onWheel={handleWheel}
@@ -773,12 +773,12 @@ export function ProjectTimelineView({
         >
           <div style={{ width: `${timelineWidth}px` }} className="relative select-none">
             {/* Header: Row 1 - Month / Year Bands */}
-            <div className="flex border-b border-slate-800 bg-[#1a1b1f] sticky top-0 z-30 h-7 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+            <div className="flex border-b border-slate-800 bg-slate-900 sticky top-0 z-30 h-7 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
               {monthGroups.map((group) => (
                 <div
                   key={group.key}
                   style={{ width: `${group.width}px` }}
-                  className="shrink-0 px-2.5 flex items-center border-r border-slate-800 truncate bg-[#16171c]"
+                  className="shrink-0 px-2.5 flex items-center border-r border-slate-800 truncate bg-slate-950"
                 >
                   <span className="truncate">{group.label}</span>
                 </div>
@@ -786,7 +786,7 @@ export function ProjectTimelineView({
             </div>
 
             {/* Header: Row 2 - Date Columns */}
-            <div className="flex border-b border-slate-800 bg-[#1a1b1f]/95 sticky top-7 z-20 h-10">
+            <div className="flex border-b border-slate-800 bg-slate-900/95 sticky top-7 z-20 h-10">
               {datesList.map((d, idx) => {
                 const isSunday = d.getDay() === 0;
                 const isSaturday = d.getDay() === 6;
@@ -1003,7 +1003,7 @@ export function ProjectTimelineView({
                                   : "bg-amber-500 border-amber-300 animate-pulse shadow-amber-500/30"
                               }`}
                             />
-                            <span className="text-[10px] font-semibold text-slate-200 mt-1.5 whitespace-nowrap bg-[#1a1b1f] px-2 py-0.5 rounded-md border border-slate-700 shadow-md">
+                            <span className="text-[10px] font-semibold text-slate-200 mt-1.5 whitespace-nowrap bg-slate-900 px-2 py-0.5 rounded-md border border-slate-700 shadow-md">
                               {m.title}
                             </span>
                           </div>
@@ -1021,7 +1021,7 @@ export function ProjectTimelineView({
                   </div>
 
                   {scheduledTasks.length === 0 ? (
-                    <div className="p-4 text-xs text-slate-500 italic bg-[#1a1b1f]/40 rounded-xl border border-slate-800">
+                    <div className="p-4 text-xs text-slate-500 italic bg-slate-900/40 rounded-xl border border-slate-800">
                       No tasks have dates assigned yet. Click "Add to Gantt" above or schedule tasks from the tray below.
                     </div>
                   ) : (
@@ -1186,7 +1186,7 @@ export function ProjectTimelineView({
 
           {/* Undo Snackbar */}
           {undoAction && (
-            <div className="p-3 rounded-xl border border-slate-700 bg-[#1a1b1f]/95 text-white text-xs shadow-2xl flex items-center justify-between gap-3 backdrop-blur-sm">
+            <div className="p-3 rounded-xl border border-slate-700 bg-slate-900/95 text-slate-100 text-xs shadow-2xl flex items-center justify-between gap-3 backdrop-blur-sm">
               <div className="flex items-center gap-2 truncate">
                 <Check className="w-4 h-4 text-success shrink-0" />
                 <span className="truncate">Rescheduled "{undoAction.title}"</span>
@@ -1217,7 +1217,7 @@ export function ProjectTimelineView({
 
       {/* Unscheduled Tasks Tray */}
       {unscheduledTasks.length > 0 && (
-        <div className="p-4 rounded-2xl border border-slate-800 bg-[#1a1b1f] shadow-sm space-y-3">
+        <div className="p-4 rounded-2xl border border-slate-800 bg-slate-900 shadow-sm space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
               <Clock className="w-4 h-4 text-slate-400" />
@@ -1234,7 +1234,7 @@ export function ProjectTimelineView({
               return (
                 <div
                   key={t.id}
-                  className="p-3 rounded-xl border border-slate-800 bg-[#121316] hover:border-slate-700 transition flex items-center justify-between gap-3 text-xs group shadow-sm"
+                  className="p-3 rounded-xl border border-slate-800 bg-slate-950 hover:border-slate-700 transition flex items-center justify-between gap-3 text-xs group shadow-sm"
                 >
                   <div className="flex items-center gap-2 min-w-0">
                     <span className="font-mono text-[9px] font-bold px-1.5 py-0.5 rounded bg-slate-850 text-slate-300 border border-slate-700 shrink-0">
@@ -1285,7 +1285,7 @@ export function ProjectTimelineView({
       {/* Schedule Unscheduled Task Modal */}
       {scheduleModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="w-full max-w-md rounded-2xl border border-slate-800 bg-[#1a1b1f] p-6 space-y-4 shadow-2xl">
+          <div className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900 p-6 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <h3 className="text-sm font-semibold text-white flex items-center gap-2">
                 <CalendarPlus className="w-4 h-4 text-primary" />
@@ -1308,7 +1308,7 @@ export function ProjectTimelineView({
                 <select
                   value={selectedUnscheduledTaskId}
                   onChange={(e) => setSelectedUnscheduledTaskId(e.target.value)}
-                  className="w-full rounded-xl border border-slate-700 bg-[#121316] text-white focus:outline-none focus:border-primary"
+                  className="w-full rounded-xl border border-slate-700 bg-slate-950 text-white focus:outline-none focus:border-primary"
                 >
                   {unscheduledTasks.map((t) => (
                     <option key={t.id} value={t.id}>
@@ -1325,7 +1325,7 @@ export function ProjectTimelineView({
                     type="date"
                     value={scheduleStartDate}
                     onChange={(e) => setScheduleStartDate(e.target.value)}
-                    className="w-full rounded-xl border border-slate-700 bg-[#121316] text-white focus:outline-none focus:border-primary"
+                    className="w-full rounded-xl border border-slate-700 bg-slate-950 text-white focus:outline-none focus:border-primary"
                   />
                 </div>
                 <div>
@@ -1334,7 +1334,7 @@ export function ProjectTimelineView({
                     type="date"
                     value={scheduleDueDate}
                     onChange={(e) => setScheduleDueDate(e.target.value)}
-                    className="w-full rounded-xl border border-slate-700 bg-[#121316] text-white focus:outline-none focus:border-primary"
+                    className="w-full rounded-xl border border-slate-700 bg-slate-950 text-white focus:outline-none focus:border-primary"
                   />
                 </div>
               </div>

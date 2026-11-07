@@ -28,8 +28,15 @@ export default function RootLayout({
             __html: `(function(){
               try {
                 var t = localStorage.getItem('devloom-theme');
-                var isDark = t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches) || !t;
-                if (!isDark && t === 'light') {
+                var isDark = true;
+                if (t === 'light') {
+                  isDark = false;
+                } else if (t === 'dark') {
+                  isDark = true;
+                } else {
+                  isDark = !window.matchMedia || window.matchMedia('(prefers-color-scheme: dark)').matches;
+                }
+                if (!isDark) {
                   document.documentElement.classList.remove('dark');
                   document.documentElement.classList.add('light');
                   document.documentElement.setAttribute('data-theme', 'light');
@@ -43,7 +50,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="antialiased min-h-screen bg-[#121316] text-slate-100">
+      <body className="antialiased min-h-screen bg-slate-950 text-slate-100 transition-colors duration-150">
         {children}
       </body>
     </html>

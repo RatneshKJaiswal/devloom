@@ -112,7 +112,7 @@ export function EditLearningModal({
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs">
-      <div className="w-full max-w-2xl rounded-2xl border border-slate-800 bg-[#16181d] shadow-2xl p-6 relative max-h-[92vh] overflow-y-auto">
+      <div className="w-full max-w-2xl rounded-2xl border border-slate-800 bg-slate-900 shadow-2xl p-6 relative max-h-[92vh] overflow-y-auto">
         <button
           onClick={onClose}
           className="absolute right-4 top-4 p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"

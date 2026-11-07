@@ -109,10 +109,10 @@ export function ProjectStatusChart({ data }: ProjectStatusChartProps) {
               fontSize={11}
               tickLine={false}
               axisLine={false}
-              tick={{ fill: "#cbd5e1" }}
+              tick={{ fill: "#64748b" }}
             />
             <Tooltip
-              cursor={{ fill: "rgba(255, 255, 255, 0.05)", radius: 6 }}
+              cursor={{ fill: "rgba(100, 116, 139, 0.12)", radius: 6 }}
               content={<CustomTooltip />}
             />
             <Bar dataKey="todo" name="Todo" stackId="st" fill="#64748b" radius={[0, 0, 0, 0]} animationDuration={500} animationEasing="ease-out" />

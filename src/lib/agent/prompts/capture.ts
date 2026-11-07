@@ -37,13 +37,15 @@ export const smartCaptureOutputSchema = z.object({
       (val) => (val && typeof val === "object" ? val : null),
       z
         .object({
-          stackTrace: z.preprocess((v) => (v === "" ? null : v), z.string().optional().nullable()),
-          reproSteps: z.preprocess((v) => (v === "" ? null : v), z.string().optional().nullable()),
-          suspectedCause: z.preprocess((v) => (v === "" ? null : v), z.string().optional().nullable()),
+          stackTrace: z.preprocess((v) => (v ? String(v) : null), z.string().optional().nullable()),
+          reproSteps: z.preprocess((v) => (v ? String(v) : null), z.string().optional().nullable()),
+          suspectedCause: z.preprocess((v) => (v ? String(v) : null), z.string().optional().nullable()),
         })
         .optional()
         .nullable()
-    ),
+    )
+    .optional()
+    .nullable(),
 });
 
 export type SmartCaptureOutput = z.infer<typeof smartCaptureOutputSchema>;

@@ -39,16 +39,32 @@
   --color-timeline-dep-line: var(--timeline-dep-line);
   --color-timeline-dep-blocked: var(--timeline-dep-blocked);
 
-  /* Dark grey color palette overrides */
-  --color-slate-950: #121316;
-  --color-slate-900: #1a1b1f;
-  --color-slate-850: #222328;
-  --color-slate-800: #2a2c33;
-  --color-slate-700: #3b3d45;
-  --color-slate-600: #525560;
+  /* Dynamic theme slate tokens */
+  --color-slate-950: var(--slate-950);
+  --color-slate-900: var(--slate-900);
+  --color-slate-850: var(--slate-850);
+  --color-slate-800: var(--slate-800);
+  --color-slate-700: var(--slate-700);
+  --color-slate-600: var(--slate-600);
+  --color-slate-500: var(--slate-500);
+  --color-slate-400: var(--slate-400);
+  --color-slate-300: var(--slate-300);
+  --color-slate-200: var(--slate-200);
+  --color-slate-100: var(--slate-100);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-border: var(--border);
+  --color-border-subtle: var(--border-subtle);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
 }
 
-:root {
+:root,
+html.dark,
+:root[data-theme="dark"] {
   /* Dark grey base styling */
   --background: #121316;
   --foreground: #f4f4f6;
@@ -60,6 +76,18 @@
   --muted-foreground: #a1a1aa;
   --accent: #4285F4;
   --accent-foreground: #ffffff;
+
+  --slate-950: #121316;
+  --slate-900: #1a1b1f;
+  --slate-850: #222328;
+  --slate-800: #2a2c33;
+  --slate-700: #3b3d45;
+  --slate-600: #525560;
+  --slate-500: #71717a;
+  --slate-400: #a1a1aa;
+  --slate-300: #d4d4d8;
+  --slate-200: #e4e4e7;
+  --slate-100: #f4f4f5;
 
   /* Google-inspired core action and status palette */
   --primary: #4285F4;
@@ -102,6 +130,7 @@
 
 html.light,
 :root[data-theme="light"] {
+  /* Crisp, production-grade SaaS Light Theme */
   --background: #f8fafc;
   --foreground: #0f172a;
   --card: #ffffff;
@@ -110,20 +139,106 @@ html.light,
   --border-subtle: #cbd5e1;
   --muted: #f1f5f9;
   --muted-foreground: #64748b;
+  --accent: #2563eb;
+  --accent-foreground: #ffffff;
 
-  --color-slate-950: #f8fafc;
-  --color-slate-900: #ffffff;
-  --color-slate-850: #f1f5f9;
-  --color-slate-800: #e2e8f0;
-  --color-slate-700: #cbd5e1;
-  --color-slate-600: #94a3b8;
+  --slate-950: #f8fafc;
+  --slate-900: #ffffff;
+  --slate-850: #f1f5f9;
+  --slate-800: #e2e8f0;
+  --slate-700: #cbd5e1;
+  --slate-600: #94a3b8;
+  --slate-500: #64748b;
+  --slate-400: #475569;
+  --slate-300: #334155;
+  --slate-200: #1e293b;
+  --slate-100: #0f172a;
 
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --primary-foreground: #ffffff;
+  --primary-subtle: rgba(37, 99, 235, 0.10);
+
+  --warning: #d97706;
+  --warning-hover: #b45309;
+  --warning-foreground: #ffffff;
+  --warning-subtle: rgba(217, 119, 6, 0.12);
+
+  --danger: #dc2626;
+  --danger-hover: #b91c1c;
+  --danger-foreground: #ffffff;
+  --danger-subtle: rgba(220, 38, 38, 0.10);
+  --danger-strong: #991b1b;
+
+  --success: #16a34a;
+  --success-hover: #15803d;
+  --success-foreground: #ffffff;
+  --success-subtle: rgba(22, 163, 74, 0.12);
+
+  /* SDLC Phase Tokens */
+  --phase-planning: #9333ea;
+  --phase-design: #db2777;
+  --phase-development: #2563eb;
+  --phase-testing: #d97706;
+  --phase-release: #16a34a;
+  --phase-maintenance: #475569;
+
+  /* Gantt & Timeline Tokens */
   --timeline-grid: #e2e8f0;
+  --timeline-today: #2563eb;
+  --timeline-bar-task: #2563eb;
+  --timeline-bar-milestone: #d97706;
+  --timeline-dep-line: #94a3b8;
+  --timeline-dep-blocked: #dc2626;
 }
 
 html.light body {
   background-color: var(--background) !important;
   color: var(--foreground) !important;
+}
+
+html.light .text-white:not(
+  button,
+  button *,
+  a[class*="bg-"],
+  a[class*="bg-"] *,
+  [class*="bg-primary"],
+  [class*="bg-primary"] *,
+  [class*="bg-emerald-"],
+  [class*="bg-emerald-"] *,
+  [class*="bg-amber-"],
+  [class*="bg-amber-"] *,
+  [class*="bg-red-"],
+  [class*="bg-red-"] *,
+  [class*="bg-blue-"],
+  [class*="bg-blue-"] *,
+  [class*="bg-purple-"],
+  [class*="bg-purple-"] *,
+  [class*="bg-indigo-"],
+  [class*="bg-indigo-"] *,
+  .badge-solid,
+  .btn-colored
+) {
+  color: #0f172a !important;
+}
+
+html.light input,
+html.light select,
+html.light textarea {
+  color: #0f172a !important;
+}
+
+html.light input::placeholder,
+html.light textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+html.light ::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+}
+
+html.light ::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 
 body {
@@ -141,24 +256,48 @@ body {
 }
 
 /* Comfortable padding for form inputs, selectors, and text areas */
-input[type="text"],
-input[type="date"],
-input[type="search"],
-input[type="password"],
-input[type="email"],
-select {
-  padding-top: 0.625rem;
-  padding-bottom: 0.625rem;
-  padding-left: 0.875rem;
-  padding-right: 0.875rem;
-}
+@layer base {
+  input[type="text"],
+  input[type="date"],
+  input[type="search"],
+  input[type="password"],
+  input[type="email"],
+  select {
+    padding-top: 0.625rem;
+    padding-bottom: 0.625rem;
+  }
 
-textarea {
-  padding-top: 0.75rem;
-  padding-bottom: 0.75rem;
-  padding-left: 0.875rem;
-  padding-right: 0.875rem;
-  line-height: 1.5;
+  input[type="text"]:not([class*="pl-"]),
+  input[type="date"]:not([class*="pl-"]),
+  input[type="search"]:not([class*="pl-"]),
+  input[type="password"]:not([class*="pl-"]),
+  input[type="email"]:not([class*="pl-"]),
+  select:not([class*="pl-"]) {
+    padding-left: 0.875rem;
+  }
+
+  input[type="text"]:not([class*="pr-"]),
+  input[type="date"]:not([class*="pr-"]),
+  input[type="search"]:not([class*="pr-"]),
+  input[type="password"]:not([class*="pr-"]),
+  input[type="email"]:not([class*="pr-"]),
+  select:not([class*="pr-"]) {
+    padding-right: 0.875rem;
+  }
+
+  textarea {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+    line-height: 1.5;
+  }
+
+  textarea:not([class*="pl-"]) {
+    padding-left: 0.875rem;
+  }
+
+  textarea:not([class*="pr-"]) {
+    padding-right: 0.875rem;
+  }
 }
 
 /* Custom sleek dark scrollbar */

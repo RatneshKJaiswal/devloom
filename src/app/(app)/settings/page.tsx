@@ -16,11 +16,9 @@ import {
   Briefcase,
   Mail,
   Check,
-  Camera,
 } from "lucide-react";
 import { GithubIcon } from "@/components/icons/github";
-
-type ThemeMode = "dark" | "light" | "system";
+import { useTheme, ThemeMode } from "@/lib/theme";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -38,21 +36,13 @@ export default function SettingsPage() {
   const [role, setRole] = useState("");
   const [githubUsername, setGithubUsername] = useState<string | null>(null);
 
-  // Theme State
-  const [theme, setTheme] = useState<ThemeMode>("dark");
+  // Centralized Theme State
+  const { theme, setTheme: handleThemeChange } = useTheme();
 
   // Account Management State
   const [exporting, setExporting] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
-
-  // Initialize theme from localStorage
-  useEffect(() => {
-    try {
-      const stored = (localStorage.getItem("devloom-theme") as ThemeMode) || "dark";
-      setTheme(stored);
-    } catch {}
-  }, []);
 
   // Fetch current user profile
   useEffect(() => {
@@ -77,32 +67,6 @@ export default function SettingsPage() {
 
     loadProfile();
   }, []);
-
-  function handleThemeChange(newTheme: ThemeMode) {
-    setTheme(newTheme);
-    try {
-      localStorage.setItem("devloom-theme", newTheme);
-
-      let effectiveIsDark = true;
-      if (newTheme === "light") {
-        effectiveIsDark = false;
-      } else if (newTheme === "system") {
-        effectiveIsDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      }
-
-      if (effectiveIsDark) {
-        document.documentElement.classList.remove("light");
-        document.documentElement.classList.add("dark");
-        document.documentElement.setAttribute("data-theme", "dark");
-      } else {
-        document.documentElement.classList.remove("dark");
-        document.documentElement.classList.add("light");
-        document.documentElement.setAttribute("data-theme", "light");
-      }
-    } catch (e) {
-      console.error("Theme toggle error:", e);
-    }
-  }
 
   async function handleSaveProfile(e: React.FormEvent) {
     e.preventDefault();
@@ -217,15 +181,15 @@ export default function SettingsPage() {
             <span>Loading user profile...</span>
           </div>
         ) : (
-          <form onSubmit={handleSaveProfile} className="space-y-5">
-            {/* Avatar Preview & URL */}
-            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+          <form onSubmit={handleSaveProfile} className="space-y-6">
+            {/* User Identity Display */}
+            <div className="flex items-center gap-4 p-4 rounded-xl bg-slate-950/50 border border-slate-800">
               <div className="relative group shrink-0">
                 {image ? (
                   <img
                     src={image}
                     alt={name || "User"}
-                    className="w-16 h-16 rounded-2xl object-cover border-2 border-slate-700 shadow-md shadow-black/40"
+                    className="w-16 h-16 rounded-2xl object-cover border-2 border-slate-700 shadow-md"
                   />
                 ) : (
                   <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 border-2 border-slate-700 flex items-center justify-center text-white text-xl font-bold shadow-md">
@@ -234,20 +198,18 @@ export default function SettingsPage() {
                 )}
               </div>
 
-              <div className="flex-1 space-y-1">
-                <label className="block text-xs font-medium text-slate-300">
-                  Profile Photo URL
-                </label>
-                <div className="relative">
-                  <Camera className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
-                  <input
-                    type="text"
-                    value={image}
-                    onChange={(e) => setImage(e.target.value)}
-                    placeholder="https://avatars.githubusercontent.com/u/..."
-                    className="w-full pl-9 rounded-xl border border-slate-700 bg-slate-950 text-white placeholder:text-slate-500 focus:outline-none focus:border-primary text-xs"
-                  />
+              <div className="min-w-0 flex-1">
+                <div className="text-sm font-semibold text-white truncate">
+                  {name || "Developer"}
                 </div>
+                <div className="text-xs text-slate-400 truncate">
+                  {email || "Connected via GitHub"}
+                </div>
+                {role && (
+                  <div className="mt-1 text-[11px] font-medium text-primary">
+                    {role} {organization ? `at ${organization}` : ""}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -263,7 +225,7 @@ export default function SettingsPage() {
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. Alex Rivera"
                   required
-                  className="w-full rounded-xl border border-slate-700 bg-slate-950 text-white placeholder:text-slate-500 focus:outline-none focus:border-primary text-xs"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-700 bg-slate-950 text-white placeholder:text-slate-500 focus:outline-none focus:border-primary text-xs"
                 />
               </div>
 
@@ -273,12 +235,12 @@ export default function SettingsPage() {
                   <span className="text-[10px] text-emerald-400 font-mono">Verified</span>
                 </label>
                 <div className="relative">
-                  <Mail className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
+                  <Mail className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <input
                     type="email"
                     value={email}
                     disabled
-                    className="w-full pl-9 rounded-xl border border-slate-800 bg-slate-950/60 text-slate-400 text-xs cursor-not-allowed"
+                    className="w-full !pl-10 pr-4 py-2.5 rounded-xl border border-slate-800 bg-slate-950/60 text-slate-400 text-xs cursor-not-allowed"
                   />
                 </div>
               </div>
@@ -288,13 +250,13 @@ export default function SettingsPage() {
                   Organization / Company
                 </label>
                 <div className="relative">
-                  <Building className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
+                  <Building className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <input
                     type="text"
                     value={organization}
                     onChange={(e) => setOrganization(e.target.value)}
                     placeholder="e.g. Stripe, OpenAI, Independent"
-                    className="w-full pl-9 rounded-xl border border-slate-700 bg-slate-950 text-white placeholder:text-slate-500 focus:outline-none focus:border-primary text-xs"
+                    className="w-full !pl-10 pr-4 py-2.5 rounded-xl border border-slate-700 bg-slate-950 text-white placeholder:text-slate-500 focus:outline-none focus:border-primary text-xs"
                   />
                 </div>
               </div>
@@ -304,13 +266,13 @@ export default function SettingsPage() {
                   Job Role / Title
                 </label>
                 <div className="relative">
-                  <Briefcase className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
+                  <Briefcase className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <input
                     type="text"
                     value={role}
                     onChange={(e) => setRole(e.target.value)}
                     placeholder="e.g. Staff Software Engineer"
-                    className="w-full pl-9 rounded-xl border border-slate-700 bg-slate-950 text-white placeholder:text-slate-500 focus:outline-none focus:border-primary text-xs"
+                    className="w-full !pl-10 pr-4 py-2.5 rounded-xl border border-slate-700 bg-slate-950 text-white placeholder:text-slate-500 focus:outline-none focus:border-primary text-xs"
                   />
                 </div>
               </div>

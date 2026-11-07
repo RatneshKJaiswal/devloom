@@ -87,7 +87,7 @@ export function AIPlannerModal({
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs">
-      <div className="w-full max-w-2xl rounded-2xl border border-slate-800 bg-[#1a1b1f] shadow-2xl p-6 relative max-h-[90vh] flex flex-col">
+      <div className="w-full max-w-2xl rounded-2xl border border-slate-800 bg-slate-900 shadow-2xl p-6 relative max-h-[90vh] flex flex-col">
         <button
           onClick={onClose}
           className="absolute right-4 top-4 p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
@@ -109,7 +109,7 @@ export function AIPlannerModal({
         </div>
 
         {/* Mode switcher tabs */}
-        <div className="flex gap-2 p-1 rounded-xl bg-[#121316] border border-slate-800 mb-4 max-w-sm">
+        <div className="flex gap-2 p-1 rounded-xl bg-slate-950 border border-slate-800 mb-4 max-w-sm">
           <button
             type="button"
             onClick={() => {
@@ -155,9 +155,9 @@ export function AIPlannerModal({
               <p className="text-xs">Evaluating workspace records and computing priorities...</p>
             </div>
           ) : !result ? (
-            <div className="p-12 text-center border border-dashed border-slate-800 rounded-2xl bg-[#121316]/40">
+            <div className="p-12 text-center border border-dashed border-slate-800 rounded-2xl bg-slate-950/40">
               <Calendar className="w-8 h-8 text-slate-600 mx-auto mb-3" />
-              <h3 className="text-sm font-semibold text-slate-300">Ready to plan</h3>
+              <h3 className="text-sm font-semibold text-white">Ready to plan</h3>
               <p className="mt-1 text-xs text-slate-400 max-w-sm mx-auto mb-4">
                 Synthesize a prioritized engineering focus list or standup summary from your workspace records.
               </p>
@@ -170,7 +170,7 @@ export function AIPlannerModal({
               </button>
             </div>
           ) : (
-            <div className="space-y-4 p-4 rounded-xl border border-slate-800 bg-[#121316]">
+            <div className="space-y-4 p-4 rounded-xl border border-slate-800 bg-slate-950">
               {/* Daily Plan View */}
               {result.dailyPlan && (
                 <div className="space-y-4">
@@ -188,7 +188,7 @@ export function AIPlannerModal({
                       result.dailyPlan.focusItems.map((item, idx) => (
                         <div
                           key={idx}
-                          className="p-3.5 rounded-xl border border-slate-800 bg-[#1a1b1f] flex items-start justify-between gap-3 text-xs shadow-sm hover:border-slate-700 transition"
+                          className="p-3.5 rounded-xl border border-slate-800 bg-slate-900 flex items-start justify-between gap-3 text-xs shadow-sm hover:border-slate-700 transition"
                         >
                           <div className="space-y-1 min-w-0">
                             <div className="font-semibold text-white flex items-center gap-2 flex-wrap">
@@ -259,14 +259,14 @@ export function AIPlannerModal({
                   </div>
 
                   {result.weeklyStandup.fixedDefectsSummary && (
-                    <div className="p-3 rounded-xl border border-slate-800 bg-[#1a1b1f] text-xs text-slate-300 space-y-0.5">
+                    <div className="p-3 rounded-xl border border-slate-800 bg-slate-900 text-xs text-slate-300 space-y-0.5">
                       <span className="font-semibold text-amber-400 block">Defects Resolved:</span>
                       <p>{result.weeklyStandup.fixedDefectsSummary}</p>
                     </div>
                   )}
 
                   {result.weeklyStandup.completedTasksSummary && (
-                    <div className="p-3 rounded-xl border border-slate-800 bg-[#1a1b1f] text-xs text-slate-300 space-y-0.5">
+                    <div className="p-3 rounded-xl border border-slate-800 bg-slate-900 text-xs text-slate-300 space-y-0.5">
                       <span className="font-semibold text-emerald-400 block">Tasks Completed:</span>
                       <p>{result.weeklyStandup.completedTasksSummary}</p>
                     </div>

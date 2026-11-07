@@ -106,10 +106,10 @@ export function DueTasksByProjectChart({ data }: DueTasksByProjectChartProps) {
               fontSize={11}
               tickLine={false}
               axisLine={false}
-              tick={{ fill: "#cbd5e1" }}
+              tick={{ fill: "#64748b" }}
             />
             <Tooltip
-              cursor={{ fill: "rgba(255, 255, 255, 0.05)", radius: 6 }}
+              cursor={{ fill: "rgba(100, 116, 139, 0.12)", radius: 6 }}
               content={<CustomTooltip />}
             />
             <Bar dataKey="overdueCount" name="Overdue" stackId="a" fill="#ef4444" radius={[0, 0, 0, 0]} animationDuration={500} animationEasing="ease-out" />

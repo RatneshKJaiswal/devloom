@@ -129,3 +129,45 @@ export async function recordAgentUsage(
       },
     });
 }
+
+/**
+ * Returns current daily quota and consumption for a user.
+ */
+export async function getUserQuotaUsage(userId: string): Promise<{
+  usedRequests: number;
+  maxRequests: number;
+  remainingRequests: number;
+  usedTokens: number;
+  maxTokens: number;
+}> {
+  const today = getTodayDateString();
+  const maxRequests = parseInt(
+    process.env.AGENT_DAILY_REQUEST_LIMIT || String(DEFAULT_DAILY_REQUEST_LIMIT),
+    10
+  );
+  const maxTokens = parseInt(
+    process.env.AGENT_DAILY_TOKEN_LIMIT || String(DEFAULT_DAILY_TOKEN_LIMIT),
+    10
+  );
+
+  const [record] = await db
+    .select({
+      requestCount: agentUsage.requestCount,
+      inputTokens: agentUsage.inputTokens,
+      outputTokens: agentUsage.outputTokens,
+    })
+    .from(agentUsage)
+    .where(and(eq(agentUsage.userId, userId), eq(agentUsage.usageDate, today)))
+    .limit(1);
+
+  const usedRequests = record?.requestCount || 0;
+  const usedTokens = (record?.inputTokens || 0) + (record?.outputTokens || 0);
+
+  return {
+    usedRequests,
+    maxRequests,
+    remainingRequests: Math.max(0, maxRequests - usedRequests),
+    usedTokens,
+    maxTokens,
+  };
+}

@@ -67,7 +67,7 @@ export function VelocityChart({ data }: VelocityChartProps) {
                 <stop offset="95%" stopColor="#10b981" stopOpacity={0.0} />
               </linearGradient>
             </defs>
-            <CartesianGrid stroke="#1e293b" strokeDasharray="3 3" vertical={false} />
+            <CartesianGrid stroke="rgba(148, 163, 184, 0.2)" strokeDasharray="3 3" vertical={false} />
             <XAxis
               dataKey="weekLabel"
               stroke="#64748b"
