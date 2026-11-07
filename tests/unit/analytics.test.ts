@@ -26,9 +26,11 @@ describe("Dashboard Analytics DAL", () => {
         { weekLabel: "Wk 3", completedTasks: 0 },
         { weekLabel: "Wk 4", completedTasks: 0 },
       ],
+      totalActiveTasks: 0,
     };
 
     expect(mockEmptyAnalytics.dueTasksByProject).toHaveLength(0);
+    expect(mockEmptyAnalytics.totalActiveTasks).toBe(0);
     expect(mockEmptyAnalytics.bugsByStatusAndPriority.total).toBe(0);
     expect(mockEmptyAnalytics.completedVelocity).toHaveLength(4);
   });

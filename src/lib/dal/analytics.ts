@@ -32,6 +32,7 @@ export interface DashboardAnalytics {
     weekLabel: string;
     completedTasks: number;
   }>;
+  totalActiveTasks: number;
 }
 
 export async function getDashboardAnalytics(userId: string): Promise<DashboardAnalytics> {
@@ -168,6 +169,11 @@ export async function getDashboardAnalytics(userId: string): Promise<DashboardAn
     });
   }
 
+  const totalActiveTasks = taskStats.reduce(
+    (sum, r) => sum + (Number(r.todoCount) || 0) + (Number(r.inProgressCount) || 0),
+    0
+  );
+
   return {
     dueTasksByProject,
     statusDistributionByProject,
@@ -178,5 +184,6 @@ export async function getDashboardAnalytics(userId: string): Promise<DashboardAn
       totalOpen,
     },
     completedVelocity,
+    totalActiveTasks,
   };
 }

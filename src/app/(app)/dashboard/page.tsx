@@ -15,6 +15,7 @@ export default function DashboardPage() {
   const [analytics, setAnalytics] = useState<DashboardAnalytics | null>(null);
   const [dueLearnings, setDueLearnings] = useState(0);
   const [fallbackBugCount, setFallbackBugCount] = useState(0);
+  const [fallbackTaskCount, setFallbackTaskCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [isQuickCaptureOpen, setIsQuickCaptureOpen] = useState(false);
   const [isPlannerOpen, setIsPlannerOpen] = useState(false);
@@ -23,10 +24,11 @@ export default function DashboardPage() {
   async function loadDashboard() {
     setLoading(true);
     try {
-      const [analyticsRes, dueRes, bugsRes] = await Promise.all([
+      const [analyticsRes, dueRes, bugsRes, tasksRes] = await Promise.all([
         fetch("/api/dashboard/analytics"),
         fetch("/api/learnings/review"),
         fetch("/api/bugs"),
+        fetch("/api/tasks"),
       ]);
 
       if (analyticsRes.ok) {
@@ -47,6 +49,15 @@ export default function DashboardPage() {
           );
         }
       }
+
+      if (tasksRes.ok) {
+        const tasksData = await tasksRes.json();
+        if (Array.isArray(tasksData)) {
+          setFallbackTaskCount(
+            tasksData.filter((t: any) => t.status !== "done" && t.status !== "cancelled").length
+          );
+        }
+      }
     } catch (err) {
       console.error("Failed to load dashboard metrics:", err);
     } finally {
@@ -59,10 +70,7 @@ export default function DashboardPage() {
   }, []);
 
   const totalActiveTasks =
-    analytics?.statusDistributionByProject.reduce(
-      (sum, p) => sum + p.todo + p.inProgress,
-      0
-    ) ?? 0;
+    analytics?.totalActiveTasks ?? fallbackTaskCount;
 
   const totalOpenBugs =
     analytics?.bugsByStatusAndPriority.totalOpen ?? fallbackBugCount;

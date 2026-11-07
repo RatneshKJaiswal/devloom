@@ -48,9 +48,9 @@ export async function listProjects(userId: string) {
       .groupBy(learnings.projectId),
   ]);
 
-  const taskMap = new Map(taskCounts.map((r) => [r.projectId, r.count]));
-  const bugMap = new Map(bugCounts.map((r) => [r.projectId, r.count]));
-  const learningMap = new Map(learningCounts.map((r) => [r.projectId, r.count]));
+  const taskMap = new Map(taskCounts.map((r) => [r.projectId, Number(r.count) || 0]));
+  const bugMap = new Map(bugCounts.map((r) => [r.projectId, Number(r.count) || 0]));
+  const learningMap = new Map(learningCounts.map((r) => [r.projectId, Number(r.count) || 0]));
 
   return allProjects.map((p) => {
     const tCount = taskMap.get(p.id) || 0;
