@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { QuickCaptureModal } from "@/components/quick-capture-dialog";
 import { EditBugModal } from "@/components/edit-bug-modal";
+import { GitHubLinkBadge } from "@/components/github/github-link-badge";
 import { PRIORITY_CONFIG, BUG_STATUS_CONFIG } from "@/lib/tokens";
 
 function getBugDateStatus(dueDateStr?: string | null, status?: string) {
@@ -373,9 +374,49 @@ export default function BugsPage() {
                       {bug.title}
                     </h3>
 
+                    {/* GitHub Link Badges */}
+                    {bug.githubLinks && bug.githubLinks.length > 0 && (
+                      <div className="flex flex-wrap gap-2 pt-0.5">
+                        {bug.githubLinks.map((link: any) => (
+                          <GitHubLinkBadge
+                            key={link.id}
+                            link={link}
+                            onRefresh={(updated) => {
+                              setBugs((prev) =>
+                                prev.map((b) =>
+                                  b.id === bug.id
+                                    ? {
+                                        ...b,
+                                        githubLinks: (b.githubLinks || []).map((l: any) =>
+                                          l.id === updated.id ? updated : l
+                                        ),
+                                      }
+                                    : b
+                                )
+                              );
+                            }}
+                            onDelete={(deletedId) => {
+                              setBugs((prev) =>
+                                prev.map((b) =>
+                                  b.id === bug.id
+                                    ? {
+                                        ...b,
+                                        githubLinks: (b.githubLinks || []).filter(
+                                          (l: any) => l.id !== deletedId
+                                        ),
+                                      }
+                                    : b
+                                )
+                              );
+                            }}
+                          />
+                        ))}
+                      </div>
+                    )}
+
                     {bug.description && (
-                      <p className="text-xs text-slate-400 leading-relaxed">
-                        {bug.description}
+                      <p className="text-xs text-slate-300 leading-relaxed whitespace-pre-line font-normal">
+                        {bug.description.replace(/\\n/g, "\n")}
                       </p>
                     )}
                   </div>

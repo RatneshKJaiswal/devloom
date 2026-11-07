@@ -73,9 +73,39 @@ export async function listBugs(userId: string, options: BugFilterOptions = {}) {
     tagMap.set(row.bugId, list);
   }
 
+  // Fetch GitHub links for these bugs
+  const linkRows = await db
+    .select({
+      id: githubLinks.id,
+      entityId: githubLinks.entityId,
+      url: githubLinks.url,
+      linkType: githubLinks.linkType,
+      repoOwner: githubLinks.repoOwner,
+      repoName: githubLinks.repoName,
+      issueOrPrNumber: githubLinks.issueOrPrNumber,
+      filePath: githubLinks.filePath,
+      cachedTitle: githubLinks.cachedTitle,
+      cachedState: githubLinks.cachedState,
+    })
+    .from(githubLinks)
+    .where(
+      and(
+        eq(githubLinks.entityType, "bug"),
+        inArray(githubLinks.entityId, bugIds)
+      )
+    );
+
+  const linkMap = new Map<string, Array<any>>();
+  for (const row of linkRows) {
+    const list = linkMap.get(row.entityId) || [];
+    list.push(row);
+    linkMap.set(row.entityId, list);
+  }
+
   return rawBugs.map((bug) => ({
     ...bug,
     tags: tagMap.get(bug.id) || [],
+    githubLinks: linkMap.get(bug.id) || [],
   }));
 }
 
@@ -116,9 +146,31 @@ export async function getBugById(userId: string, id: string) {
     .innerJoin(tags, eq(bugTags.tagId, tags.id))
     .where(eq(bugTags.bugId, bug.id));
 
+  const linkRows = await db
+    .select({
+      id: githubLinks.id,
+      entityId: githubLinks.entityId,
+      url: githubLinks.url,
+      linkType: githubLinks.linkType,
+      repoOwner: githubLinks.repoOwner,
+      repoName: githubLinks.repoName,
+      issueOrPrNumber: githubLinks.issueOrPrNumber,
+      filePath: githubLinks.filePath,
+      cachedTitle: githubLinks.cachedTitle,
+      cachedState: githubLinks.cachedState,
+    })
+    .from(githubLinks)
+    .where(
+      and(
+        eq(githubLinks.entityType, "bug"),
+        eq(githubLinks.entityId, bug.id)
+      )
+    );
+
   return {
     ...bug,
     tags: tagRows,
+    githubLinks: linkRows,
   };
 }
 

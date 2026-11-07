@@ -13,9 +13,12 @@ import {
   Clock,
   Pencil,
   ArrowUpDown,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { QuickCaptureModal } from "@/components/quick-capture-dialog";
 import { EditTaskModal } from "@/components/edit-task-modal";
+import { GitHubLinkBadge } from "@/components/github/github-link-badge";
 import { PRIORITY_CONFIG, TASK_STATUS_CONFIG } from "@/lib/tokens";
 
 function getDateStatus(dueDateStr?: string | null, status?: string) {
@@ -68,6 +71,11 @@ export default function TasksPage() {
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<any | null>(null);
+  const [expandedTasks, setExpandedTasks] = useState<Record<string, boolean>>({});
+
+  function toggleExpand(id: string) {
+    setExpandedTasks((prev) => ({ ...prev, [id]: !prev[id] }));
+  }
 
   async function loadProjects() {
     try {
@@ -353,10 +361,80 @@ export default function TasksPage() {
                     {task.title}
                   </div>
 
+                  {/* GitHub Link Badges */}
+                  {task.githubLinks && task.githubLinks.length > 0 && (
+                    <div className="flex flex-wrap gap-2 pt-0.5">
+                      {task.githubLinks.map((link: any) => (
+                        <GitHubLinkBadge
+                          key={link.id}
+                          link={link}
+                          onRefresh={(updated) => {
+                            setTasks((prev) =>
+                              prev.map((t) =>
+                                t.id === task.id
+                                  ? {
+                                      ...t,
+                                      githubLinks: (t.githubLinks || []).map((l: any) =>
+                                        l.id === updated.id ? updated : l
+                                      ),
+                                    }
+                                  : t
+                              )
+                            );
+                          }}
+                          onDelete={(deletedId) => {
+                            setTasks((prev) =>
+                              prev.map((t) =>
+                                t.id === task.id
+                                  ? {
+                                      ...t,
+                                      githubLinks: (t.githubLinks || []).filter(
+                                        (l: any) => l.id !== deletedId
+                                      ),
+                                    }
+                                  : t
+                              )
+                            );
+                          }}
+                        />
+                      ))}
+                    </div>
+                  )}
+
                   {task.description && (
-                    <p className="text-xs text-slate-400 line-clamp-2">
-                      {task.description}
-                    </p>
+                    <div className="pt-1">
+                      <div
+                        className={`text-xs text-slate-300 leading-relaxed whitespace-pre-line font-normal ${
+                          expandedTasks[task.id] ? "" : "line-clamp-2"
+                        }`}
+                      >
+                        {task.description.replace(/\\n/g, "\n")}
+                      </div>
+                      {(task.description.length > 100 ||
+                        task.description.includes("\n") ||
+                        task.description.includes("\\n")) && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleExpand(task.id);
+                          }}
+                          className="mt-1 text-[11px] font-medium text-primary hover:underline cursor-pointer inline-flex items-center gap-1"
+                        >
+                          {expandedTasks[task.id] ? (
+                            <>
+                              <ChevronUp className="w-3 h-3" />
+                              <span>Show less</span>
+                            </>
+                          ) : (
+                            <>
+                              <ChevronDown className="w-3 h-3" />
+                              <span>Show full description</span>
+                            </>
+                          )}
+                        </button>
+                      )}
+                    </div>
                   )}
                 </div>
 

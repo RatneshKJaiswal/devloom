@@ -74,9 +74,39 @@ export async function listTasks(userId: string, options: TaskFilterOptions = {})
     tagMap.set(row.taskId, list);
   }
 
+  // Fetch GitHub links for these tasks
+  const linkRows = await db
+    .select({
+      id: githubLinks.id,
+      entityId: githubLinks.entityId,
+      url: githubLinks.url,
+      linkType: githubLinks.linkType,
+      repoOwner: githubLinks.repoOwner,
+      repoName: githubLinks.repoName,
+      issueOrPrNumber: githubLinks.issueOrPrNumber,
+      filePath: githubLinks.filePath,
+      cachedTitle: githubLinks.cachedTitle,
+      cachedState: githubLinks.cachedState,
+    })
+    .from(githubLinks)
+    .where(
+      and(
+        eq(githubLinks.entityType, "task"),
+        inArray(githubLinks.entityId, taskIds)
+      )
+    );
+
+  const linkMap = new Map<string, Array<any>>();
+  for (const row of linkRows) {
+    const list = linkMap.get(row.entityId) || [];
+    list.push(row);
+    linkMap.set(row.entityId, list);
+  }
+
   return rawTasks.map((task) => ({
     ...task,
     tags: tagMap.get(task.id) || [],
+    githubLinks: linkMap.get(task.id) || [],
   }));
 }
 
@@ -117,9 +147,31 @@ export async function getTaskById(userId: string, id: string) {
     .innerJoin(tags, eq(taskTags.tagId, tags.id))
     .where(eq(taskTags.taskId, task.id));
 
+  const linkRows = await db
+    .select({
+      id: githubLinks.id,
+      entityId: githubLinks.entityId,
+      url: githubLinks.url,
+      linkType: githubLinks.linkType,
+      repoOwner: githubLinks.repoOwner,
+      repoName: githubLinks.repoName,
+      issueOrPrNumber: githubLinks.issueOrPrNumber,
+      filePath: githubLinks.filePath,
+      cachedTitle: githubLinks.cachedTitle,
+      cachedState: githubLinks.cachedState,
+    })
+    .from(githubLinks)
+    .where(
+      and(
+        eq(githubLinks.entityType, "task"),
+        eq(githubLinks.entityId, task.id)
+      )
+    );
+
   return {
     ...task,
     tags: tagRows,
+    githubLinks: linkRows,
   };
 }
 

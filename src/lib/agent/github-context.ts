@@ -73,12 +73,30 @@ export async function processGitHubContext({
     outputTokens: agentResult.usage.outputTokens,
   });
 
-  // 7. Create item inside workspace
+  // 7. Format description & include GitHub context
+  let formattedDescription = (candidate.description || "")
+    .replace(/\\n/g, "\n")
+    .replace(/\r\n/g, "\n")
+    .trim();
+
+  const githubRefBlock = [
+    `\n\n### 🔗 GitHub Context`,
+    `- **Repository:** [${parsed.repoOwner}/${parsed.repoName}](https://github.com/${parsed.repoOwner}/${parsed.repoName})`,
+    `- **${parsed.linkType === "pull_request" ? "Pull Request" : "Issue"}:** [#${parsed.issueOrPrNumber}](${parsed.url}) (${metadata.state.toUpperCase()})`,
+    metadata.author ? `- **Author:** @${metadata.author}` : null,
+    metadata.labels && metadata.labels.length > 0 ? `- **Labels:** ${metadata.labels.join(", ")}` : null,
+  ].filter(Boolean).join("\n");
+
+  if (!formattedDescription.includes(parsed.url)) {
+    formattedDescription = `${formattedDescription}${githubRefBlock}`.trim();
+  }
+
+  // 8. Create item inside workspace
   let createdItem: any = null;
   if (candidate.entityType === "bug") {
     createdItem = await createBug(userId, {
       title: candidate.title,
-      description: candidate.description,
+      description: formattedDescription,
       priority: candidate.priority,
       stackTrace: candidate.bugDetails?.stackTrace,
       reproSteps: candidate.bugDetails?.reproSteps,
@@ -87,17 +105,17 @@ export async function processGitHubContext({
   } else if (candidate.entityType === "learning") {
     createdItem = await createLearning(userId, {
       title: candidate.title,
-      content: candidate.description || candidate.title,
+      content: formattedDescription || candidate.title,
     });
   } else {
     createdItem = await createTask(userId, {
       title: candidate.title,
-      description: candidate.description,
+      description: formattedDescription,
       priority: candidate.priority,
     });
   }
 
-  // 8. Link to GitHub
+  // 9. Link to GitHub
   const gitHubLink = await linkItemToGitHub(userId, {
     entityType: candidate.entityType,
     entityId: createdItem.id,
