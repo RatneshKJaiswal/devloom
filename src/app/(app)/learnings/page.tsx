@@ -18,6 +18,7 @@ import {
   Loader2,
   Tag,
   ExternalLink,
+  ChevronDown,
 } from "lucide-react";
 import { QuickCaptureModal } from "@/components/quick-capture-dialog";
 import { EditLearningModal } from "@/components/edit-learning-modal";
@@ -260,20 +261,25 @@ export default function LearningsPage() {
 
         {/* Project Selector */}
         {projects.length > 0 && (
-          <div className="relative min-w-[200px]">
-            <FolderKanban className="w-3.5 h-3.5 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-            <select
-              value={projectFilter}
-              onChange={(e) => setProjectFilter(e.target.value)}
-              className="w-full !pl-9 pr-8 py-2.5 rounded-xl border border-slate-800 bg-slate-900/70 text-slate-300 focus:outline-none focus:border-primary text-xs cursor-pointer"
-            >
-              <option value="all">All Projects</option>
-              {projects.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
+          <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border border-slate-800 bg-slate-900/70 hover:border-slate-700/80 focus-within:border-primary transition text-xs text-slate-300 shrink-0 min-w-[210px]">
+            <FolderKanban className="w-4 h-4 text-primary shrink-0" />
+            <div className="relative flex-1 min-w-0 flex items-center">
+              <select
+                value={projectFilter}
+                onChange={(e) => setProjectFilter(e.target.value)}
+                className="w-full bg-transparent focus:outline-none text-xs font-medium text-slate-200 cursor-pointer pr-5 truncate appearance-none"
+              >
+                <option value="all" className="bg-slate-950 text-slate-200">
+                  All Projects
                 </option>
-              ))}
-            </select>
+                {projects.map((p) => (
+                  <option key={p.id} value={p.id} className="bg-slate-950 text-slate-200">
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-0 pointer-events-none shrink-0" />
+            </div>
           </div>
         )}
       </div>
