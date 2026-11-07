@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Search, X, CheckSquare, Bug, Brain, Loader2 } from "lucide-react";
 import Link from "next/link";
 
@@ -13,6 +14,22 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -43,9 +60,9 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
     return () => clearTimeout(timer);
   }, [query, isOpen]);
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 p-4 bg-black/70 backdrop-blur-xs">
       <div className="w-full max-w-2xl rounded-2xl border border-slate-800 bg-slate-900 shadow-2xl overflow-hidden relative">
         {/* Search Input Bar */}
@@ -59,7 +76,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
             placeholder="Type to search across tasks, bugs, and learnings..."
             className="flex-1 bg-transparent text-sm text-white placeholder:text-slate-400 focus:outline-none"
           />
-          {loading && <Loader2 className="w-4 h-4 text-indigo-400 animate-spin" />}
+          {loading && <Loader2 className="w-4 h-4 text-primary animate-spin" />}
           <button
             onClick={onClose}
             className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
@@ -87,7 +104,11 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
             const isBug = item.type === "bug";
             const isLearning = item.type === "learning";
 
-            const href = isTask ? "/tasks" : isBug ? "/bugs" : "/learnings";
+            const href = isTask
+              ? `/tasks#task-${item.id}`
+              : isBug
+              ? `/bugs#bug-${item.id}`
+              : `/learnings`;
 
             return (
               <Link
@@ -97,9 +118,9 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                 className="block p-3 rounded-xl hover:bg-slate-800/60 transition border border-transparent hover:border-slate-700/50"
               >
                 <div className="flex items-center gap-2 mb-1">
-                  {isTask && <CheckSquare className="w-3.5 h-3.5 text-indigo-400" />}
-                  {isBug && <Bug className="w-3.5 h-3.5 text-amber-400" />}
-                  {isLearning && <Brain className="w-3.5 h-3.5 text-emerald-400" />}
+                  {isTask && <CheckSquare className="w-3.5 h-3.5 text-primary" />}
+                  {isBug && <Bug className="w-3.5 h-3.5 text-warning" />}
+                  {isLearning && <Brain className="w-3.5 h-3.5 text-success" />}
 
                   <span className="text-[10px] font-semibold tracking-wider uppercase px-1.5 py-0.5 rounded bg-slate-800 text-slate-300">
                     {item.type}
@@ -126,6 +147,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
           })}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

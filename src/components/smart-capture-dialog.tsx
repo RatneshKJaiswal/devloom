@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Sparkles, X, Loader2, Check, AlertCircle, Bug, CheckSquare, Brain, Link2 } from "lucide-react";
 import { GithubIcon } from "@/components/icons/github";
 import { SmartCaptureOutput } from "@/lib/agent/prompts/capture";
@@ -18,11 +19,27 @@ export function SmartCaptureModal({ isOpen, onClose, onSuccess }: SmartCaptureMo
   const [analyzing, setAnalyzing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
 
   // Extracted candidate state
   const [candidate, setCandidate] = useState<SmartCaptureOutput | null>(null);
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isOpen]);
+
+  if (!isOpen || !mounted) return null;
 
   async function handleAnalyze() {
     if (mode === "github") {
@@ -93,12 +110,14 @@ export function SmartCaptureModal({ isOpen, onClose, onSuccess }: SmartCaptureMo
         title: candidate.title,
         description: candidate.description,
         priority: candidate.priority,
+        dueDate: candidate.dueDate ? candidate.dueDate : undefined,
       };
 
       if (candidate.entityType === "bug") {
         endpoint = "/api/bugs";
         body = {
           ...body,
+          dueDate: candidate.dueDate ? candidate.dueDate : undefined,
           stackTrace: candidate.bugDetails?.stackTrace,
           reproSteps: candidate.bugDetails?.reproSteps,
           suspectedCause: candidate.bugDetails?.suspectedCause,
@@ -133,7 +152,7 @@ export function SmartCaptureModal({ isOpen, onClose, onSuccess }: SmartCaptureMo
     }
   }
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs">
       <div className="w-full max-w-2xl rounded-2xl border border-slate-800 bg-slate-900 shadow-2xl p-6 relative max-h-[90vh] flex flex-col">
         <button
@@ -145,7 +164,7 @@ export function SmartCaptureModal({ isOpen, onClose, onSuccess }: SmartCaptureMo
 
         {/* Header */}
         <div className="flex items-center gap-2 mb-4">
-          <div className="w-8 h-8 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+          <div className="w-8 h-8 rounded-xl bg-primary-subtle border border-primary/20 flex items-center justify-center text-primary">
             <Sparkles className="w-4 h-4" />
           </div>
           <div>
@@ -164,7 +183,7 @@ export function SmartCaptureModal({ isOpen, onClose, onSuccess }: SmartCaptureMo
               onClick={() => setMode("text")}
               className={`flex-1 py-1 px-3 rounded-lg text-xs font-medium transition cursor-pointer ${
                 mode === "text"
-                  ? "bg-indigo-600 text-white shadow-sm"
+                  ? "bg-primary text-white shadow-sm shadow-primary/20"
                   : "text-slate-400 hover:text-slate-200"
               }`}
             >
@@ -175,7 +194,7 @@ export function SmartCaptureModal({ isOpen, onClose, onSuccess }: SmartCaptureMo
               onClick={() => setMode("github")}
               className={`flex-1 py-1 px-3 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 transition cursor-pointer ${
                 mode === "github"
-                  ? "bg-indigo-600 text-white shadow-sm"
+                  ? "bg-primary text-white shadow-sm shadow-primary/20"
                   : "text-slate-400 hover:text-slate-200"
               }`}
             >
@@ -211,7 +230,7 @@ Example:
 TypeError: Cannot read properties of undefined (reading 'userId')
     at handleRequest (/app/api/tasks/route.ts:42:15)
     Occurs when request session is expired or unauthenticated."
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-700 bg-slate-950 font-mono text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-indigo-500 leading-relaxed"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-700 bg-slate-950 font-mono text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-primary leading-relaxed"
                   />
                   <div className="flex justify-between items-center text-[11px] text-slate-500 mt-1">
                     <span>Treats pasted text as untrusted data</span>
@@ -233,7 +252,7 @@ TypeError: Cannot read properties of undefined (reading 'userId')
                       value={githubUrl}
                       onChange={(e) => setGithubUrl(e.target.value)}
                       placeholder="https://github.com/owner/repo/issues/123"
-                      className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-700 bg-slate-950 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-indigo-500"
+                      className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-700 bg-slate-950 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-primary"
                     />
                   </div>
                   <p className="text-[11px] text-slate-400 mt-1.5">
@@ -244,12 +263,12 @@ TypeError: Cannot read properties of undefined (reading 'userId')
             )
           ) : (
             /* Structured Candidate Preview */
-            <div className="space-y-4 p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/10">
+            <div className="space-y-4 p-4 rounded-xl border border-primary/30 bg-primary-subtle">
               <div className="flex items-center justify-between pb-3 border-b border-slate-800">
                 <div className="flex items-center gap-2">
-                  {candidate.entityType === "task" && <CheckSquare className="w-4 h-4 text-indigo-400" />}
-                  {candidate.entityType === "bug" && <Bug className="w-4 h-4 text-amber-400" />}
-                  {candidate.entityType === "learning" && <Brain className="w-4 h-4 text-emerald-400" />}
+                  {candidate.entityType === "task" && <CheckSquare className="w-4 h-4 text-primary" />}
+                  {candidate.entityType === "bug" && <Bug className="w-4 h-4 text-warning" />}
+                  {candidate.entityType === "learning" && <Brain className="w-4 h-4 text-success" />}
 
                   <span className="text-xs font-bold uppercase tracking-wider text-white">
                     Classified as {candidate.entityType}
@@ -272,7 +291,7 @@ TypeError: Cannot read properties of undefined (reading 'userId')
                   type="text"
                   value={candidate.title}
                   onChange={(e) => setCandidate({ ...candidate, title: e.target.value })}
-                  className="w-full px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-950 text-sm text-white focus:outline-none focus:border-indigo-500"
+                  className="w-full px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-950 text-sm text-white focus:outline-none focus:border-primary"
                 />
               </div>
 
@@ -285,7 +304,7 @@ TypeError: Cannot read properties of undefined (reading 'userId')
                   rows={3}
                   value={candidate.description}
                   onChange={(e) => setCandidate({ ...candidate, description: e.target.value })}
-                  className="w-full px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-950 text-xs text-white focus:outline-none focus:border-indigo-500"
+                  className="w-full px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-950 text-xs text-white focus:outline-none focus:border-primary"
                 />
               </div>
 
@@ -296,7 +315,7 @@ TypeError: Cannot read properties of undefined (reading 'userId')
                   <select
                     value={candidate.priority}
                     onChange={(e) => setCandidate({ ...candidate, priority: e.target.value as any })}
-                    className="w-full px-2.5 py-1.5 rounded-lg border border-slate-700 bg-slate-950 text-xs text-white focus:outline-none focus:border-indigo-500"
+                    className="w-full px-2.5 py-1.5 rounded-lg border border-slate-700 bg-slate-950 text-xs text-white focus:outline-none focus:border-primary"
                   >
                     <option value="low">Low</option>
                     <option value="medium">Medium</option>
@@ -304,6 +323,18 @@ TypeError: Cannot read properties of undefined (reading 'userId')
                     <option value="urgent">Urgent</option>
                   </select>
                 </div>
+
+                {candidate.entityType !== "learning" && (
+                  <div className="flex-1 min-w-[140px]">
+                    <label className="block text-xs font-medium text-slate-300 mb-1">Due Date</label>
+                    <input
+                      type="date"
+                      value={candidate.dueDate || ""}
+                      onChange={(e) => setCandidate({ ...candidate, dueDate: e.target.value || null })}
+                      className="w-full px-2.5 py-1.5 rounded-lg border border-slate-700 bg-slate-950 text-xs text-white focus:outline-none focus:border-primary cursor-pointer"
+                    />
+                  </div>
+                )}
 
                 {candidate.tags && candidate.tags.length > 0 && (
                   <div className="flex-1 min-w-[200px]">
@@ -365,7 +396,7 @@ TypeError: Cannot read properties of undefined (reading 'userId')
               type="button"
               disabled={analyzing || (mode === "text" ? !rawText.trim() : !githubUrl.trim())}
               onClick={handleAnalyze}
-              className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-medium flex items-center gap-2 shadow-lg shadow-indigo-600/25 transition cursor-pointer"
+              className="px-5 py-2 rounded-xl bg-primary hover:bg-primary-hover disabled:opacity-50 text-white text-xs font-medium flex items-center gap-2 shadow-lg shadow-primary/20 transition cursor-pointer"
             >
               {analyzing ? (
                 <>
@@ -384,7 +415,7 @@ TypeError: Cannot read properties of undefined (reading 'userId')
               type="button"
               disabled={saving}
               onClick={handleConfirmSave}
-              className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-xs font-medium flex items-center gap-2 shadow-lg shadow-emerald-600/25 transition cursor-pointer"
+              className="px-5 py-2 rounded-xl bg-success hover:bg-success-hover disabled:opacity-50 text-white text-xs font-medium flex items-center gap-2 shadow-lg shadow-success/20 transition cursor-pointer"
             >
               {saving ? (
                 <>
@@ -401,6 +432,7 @@ TypeError: Cannot read properties of undefined (reading 'userId')
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

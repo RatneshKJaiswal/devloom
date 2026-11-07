@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Sparkles, X, Loader2, Copy, Check, Calendar, CheckCircle2, AlertCircle } from "lucide-react";
 import { SummaryOutput } from "@/lib/agent/prompts/summary";
 
@@ -20,8 +21,24 @@ export function AIPlannerModal({
   const [result, setResult] = useState<SummaryOutput | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isOpen]);
+
+  if (!isOpen || !mounted) return null;
 
   async function handleGenerate(targetMode: "daily_plan" | "weekly_standup" = mode) {
     setLoading(true);
@@ -61,7 +78,7 @@ export function AIPlannerModal({
     setTimeout(() => setCopied(false), 2000);
   }
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs">
       <div className="w-full max-w-2xl rounded-2xl border border-slate-800 bg-slate-900 shadow-2xl p-6 relative max-h-[90vh] flex flex-col">
         <button
@@ -73,7 +90,7 @@ export function AIPlannerModal({
 
         {/* Header */}
         <div className="flex items-center gap-2 mb-4">
-          <div className="w-8 h-8 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+          <div className="w-8 h-8 rounded-xl bg-primary-subtle border border-primary/20 flex items-center justify-center text-primary">
             <Sparkles className="w-4 h-4" />
           </div>
           <div>
@@ -94,7 +111,7 @@ export function AIPlannerModal({
             }}
             className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-medium transition cursor-pointer ${
               mode === "daily_plan"
-                ? "bg-indigo-600 text-white shadow-sm"
+                ? "bg-primary text-white shadow-sm shadow-primary/20"
                 : "text-slate-400 hover:text-slate-200"
             }`}
           >
@@ -108,7 +125,7 @@ export function AIPlannerModal({
             }}
             className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-medium transition cursor-pointer ${
               mode === "weekly_standup"
-                ? "bg-indigo-600 text-white shadow-sm"
+                ? "bg-primary text-white shadow-sm shadow-primary/20"
                 : "text-slate-400 hover:text-slate-200"
             }`}
           >
@@ -117,8 +134,8 @@ export function AIPlannerModal({
         </div>
 
         {error && (
-          <div className="mb-4 p-3 rounded-xl bg-red-950/40 border border-red-500/30 text-xs text-red-300 flex items-start gap-2">
-            <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+          <div className="mb-4 p-3 rounded-xl bg-danger-subtle border border-danger/30 text-xs text-danger-foreground flex items-start gap-2">
+            <AlertCircle className="w-4 h-4 text-danger shrink-0 mt-0.5" />
             <div className="flex-1">{error}</div>
           </div>
         )}
@@ -127,7 +144,7 @@ export function AIPlannerModal({
         <div className="flex-1 overflow-y-auto space-y-4 pr-1">
           {loading ? (
             <div className="p-16 flex flex-col items-center justify-center gap-3 text-slate-400">
-              <Loader2 className="w-8 h-8 text-indigo-400 animate-spin" />
+              <Loader2 className="w-8 h-8 text-primary animate-spin" />
               <p className="text-xs">Analyzing your workspace records with Gemini...</p>
             </div>
           ) : !result ? (
@@ -140,7 +157,7 @@ export function AIPlannerModal({
               <button
                 type="button"
                 onClick={() => handleGenerate(mode)}
-                className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium shadow-md shadow-indigo-600/20 transition cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-primary hover:bg-primary-hover text-white text-xs font-medium shadow-md shadow-primary/20 transition cursor-pointer"
               >
                 Generate with Gemini
               </button>
@@ -155,7 +172,7 @@ export function AIPlannerModal({
                   </h3>
 
                   <div className="space-y-2">
-                    <span className="text-xs font-medium text-indigo-400 uppercase tracking-wider block">
+                    <span className="text-xs font-medium text-primary uppercase tracking-wider block">
                       Recommended Focus Items
                     </span>
                     {result.dailyPlan.focusItems.map((item, idx) => (
@@ -165,7 +182,7 @@ export function AIPlannerModal({
                       >
                         <div className="space-y-0.5">
                           <div className="font-medium text-white flex items-center gap-2">
-                            <span className="text-[10px] uppercase font-bold text-indigo-400 px-1.5 py-0.5 rounded bg-indigo-950/60 border border-indigo-500/20">
+                            <span className="text-[10px] uppercase font-bold text-primary px-1.5 py-0.5 rounded bg-primary-subtle border border-primary/20">
                               {item.type}
                             </span>
                             <span>{item.title}</span>
@@ -181,7 +198,7 @@ export function AIPlannerModal({
 
                   {result.dailyPlan.quickWins.length > 0 && (
                     <div className="pt-2">
-                      <span className="text-xs font-medium text-emerald-400 uppercase tracking-wider block mb-1">
+                      <span className="text-xs font-medium text-success uppercase tracking-wider block mb-1">
                         Quick Wins
                       </span>
                       <ul className="list-disc list-inside text-xs text-slate-300 space-y-0.5">
@@ -193,7 +210,7 @@ export function AIPlannerModal({
                   )}
 
                   {result.dailyPlan.reviewReminder && (
-                    <div className="p-2.5 rounded-lg bg-emerald-950/20 border border-emerald-500/20 text-xs text-emerald-300">
+                    <div className="p-2.5 rounded-lg bg-success-subtle border border-success/20 text-xs text-success">
                       {result.dailyPlan.reviewReminder}
                     </div>
                   )}
@@ -204,7 +221,7 @@ export function AIPlannerModal({
               {result.weeklyStandup && (
                 <div className="space-y-4">
                   <div>
-                    <span className="text-xs font-medium text-indigo-400 uppercase tracking-wider block mb-2">
+                    <span className="text-xs font-medium text-primary uppercase tracking-wider block mb-2">
                       Standup Bullets (Ready to copy)
                     </span>
                     <div className="p-3.5 rounded-lg bg-black/60 border border-slate-800 text-xs font-mono text-slate-200 whitespace-pre-wrap leading-relaxed">
@@ -214,7 +231,7 @@ export function AIPlannerModal({
 
                   {result.weeklyStandup.fixedDefectsSummary && (
                     <div className="text-xs text-slate-300">
-                      <span className="font-semibold text-amber-400 block mb-0.5">Fixed Defects:</span>
+                      <span className="font-semibold text-warning block mb-0.5">Fixed Defects:</span>
                       <p>{result.weeklyStandup.fixedDefectsSummary}</p>
                     </div>
                   )}
@@ -230,7 +247,7 @@ export function AIPlannerModal({
             <button
               type="button"
               onClick={handleCopy}
-              className="inline-flex items-center gap-1.5 text-xs font-medium text-indigo-400 hover:text-indigo-300 transition cursor-pointer"
+              className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:underline transition cursor-pointer"
             >
               {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
               <span>{copied ? "Copied!" : "Copy Bullets"}</span>
@@ -251,7 +268,7 @@ export function AIPlannerModal({
                 type="button"
                 onClick={() => handleGenerate(mode)}
                 disabled={loading}
-                className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium transition cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-primary hover:bg-primary-hover text-white text-xs font-medium transition cursor-pointer shadow-sm shadow-primary/20"
               >
                 Refresh
               </button>
@@ -259,6 +276,7 @@ export function AIPlannerModal({
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

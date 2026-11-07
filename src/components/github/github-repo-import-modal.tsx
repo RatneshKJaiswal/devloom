@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { GithubIcon } from "@/components/icons/github";
 import { Search, X, Loader2, Check, Lock, Globe, Plus, AlertCircle } from "lucide-react";
 import { GitHubRepository } from "@/lib/github/client";
@@ -23,6 +24,22 @@ export function GitHubRepoImportModal({
   const [search, setSearch] = useState("");
   const [importingId, setImportingId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isOpen]);
 
   useEffect(() => {
     if (isOpen) {
@@ -43,7 +60,7 @@ export function GitHubRepoImportModal({
     }
   }, [isOpen]);
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
   async function handleImport(repo: GitHubRepository) {
     setImportingId(repo.id);
@@ -85,7 +102,7 @@ export function GitHubRepoImportModal({
       (r.description && r.description.toLowerCase().includes(search.toLowerCase()))
   );
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs">
       <div className="w-full max-w-2xl rounded-2xl border border-slate-800 bg-slate-900 shadow-2xl p-6 relative max-h-[85vh] flex flex-col">
         <button
@@ -123,7 +140,7 @@ export function GitHubRepoImportModal({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search your repositories..."
-            className="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-700 bg-slate-950 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-indigo-500"
+            className="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-700 bg-slate-950 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-primary"
           />
         </div>
 
@@ -131,7 +148,7 @@ export function GitHubRepoImportModal({
         <div className="flex-1 overflow-y-auto space-y-2 pr-1">
           {loading ? (
             <div className="p-16 flex flex-col items-center justify-center gap-2 text-slate-400">
-              <Loader2 className="w-6 h-6 text-indigo-400 animate-spin" />
+              <Loader2 className="w-6 h-6 text-primary animate-spin" />
               <span className="text-xs">Fetching repositories from GitHub...</span>
             </div>
           ) : filteredRepos.length === 0 ? (
@@ -179,7 +196,7 @@ export function GitHubRepoImportModal({
                   </div>
 
                   {alreadyImported ? (
-                    <span className="inline-flex items-center gap-1 text-xs text-emerald-400 px-2.5 py-1 rounded-lg bg-emerald-950/40 border border-emerald-500/20 shrink-0">
+                    <span className="inline-flex items-center gap-1 text-xs text-success px-2.5 py-1 rounded-lg bg-success-subtle border border-success/20 shrink-0">
                       <Check className="w-3.5 h-3.5" />
                       <span>Imported</span>
                     </span>
@@ -188,7 +205,7 @@ export function GitHubRepoImportModal({
                       type="button"
                       disabled={isImporting}
                       onClick={() => handleImport(repo)}
-                      className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-medium flex items-center gap-1.5 transition cursor-pointer shrink-0"
+                      className="px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-hover disabled:opacity-50 text-white text-xs font-medium flex items-center gap-1.5 transition cursor-pointer shrink-0 shadow-sm shadow-primary/20"
                     >
                       {isImporting ? (
                         <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -215,6 +232,7 @@ export function GitHubRepoImportModal({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

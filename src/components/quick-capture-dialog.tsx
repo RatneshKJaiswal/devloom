@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { CheckSquare, Bug, Brain, X, Loader2, FolderKanban } from "lucide-react";
+import { createPortal } from "react-dom";
+import { CheckSquare, Bug, Brain, X, Loader2, FolderKanban, Calendar, AlertCircle } from "lucide-react";
 
 interface QuickCaptureModalProps {
   isOpen: boolean;
@@ -21,7 +22,12 @@ export function QuickCaptureModal({
   const [description, setDescription] = useState("");
   const [priority, setPriority] = useState<"low" | "medium" | "high" | "urgent">("medium");
   const [projectId, setProjectId] = useState<string>(defaultProjectId || "");
+  const [startDate, setStartDate] = useState("");
+  const [dueDate, setDueDate] = useState("");
   const [projects, setProjects] = useState<any[]>([]);
+
+  // Duplicate detection state
+  const [duplicateWarning, setDuplicateWarning] = useState<string | null>(null);
 
   // Bug fields
   const [stackTrace, setStackTrace] = useState("");
@@ -31,6 +37,22 @@ export function QuickCaptureModal({
   // State
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isOpen]);
 
   useEffect(() => {
     if (isOpen) {
@@ -42,7 +64,39 @@ export function QuickCaptureModal({
     }
   }, [isOpen, defaultProjectId]);
 
-  if (!isOpen) return null;
+  // Debounced duplicate detection
+  useEffect(() => {
+    if (!title.trim() || title.trim().length < 5) {
+      setDuplicateWarning(null);
+      return;
+    }
+    const t = setTimeout(async () => {
+      try {
+        const res = await fetch("/api/agent/duplicates", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: title.trim(),
+            description: description.trim(),
+            type: activeTab,
+          }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.hasDuplicates && data.matches && data.matches.length > 0) {
+            setDuplicateWarning(
+              `Potential duplicate: "${data.matches[0].title}" (${data.matches[0].confidence} confidence)`
+            );
+          } else {
+            setDuplicateWarning(null);
+          }
+        }
+      } catch {}
+    }, 600);
+    return () => clearTimeout(t);
+  }, [title, activeTab, description]);
+
+  if (!isOpen || !mounted) return null;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -54,19 +108,23 @@ export function QuickCaptureModal({
     try {
       let endpoint = "/api/tasks";
       let body: Record<string, unknown> = {
-        title,
-        description,
+        title: title.trim(),
+        description: description.trim() || undefined,
         priority,
         projectId: projectId.trim() || undefined,
+        startDate: startDate ? startDate : undefined,
+        dueDate: dueDate ? dueDate : undefined,
       };
 
       if (activeTab === "bug") {
         endpoint = "/api/bugs";
         body = {
-          title,
-          description,
+          title: title.trim(),
+          description: description.trim() || undefined,
           priority,
           projectId: projectId.trim() || undefined,
+          startDate: startDate ? startDate : undefined,
+          dueDate: dueDate ? dueDate : undefined,
           stackTrace: stackTrace.trim() || undefined,
           reproSteps: reproSteps.trim() || undefined,
           suspectedCause: suspectedCause.trim() || undefined,
@@ -74,8 +132,8 @@ export function QuickCaptureModal({
       } else if (activeTab === "learning") {
         endpoint = "/api/learnings";
         body = {
-          title,
-          content: description,
+          title: title.trim(),
+          content: description.trim() || title.trim(),
           projectId: projectId.trim() || undefined,
         };
       }
@@ -94,6 +152,9 @@ export function QuickCaptureModal({
       // Reset form
       setTitle("");
       setDescription("");
+      setStartDate("");
+      setDueDate("");
+      setDuplicateWarning(null);
       setStackTrace("");
       setReproSteps("");
       setSuspectedCause("");
@@ -107,7 +168,7 @@ export function QuickCaptureModal({
     }
   }
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs">
       <div className="w-full max-w-xl rounded-2xl border border-slate-800 bg-slate-900 shadow-2xl p-6 relative">
         <button
@@ -122,9 +183,9 @@ export function QuickCaptureModal({
           <button
             type="button"
             onClick={() => setActiveTab("task")}
-            className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 transition ${
+            className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 transition cursor-pointer ${
               activeTab === "task"
-                ? "bg-indigo-600 text-white shadow-sm"
+                ? "bg-primary text-white shadow-sm shadow-primary/20"
                 : "text-slate-400 hover:text-slate-200"
             }`}
           >
@@ -134,9 +195,9 @@ export function QuickCaptureModal({
           <button
             type="button"
             onClick={() => setActiveTab("bug")}
-            className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 transition ${
+            className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 transition cursor-pointer ${
               activeTab === "bug"
-                ? "bg-amber-600 text-white shadow-sm"
+                ? "bg-warning text-slate-950 font-semibold shadow-sm shadow-warning/20"
                 : "text-slate-400 hover:text-slate-200"
             }`}
           >
@@ -146,9 +207,9 @@ export function QuickCaptureModal({
           <button
             type="button"
             onClick={() => setActiveTab("learning")}
-            className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 transition ${
+            className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 transition cursor-pointer ${
               activeTab === "learning"
-                ? "bg-emerald-600 text-white shadow-sm"
+                ? "bg-success text-white shadow-sm shadow-success/20"
                 : "text-slate-400 hover:text-slate-200"
             }`}
           >
@@ -180,8 +241,14 @@ export function QuickCaptureModal({
                   ? "e.g. Postgres connection timeout under load"
                   : "e.g. Next.js middleware cannot use Node crypto/socket"
               }
-              className="w-full px-3.5 py-2 rounded-xl border border-slate-700 bg-slate-950 text-sm text-white placeholder:text-slate-400 focus:outline-none focus:border-indigo-500"
+              className="w-full px-3.5 py-2 rounded-xl border border-slate-700 bg-slate-950 text-sm text-white placeholder:text-slate-400 focus:outline-none focus:border-primary"
             />
+            {duplicateWarning && (
+              <div className="mt-1.5 p-2 rounded-lg border border-warning/40 bg-warning-subtle text-amber-300 text-xs flex items-center gap-2">
+                <AlertCircle className="w-3.5 h-3.5 text-warning shrink-0" />
+                <span>{duplicateWarning}</span>
+              </div>
+            )}
           </div>
 
           <div>
@@ -198,7 +265,7 @@ export function QuickCaptureModal({
                   ? "Explain the gotcha, command, or concept in your own words..."
                   : "Additional context or notes..."
               }
-              className="w-full px-3.5 py-2 rounded-xl border border-slate-700 bg-slate-950 text-sm text-white placeholder:text-slate-400 focus:outline-none focus:border-indigo-500"
+              className="w-full px-3.5 py-2 rounded-xl border border-slate-700 bg-slate-950 text-sm text-white placeholder:text-slate-400 focus:outline-none focus:border-primary"
             />
           </div>
 
@@ -206,13 +273,13 @@ export function QuickCaptureModal({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-medium text-slate-300 mb-1 flex items-center gap-1">
-                <FolderKanban className="w-3.5 h-3.5 text-indigo-400" />
+                <FolderKanban className="w-3.5 h-3.5 text-primary" />
                 <span>Project</span>
               </label>
               <select
                 value={projectId}
                 onChange={(e) => setProjectId(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-slate-700 bg-slate-950 text-xs text-white focus:outline-none focus:border-indigo-500 cursor-pointer"
+                className="w-full px-3 py-2 rounded-xl border border-slate-700 bg-slate-950 text-xs text-white focus:outline-none focus:border-primary cursor-pointer"
               >
                 <option value="">No Project (General)</option>
                 {projects.map((p) => (
@@ -231,7 +298,7 @@ export function QuickCaptureModal({
                 <select
                   value={priority}
                   onChange={(e) => setPriority(e.target.value as any)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-700 bg-slate-950 text-xs text-white focus:outline-none focus:border-indigo-500 cursor-pointer"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-700 bg-slate-950 text-xs text-white focus:outline-none focus:border-primary cursor-pointer"
                 >
                   <option value="low">Low</option>
                   <option value="medium">Medium</option>
@@ -241,6 +308,36 @@ export function QuickCaptureModal({
               </div>
             )}
           </div>
+
+          {activeTab !== "learning" && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-slate-300 mb-1 flex items-center gap-1">
+                  <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                  <span>Start Date</span>
+                </label>
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-700 bg-slate-950 text-xs text-white focus:outline-none focus:border-primary cursor-pointer"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-slate-300 mb-1 flex items-center gap-1">
+                  <Calendar className="w-3.5 h-3.5 text-primary" />
+                  <span>Due Date (Deadline)</span>
+                </label>
+                <input
+                  type="date"
+                  value={dueDate}
+                  onChange={(e) => setDueDate(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-700 bg-slate-950 text-xs text-white focus:outline-none focus:border-primary cursor-pointer"
+                />
+              </div>
+            </div>
+          )}
 
           {activeTab === "bug" && (
             <div className="space-y-3 pt-2 border-t border-slate-800">
@@ -253,7 +350,7 @@ export function QuickCaptureModal({
                   value={stackTrace}
                   onChange={(e) => setStackTrace(e.target.value)}
                   placeholder="Paste stack trace or error log here..."
-                  className="w-full px-3 py-2 rounded-xl border border-slate-700 bg-slate-950 font-mono text-xs text-white placeholder:text-slate-400 focus:outline-none focus:border-indigo-500"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-700 bg-slate-950 font-mono text-xs text-white placeholder:text-slate-400 focus:outline-none focus:border-primary"
                 />
               </div>
               <div>
@@ -265,7 +362,7 @@ export function QuickCaptureModal({
                   value={reproSteps}
                   onChange={(e) => setReproSteps(e.target.value)}
                   placeholder="1. Trigger action, 2. Observe crash..."
-                  className="w-full px-3 py-2 rounded-xl border border-slate-700 bg-slate-950 text-sm text-white placeholder:text-slate-400 focus:outline-none focus:border-indigo-500"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-700 bg-slate-950 text-sm text-white placeholder:text-slate-400 focus:outline-none focus:border-primary"
                 />
               </div>
             </div>
@@ -282,7 +379,7 @@ export function QuickCaptureModal({
             <button
               type="submit"
               disabled={loading}
-              className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-medium flex items-center gap-1.5 shadow-md shadow-indigo-600/20 transition cursor-pointer"
+              className="px-5 py-2 rounded-xl bg-primary hover:bg-primary-hover disabled:opacity-50 text-white text-xs font-medium flex items-center gap-1.5 shadow-md shadow-primary/20 transition cursor-pointer"
             >
               {loading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
               <span>Create {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}</span>
@@ -290,6 +387,7 @@ export function QuickCaptureModal({
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
