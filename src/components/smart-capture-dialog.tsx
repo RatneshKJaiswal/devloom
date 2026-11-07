@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
-import { X, Loader2, Check, AlertCircle, Bug, CheckSquare, Brain, Link2 } from "lucide-react";
+import { X, Loader2, Check, AlertCircle, Bug, CheckSquare, Brain, Link2, ChevronDown } from "lucide-react";
 import { AIIcon } from "@/components/icons/ai";
 import { GithubIcon } from "@/components/icons/github";
 import { SmartCaptureOutput } from "@/lib/agent/prompts/capture";
@@ -165,22 +165,22 @@ export function SmartCaptureModal({ isOpen, onClose, onSuccess }: SmartCaptureMo
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs">
-      <div className="w-full max-w-2xl rounded-2xl border border-slate-800 bg-slate-900 shadow-2xl p-6 relative max-h-[90vh] flex flex-col">
+      <div className="w-full max-w-2xl rounded-2xl border border-slate-800 bg-[#131519] shadow-2xl p-7 relative max-h-[92vh] flex flex-col">
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
+          className="absolute right-5 top-5 p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
         >
           <X className="w-5 h-5" />
         </button>
 
         {/* Header */}
-        <div className="flex items-center gap-2 mb-4">
-          <div className="w-8 h-8 rounded-xl bg-primary-subtle border border-primary/20 flex items-center justify-center text-primary">
-            <AIIcon className="w-4 h-4 text-primary" />
+        <div className="flex items-center gap-3.5 mb-5 pb-4 border-b border-slate-800/80">
+          <div className="w-10 h-10 rounded-xl bg-primary-subtle border border-primary/25 flex items-center justify-center text-primary shrink-0">
+            <AIIcon className="w-5 h-5 text-primary" />
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-white">Smart Capture</h2>
-            <p className="text-xs text-slate-400">
+            <h2 className="text-base font-bold text-white tracking-tight">Smart Capture</h2>
+            <p className="text-xs text-slate-400 mt-0.5">
               Paste stack traces, rough notes, or link a GitHub issue/PR to automatically structure it.
             </p>
           </div>
@@ -188,11 +188,11 @@ export function SmartCaptureModal({ isOpen, onClose, onSuccess }: SmartCaptureMo
 
         {/* Mode Selector */}
         {!candidate && (
-          <div className="flex gap-2 p-1 rounded-xl bg-slate-950 border border-slate-800 mb-4 max-w-xs">
+          <div className="flex gap-2 p-1.5 rounded-2xl bg-slate-950 border border-slate-800 mb-5 max-w-sm">
             <button
               type="button"
               onClick={() => setMode("text")}
-              className={`flex-1 py-1 px-3 rounded-lg text-xs font-medium transition cursor-pointer ${
+              className={`flex-1 py-2 px-3.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
                 mode === "text"
                   ? "bg-primary text-white shadow-sm shadow-primary/20"
                   : "text-slate-400 hover:text-slate-200"
@@ -203,7 +203,7 @@ export function SmartCaptureModal({ isOpen, onClose, onSuccess }: SmartCaptureMo
             <button
               type="button"
               onClick={() => setMode("github")}
-              className={`flex-1 py-1 px-3 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 transition cursor-pointer ${
+              className={`flex-1 py-2 px-3.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer ${
                 mode === "github"
                   ? "bg-primary text-white shadow-sm shadow-primary/20"
                   : "text-slate-400 hover:text-slate-200"
@@ -228,7 +228,7 @@ export function SmartCaptureModal({ isOpen, onClose, onSuccess }: SmartCaptureMo
               /* Raw Text Input */
               <div className="space-y-3">
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">
+                  <label className="block text-xs font-semibold text-slate-300 mb-2">
                     Raw Developer Input (Max 8,000 characters)
                   </label>
                   <textarea
@@ -241,9 +241,9 @@ Example:
 TypeError: Cannot read properties of undefined (reading 'userId')
     at handleRequest (/app/api/tasks/route.ts:42:15)
     Occurs when request session is expired or unauthenticated."
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-700 bg-slate-950 font-mono text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-primary leading-relaxed"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-700/80 bg-slate-950 font-mono text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-primary leading-relaxed transition"
                   />
-                  <div className="flex justify-between items-center text-[11px] text-slate-500 mt-1">
+                  <div className="flex justify-between items-center text-[11px] text-slate-500 mt-1.5">
                     <span>Treats pasted text as untrusted data</span>
                     <span>{rawText.length} / 8,000</span>
                   </div>
@@ -251,22 +251,22 @@ TypeError: Cannot read properties of undefined (reading 'userId')
               </div>
             ) : (
               /* GitHub URL Input */
-              <div className="space-y-3 py-4">
+              <div className="space-y-3 py-2">
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">
+                  <label className="block text-xs font-semibold text-slate-300 mb-2">
                     GitHub Issue or Pull Request URL
                   </label>
                   <div className="relative">
-                    <Link2 className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <Link2 className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <input
                       type="url"
                       value={githubUrl}
                       onChange={(e) => setGithubUrl(e.target.value)}
                       placeholder="https://github.com/owner/repo/issues/123"
-                      className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-700 bg-slate-950 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-primary"
+                      className="w-full !pl-11 pr-4 py-2.5 rounded-xl border border-slate-700/80 bg-slate-950 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-primary transition"
                     />
                   </div>
-                  <p className="text-[11px] text-slate-400 mt-1.5">
+                  <p className="text-[11px] text-slate-400 mt-2">
                     The agent fetches the issue title, description, and labels, generates a clean task or bug, and establishes a live link.
                   </p>
                 </div>
@@ -274,7 +274,7 @@ TypeError: Cannot read properties of undefined (reading 'userId')
             )
           ) : (
             /* Structured Candidate Preview */
-            <div className="space-y-4 p-4 rounded-xl border border-primary/30 bg-primary-subtle">
+            <div className="space-y-4 p-5 rounded-2xl border border-primary/30 bg-primary-subtle">
               <div className="flex items-center justify-between pb-3 border-b border-slate-800">
                 <div className="flex items-center gap-2">
                   {candidate.entityType === "task" && <CheckSquare className="w-4 h-4 text-primary" />}
@@ -289,7 +289,7 @@ TypeError: Cannot read properties of undefined (reading 'userId')
                 <button
                   type="button"
                   onClick={() => setCandidate(null)}
-                  className="text-xs text-slate-400 hover:text-slate-200 transition"
+                  className="text-xs text-slate-400 hover:text-slate-200 transition cursor-pointer"
                 >
                   Edit Input
                 </button>
@@ -297,64 +297,67 @@ TypeError: Cannot read properties of undefined (reading 'userId')
 
               {/* Editable Title */}
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">Title</label>
+                <label className="block text-xs font-semibold text-slate-300 mb-2">Title</label>
                 <input
                   type="text"
                   value={candidate.title}
                   onChange={(e) => setCandidate({ ...candidate, title: e.target.value })}
-                  className="w-full px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-950 text-sm text-white focus:outline-none focus:border-primary"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-700/80 bg-slate-950 text-xs text-white focus:outline-none focus:border-primary transition"
                 />
               </div>
 
               {/* Editable Description */}
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">
+                <label className="block text-xs font-semibold text-slate-300 mb-2">
                   {candidate.entityType === "learning" ? "Note Content" : "Description"}
                 </label>
                 <textarea
                   rows={3}
                   value={candidate.description}
                   onChange={(e) => setCandidate({ ...candidate, description: e.target.value })}
-                  className="w-full px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-950 text-xs text-white focus:outline-none focus:border-primary"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-700/80 bg-slate-950 text-xs text-white focus:outline-none focus:border-primary transition leading-relaxed"
                 />
               </div>
 
               {/* Priority & Tags */}
               <div className="flex flex-wrap items-center gap-3">
                 <div className="flex-1 min-w-[140px]">
-                  <label className="block text-xs font-medium text-slate-300 mb-1">Priority</label>
-                  <select
-                    value={candidate.priority}
-                    onChange={(e) => setCandidate({ ...candidate, priority: e.target.value as any })}
-                    className="w-full px-2.5 py-1.5 rounded-lg border border-slate-700 bg-slate-950 text-xs text-white focus:outline-none focus:border-primary"
-                  >
-                    <option value="low">Low</option>
-                    <option value="medium">Medium</option>
-                    <option value="high">High</option>
-                    <option value="urgent">Urgent</option>
-                  </select>
+                  <label className="block text-xs font-semibold text-slate-300 mb-2">Priority</label>
+                  <div className="relative flex items-center">
+                    <select
+                      value={candidate.priority}
+                      onChange={(e) => setCandidate({ ...candidate, priority: e.target.value as any })}
+                      className="w-full px-4 py-2.5 pr-9 rounded-xl border border-slate-700/80 bg-slate-950 text-xs text-white focus:outline-none focus:border-primary cursor-pointer appearance-none transition"
+                    >
+                      <option value="low" className="bg-slate-950 text-slate-200">Low</option>
+                      <option value="medium" className="bg-slate-950 text-slate-200">Medium</option>
+                      <option value="high" className="bg-slate-950 text-slate-200">High</option>
+                      <option value="urgent" className="bg-slate-950 text-slate-200">Urgent</option>
+                    </select>
+                    <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-3 pointer-events-none shrink-0" />
+                  </div>
                 </div>
 
                 {candidate.entityType !== "learning" && (
                   <div className="flex-1 min-w-[140px]">
-                    <label className="block text-xs font-medium text-slate-300 mb-1">Due Date</label>
+                    <label className="block text-xs font-semibold text-slate-300 mb-2">Due Date</label>
                     <input
                       type="date"
                       value={candidate.dueDate || ""}
                       onChange={(e) => setCandidate({ ...candidate, dueDate: e.target.value || null })}
-                      className="w-full px-2.5 py-1.5 rounded-lg border border-slate-700 bg-slate-950 text-xs text-white focus:outline-none focus:border-primary cursor-pointer"
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-700/80 bg-slate-950 text-xs text-white focus:outline-none focus:border-primary cursor-pointer transition"
                     />
                   </div>
                 )}
 
                 {candidate.tags && candidate.tags.length > 0 && (
                   <div className="flex-1 min-w-[200px]">
-                    <label className="block text-xs font-medium text-slate-300 mb-1">Suggested Tags</label>
-                    <div className="flex flex-wrap gap-1.5 pt-1">
+                    <label className="block text-xs font-semibold text-slate-300 mb-2">Suggested Tags</label>
+                    <div className="flex flex-wrap gap-1.5 pt-0.5">
                       {candidate.tags.map((tag, idx) => (
                         <span
                           key={idx}
-                          className="px-2 py-0.5 rounded bg-slate-800 text-[11px] text-slate-300 border border-slate-700"
+                          className="px-2.5 py-1 rounded-lg bg-slate-800 text-[11px] font-medium text-slate-300 border border-slate-700"
                         >
                           {tag}
                         </span>
@@ -369,7 +372,7 @@ TypeError: Cannot read properties of undefined (reading 'userId')
                 <div className="space-y-2 pt-2 border-t border-slate-800">
                   {candidate.bugDetails.suspectedCause && (
                     <div>
-                      <span className="text-xs font-semibold text-amber-400 block mb-0.5">
+                      <span className="text-xs font-semibold text-amber-400 block mb-1">
                         Suspected Cause:
                       </span>
                       <p className="text-xs text-slate-300">{candidate.bugDetails.suspectedCause}</p>
@@ -378,10 +381,10 @@ TypeError: Cannot read properties of undefined (reading 'userId')
 
                   {candidate.bugDetails.stackTrace && (
                     <div>
-                      <span className="text-xs font-semibold text-amber-400 block mb-0.5">
+                      <span className="text-xs font-semibold text-amber-400 block mb-1">
                         Extracted Stack Trace:
                       </span>
-                      <pre className="p-2.5 rounded-lg bg-black/60 font-mono text-[11px] text-amber-200/90 overflow-x-auto max-h-28 whitespace-pre-wrap border border-slate-800">
+                      <pre className="p-3 rounded-xl bg-black/60 font-mono text-[11px] text-amber-200/90 overflow-x-auto max-h-28 whitespace-pre-wrap border border-slate-800 leading-relaxed">
                         {candidate.bugDetails.stackTrace}
                       </pre>
                     </div>
@@ -393,11 +396,11 @@ TypeError: Cannot read properties of undefined (reading 'userId')
         </div>
 
         {/* Footer Actions */}
-        <div className="flex justify-end gap-3 pt-4 border-t border-slate-800 mt-4">
+        <div className="flex justify-end gap-3 pt-5 border-t border-slate-800/80 mt-5">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-xl border border-slate-700 hover:bg-slate-800 text-slate-300 text-xs font-medium transition cursor-pointer"
+            className="px-5 py-2.5 rounded-xl border border-slate-700 hover:bg-slate-800 text-slate-300 text-xs font-semibold transition cursor-pointer"
           >
             Cancel
           </button>
@@ -407,7 +410,7 @@ TypeError: Cannot read properties of undefined (reading 'userId')
               type="button"
               disabled={analyzing || (mode === "text" ? !rawText.trim() : !githubUrl.trim())}
               onClick={handleAnalyze}
-              className="px-5 py-2 rounded-xl bg-primary hover:bg-primary-hover disabled:opacity-50 text-white text-xs font-medium flex items-center gap-2 shadow-lg shadow-primary/20 transition cursor-pointer"
+              className="px-6 py-2.5 rounded-xl bg-primary hover:bg-primary-hover disabled:opacity-50 text-white text-xs font-semibold flex items-center gap-2 shadow-md shadow-primary/25 transition cursor-pointer"
             >
               {analyzing ? (
                 <>
@@ -426,7 +429,7 @@ TypeError: Cannot read properties of undefined (reading 'userId')
               type="button"
               disabled={saving}
               onClick={handleConfirmSave}
-              className="px-5 py-2 rounded-xl bg-success hover:bg-success-hover disabled:opacity-50 text-white text-xs font-medium flex items-center gap-2 shadow-lg shadow-success/20 transition cursor-pointer"
+              className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-xs font-semibold flex items-center gap-2 shadow-md shadow-emerald-600/25 transition cursor-pointer"
             >
               {saving ? (
                 <>

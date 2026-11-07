@@ -64,7 +64,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 p-4 bg-black/70 backdrop-blur-xs">
-      <div className="w-full max-w-2xl rounded-2xl border border-slate-800 bg-slate-900 shadow-2xl overflow-hidden relative">
+      <div className="w-full max-w-2xl rounded-2xl border border-slate-800 bg-[#131519] shadow-2xl overflow-hidden relative">
         {/* Search Input Bar */}
         <div className="p-4 border-b border-slate-800 flex items-center gap-3">
           <Search className="w-5 h-5 text-slate-400" />
