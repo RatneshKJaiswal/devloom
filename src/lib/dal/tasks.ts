@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { tasks, taskTags, tags, projects, taskDependencies } from "@/lib/db/schema";
+import { tasks, taskTags, tags, projects, taskDependencies, githubLinks } from "@/lib/db/schema";
 import { withUserScope } from "./base";
 import { eq, desc, and, inArray, sql } from "drizzle-orm";
 
@@ -39,6 +39,7 @@ export async function listTasks(userId: string, options: TaskFilterOptions = {})
       priority: tasks.priority,
       startDate: tasks.startDate,
       dueDate: tasks.dueDate,
+      completedAt: tasks.completedAt,
       version: tasks.version,
       createdAt: tasks.createdAt,
       updatedAt: tasks.updatedAt,
@@ -93,6 +94,7 @@ export async function getTaskById(userId: string, id: string) {
       priority: tasks.priority,
       startDate: tasks.startDate,
       dueDate: tasks.dueDate,
+      completedAt: tasks.completedAt,
       version: tasks.version,
       createdAt: tasks.createdAt,
       updatedAt: tasks.updatedAt,
@@ -125,7 +127,7 @@ export async function createTask(
   userId: string,
   data: {
     title: string;
-    description?: string;
+    description?: string | null;
     status?: "todo" | "in_progress" | "done" | "cancelled";
     priority?: "low" | "medium" | "high" | "urgent";
     projectId?: string | null;
@@ -145,6 +147,7 @@ export async function createTask(
       projectId: data.projectId || null,
       startDate: data.startDate ? new Date(data.startDate) : null,
       dueDate: data.dueDate ? new Date(data.dueDate) : null,
+      completedAt: data.status === "done" ? new Date() : null,
     })
     .returning();
 
@@ -165,7 +168,7 @@ export async function updateTask(
   id: string,
   data: Partial<{
     title: string;
-    description?: string;
+    description?: string | null;
     status: "todo" | "in_progress" | "done" | "cancelled";
     priority: "low" | "medium" | "high" | "urgent";
     projectId?: string | null;
@@ -181,7 +184,14 @@ export async function updateTask(
 
   if (data.title !== undefined) updateData.title = data.title;
   if (data.description !== undefined) updateData.description = data.description;
-  if (data.status !== undefined) updateData.status = data.status;
+  if (data.status !== undefined) {
+    updateData.status = data.status;
+    if (data.status === "done") {
+      updateData.completedAt = new Date();
+    } else {
+      updateData.completedAt = null;
+    }
+  }
   if (data.priority !== undefined) updateData.priority = data.priority;
   if (data.projectId !== undefined) updateData.projectId = data.projectId;
   if (data.startDate !== undefined) {
@@ -316,6 +326,17 @@ export async function rescheduleTask(
 }
 
 export async function deleteTask(userId: string, id: string) {
+  // Cascading cleanup of polymorphic GitHub links
+  await db
+    .delete(githubLinks)
+    .where(
+      and(
+        withUserScope(githubLinks, userId),
+        eq(githubLinks.entityType, "task"),
+        eq(githubLinks.entityId, id)
+      )
+    );
+
   const [deleted] = await db
     .delete(tasks)
     .where(withUserScope(tasks, userId, eq(tasks.id, id)))

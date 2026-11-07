@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { learnings, learningTags, tags, projects } from "@/lib/db/schema";
+import { learnings, learningTags, tags, projects, githubLinks } from "@/lib/db/schema";
 import { withUserScope } from "./base";
 import { eq, desc, and, inArray, lte } from "drizzle-orm";
 
@@ -201,6 +201,17 @@ export async function updateLearning(
 }
 
 export async function deleteLearning(userId: string, id: string) {
+  // Cascading cleanup of polymorphic GitHub links
+  await db
+    .delete(githubLinks)
+    .where(
+      and(
+        withUserScope(githubLinks, userId),
+        eq(githubLinks.entityType, "learning"),
+        eq(githubLinks.entityId, id)
+      )
+    );
+
   const [deleted] = await db
     .delete(learnings)
     .where(withUserScope(learnings, userId, eq(learnings.id, id)))

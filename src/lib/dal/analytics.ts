@@ -36,8 +36,6 @@ export interface DashboardAnalytics {
 }
 
 export async function getDashboardAnalytics(userId: string): Promise<DashboardAnalytics> {
-  const fourWeeksAgo = new Date(Date.now() - 28 * 24 * 60 * 60 * 1000);
-
   // Run 3 optimized aggregate queries in parallel
   const [taskStats, bugStats, completedTaskRows] = await Promise.all([
     // Query 1: Project-scoped task aggregates (Overdue, Due Soon, Status Breakdown)
@@ -73,6 +71,7 @@ export async function getDashboardAnalytics(userId: string): Promise<DashboardAn
     // Query 3: Completed tasks in past 4 weeks (safely bucketed in JS)
     db
       .select({
+        completedAt: tasks.completedAt,
         updatedAt: tasks.updatedAt,
       })
       .from(tasks)
@@ -82,7 +81,7 @@ export async function getDashboardAnalytics(userId: string): Promise<DashboardAn
           userId,
           and(
             eq(tasks.status, "done"),
-            sql`${tasks.updatedAt} >= ${fourWeeksAgo}`
+            sql`COALESCE(${tasks.completedAt}, ${tasks.updatedAt}) >= NOW() - INTERVAL '28 days'`
           )
         )
       ),
@@ -159,7 +158,7 @@ export async function getDashboardAnalytics(userId: string): Promise<DashboardAn
     const label = `Wk ${weekEnd.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
 
     const count = completedTaskRows.filter((t) => {
-      const taskDate = new Date(t.updatedAt);
+      const taskDate = new Date(t.completedAt ?? t.updatedAt);
       return taskDate >= weekStart && taskDate < weekEnd;
     }).length;
 

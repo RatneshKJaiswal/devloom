@@ -1,9 +1,61 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Plus, CheckSquare, Trash2, Calendar, Loader2, Filter, FolderKanban } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import {
+  Plus,
+  CheckSquare,
+  Trash2,
+  Calendar,
+  Loader2,
+  Filter,
+  FolderKanban,
+  AlertCircle,
+  Clock,
+  Pencil,
+  ArrowUpDown,
+} from "lucide-react";
 import { QuickCaptureModal } from "@/components/quick-capture-dialog";
+import { EditTaskModal } from "@/components/edit-task-modal";
 import { PRIORITY_CONFIG, TASK_STATUS_CONFIG } from "@/lib/tokens";
+
+function getDateStatus(dueDateStr?: string | null, status?: string) {
+  if (!dueDateStr || status === "done" || status === "cancelled") return null;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const due = new Date(dueDateStr);
+  due.setHours(0, 0, 0, 0);
+
+  const diffDays = Math.round((due.getTime() - today.getTime()) / 86400000);
+
+  if (diffDays < 0) {
+    return {
+      type: "overdue" as const,
+      label: `${Math.abs(diffDays)}d overdue`,
+      badgeClass: "bg-danger-subtle text-red-300 border-danger/40 animate-pulse font-semibold",
+    };
+  }
+  if (diffDays === 0) {
+    return {
+      type: "due_today" as const,
+      label: "Due today",
+      badgeClass: "bg-warning-subtle text-amber-300 border-warning/40 font-semibold",
+    };
+  }
+  if (diffDays <= 2) {
+    return {
+      type: "due_soon" as const,
+      label: `Due in ${diffDays}d`,
+      badgeClass: "bg-warning-subtle text-amber-300 border-warning/30",
+    };
+  }
+  return {
+    type: "scheduled" as const,
+    label: `Due ${due.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`,
+    badgeClass: "bg-slate-800 text-slate-300 border-slate-700",
+  };
+}
 
 export default function TasksPage() {
   const [tasks, setTasks] = useState<any[]>([]);
@@ -11,7 +63,11 @@ export default function TasksPage() {
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [projectFilter, setProjectFilter] = useState<string>("all");
+  const [dateFilter, setDateFilter] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<string>("newest");
+
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState<any | null>(null);
 
   async function loadProjects() {
     try {
@@ -82,160 +138,279 @@ export default function TasksPage() {
     }
   }
 
+  // Filter & Sort tasks
+  const displayedTasks = useMemo(() => {
+    let list = [...tasks];
+
+    // Date filter
+    if (dateFilter !== "all") {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      list = list.filter((t) => {
+        if (!t.dueDate) return dateFilter === "unscheduled";
+        if (dateFilter === "unscheduled") return false;
+
+        const due = new Date(t.dueDate);
+        due.setHours(0, 0, 0, 0);
+        const diffDays = Math.round((due.getTime() - today.getTime()) / 86400000);
+
+        if (dateFilter === "overdue") {
+          return diffDays < 0 && t.status !== "done" && t.status !== "cancelled";
+        }
+        if (dateFilter === "due_soon") {
+          return diffDays >= 0 && diffDays <= 7 && t.status !== "done" && t.status !== "cancelled";
+        }
+        if (dateFilter === "scheduled") {
+          return !!t.dueDate;
+        }
+        return true;
+      });
+    }
+
+    // Sort
+    const priorityWeights: Record<string, number> = { urgent: 4, high: 3, medium: 2, low: 1 };
+    list.sort((a, b) => {
+      if (sortBy === "oldest") {
+        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      }
+      if (sortBy === "due_earliest") {
+        if (!a.dueDate) return 1;
+        if (!b.dueDate) return -1;
+        return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+      }
+      if (sortBy === "priority") {
+        return (priorityWeights[b.priority] || 0) - (priorityWeights[a.priority] || 0);
+      }
+      // newest default
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+
+    return list;
+  }, [tasks, dateFilter, sortBy]);
+
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
-            <CheckSquare className="w-6 h-6 text-indigo-400" />
+            <CheckSquare className="w-6 h-6 text-primary" />
             <span>Tasks</span>
           </h1>
           <p className="mt-1 text-sm text-slate-400">
-            Actionable development to-dos organized by priority and project.
+            Actionable development to-dos organized by priority, deadlines, and project.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5">
-          {/* Project Filter */}
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-800 bg-slate-900/60 text-xs text-slate-300">
-            <FolderKanban className="w-3.5 h-3.5 text-indigo-400" />
-            <select
-              value={projectFilter}
-              onChange={(e) => setProjectFilter(e.target.value)}
-              className="bg-transparent focus:outline-none cursor-pointer"
-            >
-              <option value="all">All Projects</option>
-              {projects.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
-          </div>
+        <button
+          onClick={() => setIsCreateOpen(true)}
+          className="px-4 py-2 rounded-xl bg-primary hover:bg-primary-hover text-white text-xs font-medium flex items-center gap-1.5 shadow-md shadow-primary/20 transition cursor-pointer self-start sm:self-auto"
+        >
+          <Plus className="w-4 h-4" />
+          <span>New Task</span>
+        </button>
+      </div>
 
-          {/* Status Filter */}
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-800 bg-slate-900/60 text-xs text-slate-300">
-            <Filter className="w-3.5 h-3.5 text-slate-400" />
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="bg-transparent focus:outline-none cursor-pointer"
-            >
-              <option value="all">All Statuses</option>
-              <option value="todo">To Do</option>
-              <option value="in_progress">In Progress</option>
-              <option value="done">Done</option>
-              <option value="cancelled">Cancelled</option>
-            </select>
-          </div>
-
-          <button
-            onClick={() => setIsCreateOpen(true)}
-            className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium flex items-center gap-1.5 shadow-md shadow-indigo-600/20 transition cursor-pointer"
+      {/* Filter and Sort Toolbar */}
+      <div className="flex flex-wrap items-center gap-2.5 p-3.5 rounded-xl border border-slate-800 bg-slate-900/60">
+        {/* Project Filter */}
+        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-800 bg-slate-950 text-xs text-slate-300">
+          <FolderKanban className="w-3.5 h-3.5 text-primary" />
+          <select
+            value={projectFilter}
+            onChange={(e) => setProjectFilter(e.target.value)}
+            className="bg-transparent focus:outline-none cursor-pointer"
           >
-            <Plus className="w-4 h-4" />
-            <span>New Task</span>
-          </button>
+            <option value="all">All Projects</option>
+            {projects.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Status Filter */}
+        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-800 bg-slate-950 text-xs text-slate-300">
+          <Filter className="w-3.5 h-3.5 text-slate-400" />
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="bg-transparent focus:outline-none cursor-pointer"
+          >
+            <option value="all">All Statuses</option>
+            <option value="todo">To Do</option>
+            <option value="in_progress">In Progress</option>
+            <option value="done">Done</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+        </div>
+
+        {/* Date / Deadline Filter */}
+        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-800 bg-slate-950 text-xs text-slate-300">
+          <Calendar className="w-3.5 h-3.5 text-primary" />
+          <select
+            value={dateFilter}
+            onChange={(e) => setDateFilter(e.target.value)}
+            className="bg-transparent focus:outline-none cursor-pointer"
+          >
+            <option value="all">All Deadlines</option>
+            <option value="overdue">🔴 Overdue Only</option>
+            <option value="due_soon">🟡 Due Soon (Next 7d)</option>
+            <option value="scheduled">Scheduled</option>
+            <option value="unscheduled">Unscheduled</option>
+          </select>
+        </div>
+
+        {/* Sort By */}
+        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-800 bg-slate-950 text-xs text-slate-300 sm:ml-auto">
+          <ArrowUpDown className="w-3.5 h-3.5 text-slate-400" />
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            className="bg-transparent focus:outline-none cursor-pointer"
+          >
+            <option value="newest">Sort: Newest First</option>
+            <option value="oldest">Sort: Oldest First</option>
+            <option value="due_earliest">Sort: Deadline (Earliest)</option>
+            <option value="priority">Sort: Priority (Highest)</option>
+          </select>
         </div>
       </div>
 
       {/* Task List */}
       {loading ? (
         <div className="p-16 flex items-center justify-center">
-          <Loader2 className="w-6 h-6 text-indigo-400 animate-spin" />
+          <Loader2 className="w-6 h-6 text-primary animate-spin" />
         </div>
-      ) : tasks.length === 0 ? (
+      ) : displayedTasks.length === 0 ? (
         <div className="p-16 text-center border border-dashed border-slate-800 rounded-2xl bg-slate-900/20">
           <CheckSquare className="w-8 h-8 text-slate-600 mx-auto mb-3" />
-          <h3 className="text-sm font-semibold text-slate-300">No tasks found</h3>
+          <h3 className="text-sm font-semibold text-slate-300">No tasks match criteria</h3>
           <p className="mt-1 text-xs text-slate-400">
-            {statusFilter !== "all" || projectFilter !== "all"
-              ? "No tasks match the selected filters."
-              : "Capture your first task with the quick capture button."}
+            {statusFilter !== "all" || projectFilter !== "all" || dateFilter !== "all"
+              ? "Try adjusting your filters to see more tasks."
+              : "Capture your first task with the button above."}
           </p>
         </div>
       ) : (
         <div className="space-y-3">
-          {tasks.map((task) => (
-            <div
-              key={task.id}
-              className="p-4 rounded-xl border border-slate-800 bg-slate-900/50 hover:border-slate-700/80 transition flex items-start justify-between gap-4"
-            >
-              <div className="space-y-1.5 flex-1 min-w-0">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span
-                    className={`text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded border ${
-                      PRIORITY_CONFIG[task.priority]?.badgeClass || PRIORITY_CONFIG.medium.badgeClass
+          {displayedTasks.map((task) => {
+            const dateStatus = getDateStatus(task.dueDate, task.status);
+
+            return (
+              <div
+                key={task.id}
+                id={`task-${task.id}`}
+                className="p-4 rounded-xl border border-slate-800 bg-slate-900/50 hover:border-slate-700/80 transition flex items-start justify-between gap-4 group"
+              >
+                <div className="space-y-1.5 flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span
+                      className={`text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded border ${
+                        PRIORITY_CONFIG[task.priority]?.badgeClass || PRIORITY_CONFIG.medium.badgeClass
+                      }`}
+                    >
+                      {task.priority}
+                    </span>
+
+                    {task.projectName && (
+                      <span
+                        className="text-[11px] font-medium px-2 py-0.5 rounded bg-primary-subtle text-primary border border-primary/20 cursor-pointer"
+                        onClick={() => setProjectFilter(task.projectId)}
+                        title="Filter by this project"
+                      >
+                        {task.projectName}
+                      </span>
+                    )}
+
+                    {/* Due Date & Overdue Indicators */}
+                    {dateStatus && (
+                      <span
+                        className={`text-[11px] px-2 py-0.5 rounded border flex items-center gap-1 ${dateStatus.badgeClass}`}
+                      >
+                        {dateStatus.type === "overdue" && (
+                          <AlertCircle className="w-3 h-3 text-red-400 shrink-0" />
+                        )}
+                        {(dateStatus.type === "due_soon" || dateStatus.type === "due_today") && (
+                          <Clock className="w-3 h-3 text-amber-400 shrink-0" />
+                        )}
+                        {dateStatus.type === "scheduled" && (
+                          <Calendar className="w-3 h-3 text-slate-400 shrink-0" />
+                        )}
+                        <span>{dateStatus.label}</span>
+                      </span>
+                    )}
+                  </div>
+
+                  <div
+                    onClick={() => setEditingTask(task)}
+                    className={`text-sm font-medium cursor-pointer hover:text-primary transition ${
+                      task.status === "done" ? "line-through text-slate-400" : "text-white"
                     }`}
                   >
-                    {task.priority}
-                  </span>
+                    {task.title}
+                  </div>
 
-                  {task.projectName && (
-                    <span
-                      className="text-[11px] font-medium px-2 py-0.5 rounded bg-indigo-950/40 text-indigo-300 border border-indigo-500/20 cursor-pointer"
-                      onClick={() => setProjectFilter(task.projectId)}
-                      title="Filter by this project"
-                    >
-                      {task.projectName}
-                    </span>
-                  )}
-
-                  {task.dueDate && (
-                    <span className="text-[11px] text-slate-400 flex items-center gap-1">
-                      <Calendar className="w-3 h-3 text-slate-400" />
-                      <span>{new Date(task.dueDate).toLocaleDateString()}</span>
-                    </span>
+                  {task.description && (
+                    <p className="text-xs text-slate-400 line-clamp-2">
+                      {task.description}
+                    </p>
                   )}
                 </div>
 
-                <div
-                  className={`text-sm font-medium ${
-                    task.status === "done" ? "line-through text-slate-400" : "text-white"
-                  }`}
-                >
-                  {task.title}
+                {/* Status Selector, Edit, Delete */}
+                <div className="flex items-center gap-2 shrink-0">
+                  <select
+                    value={task.status}
+                    onChange={(e) => updateStatus(task.id, e.target.value)}
+                    className="px-2.5 py-1 rounded-lg border border-slate-800 bg-slate-950 text-xs text-slate-300 focus:outline-none focus:border-primary cursor-pointer"
+                  >
+                    <option value="todo">To Do</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="done">Done</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+
+                  <button
+                    type="button"
+                    onClick={() => setEditingTask(task)}
+                    title="Edit task"
+                    className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => deleteTask(task.id)}
+                    title="Delete task"
+                    className="p-1.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-slate-800 transition cursor-pointer"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
-
-                {task.description && (
-                  <p className="text-xs text-slate-400 line-clamp-2">
-                    {task.description}
-                  </p>
-                )}
               </div>
-
-              {/* Status Selector & Delete */}
-              <div className="flex items-center gap-3 shrink-0">
-                <select
-                  value={task.status}
-                  onChange={(e) => updateStatus(task.id, e.target.value)}
-                  className="px-2.5 py-1 rounded-lg border border-slate-800 bg-slate-950 text-xs text-slate-300 focus:outline-none focus:border-indigo-500 cursor-pointer"
-                >
-                  <option value="todo">To Do</option>
-                  <option value="in_progress">In Progress</option>
-                  <option value="done">Done</option>
-                  <option value="cancelled">Cancelled</option>
-                </select>
-
-                <button
-                  type="button"
-                  onClick={() => deleteTask(task.id)}
-                  title="Delete task"
-                  className="p-1.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-slate-800 transition cursor-pointer"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
+      {/* Quick Capture Dialog */}
       <QuickCaptureModal
         isOpen={isCreateOpen}
         onClose={() => setIsCreateOpen(false)}
         defaultProjectId={projectFilter !== "all" ? projectFilter : null}
+        onSuccess={loadTasks}
+      />
+
+      {/* Edit Task Dialog */}
+      <EditTaskModal
+        isOpen={!!editingTask}
+        onClose={() => setEditingTask(null)}
+        task={editingTask}
+        projects={projects}
         onSuccess={loadTasks}
       />
     </div>

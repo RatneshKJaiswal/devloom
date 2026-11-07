@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { bugs, bugTags, tags, projects } from "@/lib/db/schema";
+import { bugs, bugTags, tags, projects, githubLinks } from "@/lib/db/schema";
 import { withUserScope } from "./base";
 import { eq, desc, and, inArray } from "drizzle-orm";
 
@@ -126,13 +126,14 @@ export async function createBug(
   userId: string,
   data: {
     title: string;
-    description?: string;
-    stackTrace?: string;
-    reproSteps?: string;
-    suspectedCause?: string;
+    description?: string | null;
+    stackTrace?: string | null;
+    reproSteps?: string | null;
+    suspectedCause?: string | null;
     status?: "open" | "confirmed" | "fixing" | "resolved" | "closed" | "wont_fix";
     priority?: "low" | "medium" | "high" | "urgent";
     projectId?: string | null;
+    startDate?: string | null;
     dueDate?: string | null;
   },
   tagIds?: string[]
@@ -170,13 +171,14 @@ export async function updateBug(
   id: string,
   data: Partial<{
     title: string;
-    description?: string;
-    stackTrace?: string;
-    reproSteps?: string;
-    suspectedCause?: string;
+    description?: string | null;
+    stackTrace?: string | null;
+    reproSteps?: string | null;
+    suspectedCause?: string | null;
     status: "open" | "confirmed" | "fixing" | "resolved" | "closed" | "wont_fix";
     priority: "low" | "medium" | "high" | "urgent";
     projectId?: string | null;
+    startDate?: string | null;
     dueDate?: string | null;
   }>,
   tagIds?: string[]
@@ -221,6 +223,17 @@ export async function updateBug(
 }
 
 export async function deleteBug(userId: string, id: string) {
+  // Cascading cleanup of polymorphic GitHub links
+  await db
+    .delete(githubLinks)
+    .where(
+      and(
+        withUserScope(githubLinks, userId),
+        eq(githubLinks.entityType, "bug"),
+        eq(githubLinks.entityId, id)
+      )
+    );
+
   const [deleted] = await db
     .delete(bugs)
     .where(withUserScope(bugs, userId, eq(bugs.id, id)))

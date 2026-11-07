@@ -101,7 +101,7 @@ export default function DashboardPage() {
 
           <button
             onClick={() => setIsQuickCaptureOpen(true)}
-            className="px-4 py-2 rounded-xl bg-primary hover:bg-blue-600 text-white text-xs font-medium flex items-center gap-1.5 shadow-md shadow-primary/20 transition cursor-pointer"
+            className="px-4 py-2 rounded-xl bg-primary hover:bg-primary-hover text-white text-xs font-medium flex items-center gap-1.5 shadow-md shadow-primary/20 transition cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>Quick Capture</span>
@@ -132,10 +132,10 @@ export default function DashboardPage() {
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-slate-400">Open Bugs</span>
-            <Bug className="w-4 h-4 text-amber-400" />
+            <Bug className="w-4 h-4 text-warning" />
           </div>
           <div className="mt-3 text-3xl font-bold text-white">{totalOpenBugs}</div>
-          <div className="mt-2 text-[11px] text-slate-400 flex items-center gap-1 group-hover:text-amber-400 transition-colors">
+          <div className="mt-2 text-[11px] text-slate-400 flex items-center gap-1 group-hover:text-warning transition-colors">
             <span>Inspect defects</span>
             <ArrowRight className="w-3 h-3" />
           </div>
@@ -147,12 +147,12 @@ export default function DashboardPage() {
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-slate-400">Due for Review</span>
-            <Brain className="w-4 h-4 text-emerald-400" />
+            <Brain className="w-4 h-4 text-success" />
           </div>
-          <div className="mt-3 text-3xl font-bold text-emerald-400">
+          <div className="mt-3 text-3xl font-bold text-success">
             {dueLearnings}
           </div>
-          <div className="mt-2 text-[11px] text-slate-400 flex items-center gap-1 group-hover:text-emerald-400 transition-colors">
+          <div className="mt-2 text-[11px] text-slate-400 flex items-center gap-1 group-hover:text-success transition-colors">
             <span>{dueLearnings > 0 ? "Start recall session" : "Review notes"}</span>
             <ArrowRight className="w-3 h-3" />
           </div>
@@ -183,7 +183,7 @@ export default function DashboardPage() {
           </div>
           <Link
             href="/learnings"
-            className="px-4 py-2 rounded-xl bg-success hover:bg-emerald-600 text-white text-xs font-medium shadow-md shadow-success/20 transition cursor-pointer shrink-0"
+            className="px-4 py-2 rounded-xl bg-success hover:bg-success-hover text-white text-xs font-medium shadow-md shadow-success/20 transition cursor-pointer shrink-0"
           >
             Launch Review
           </Link>
