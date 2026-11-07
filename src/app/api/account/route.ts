@@ -38,7 +38,7 @@ export async function PATCH(req: Request) {
     const body = await req.json().catch(() => ({}));
     const parsed = updateProfileSchema.safeParse(body);
     if (!parsed.success) {
-      return badRequestResponse("Invalid profile payload", parsed.error.format());
+      return badRequestResponse(parsed.error);
     }
 
     const updated = await updateUserProfile(session.user.id, {

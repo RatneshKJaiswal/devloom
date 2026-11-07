@@ -34,7 +34,10 @@ export async function POST(req: Request) {
       return jsonResponse({ error: message, code }, 500);
     }
 
-    return jsonResponse(result.data, 200);
+    return jsonResponse({
+      ...result.data,
+      isAiFallback: result.isAiFallback || false,
+    }, 200);
   } catch (error) {
     return serverErrorResponse(error);
   }
