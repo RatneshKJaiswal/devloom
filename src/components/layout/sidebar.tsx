@@ -10,7 +10,6 @@ import {
   FolderKanban,
   Settings,
 } from "lucide-react";
-import { AIIcon } from "@/components/icons/ai";
 import clsx from "clsx";
 
 const navItems = [
@@ -26,9 +25,9 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden md:flex w-64 border-r border-slate-800 bg-slate-950/80 backdrop-blur flex-col shrink-0 min-h-screen">
+    <aside className="hidden md:flex w-64 border-r border-slate-800 bg-slate-950/80 backdrop-blur flex-col shrink-0 sticky top-0 h-screen max-h-screen overflow-y-auto">
       {/* Brand */}
-      <div className="h-16 px-6 flex items-center gap-3 border-b border-slate-800">
+      <div className="h-16 px-6 flex items-center gap-3 border-b border-slate-800 shrink-0">
         <div className="h-8 w-8 rounded-xl bg-primary flex items-center justify-center font-bold text-white shadow-md shadow-primary/20">
           D
         </div>
@@ -61,17 +60,6 @@ export function Sidebar() {
           );
         })}
       </nav>
-
-      {/* AI Quick Status / Quota Indicator */}
-      <div className="p-4 m-3 rounded-2xl border border-slate-800 bg-slate-900/50">
-        <div className="flex items-center gap-2 text-xs font-medium text-slate-300">
-          <AIIcon className="w-3.5 h-3.5 text-primary" />
-          <span>AI Assistant</span>
-        </div>
-        <p className="mt-1 text-[11px] text-slate-400">
-          Capture stack traces or notes with smart auto-tagging.
-        </p>
-      </div>
     </aside>
   );
 }

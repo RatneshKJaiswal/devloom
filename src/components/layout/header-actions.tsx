@@ -173,17 +173,6 @@ export function HeaderActions({ userProfile }: HeaderActionsProps) {
                 );
               })}
             </nav>
-
-            {/* AI Status */}
-            <div className="p-4 m-3 rounded-2xl border border-slate-800 bg-slate-900/50 shrink-0">
-              <div className="flex items-center gap-2 text-xs font-medium text-slate-300">
-                <AIIcon className="w-3.5 h-3.5 text-primary" />
-                <span>AI Assistant</span>
-              </div>
-              <p className="mt-1 text-[11px] text-slate-400">
-                Capture stack traces or notes with smart auto-tagging.
-              </p>
-            </div>
           </div>
         </div>,
         document.body
