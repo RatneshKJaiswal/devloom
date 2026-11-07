@@ -206,6 +206,8 @@ export function HeaderActions({ userProfile }: HeaderActionsProps) {
       <SearchModal
         isOpen={isSearchOpen}
         onClose={() => setIsSearchOpen(false)}
+        onOpenQuickCapture={() => setIsQuickCaptureOpen(true)}
+        onOpenSmartCapture={() => setIsSmartCaptureOpen(true)}
       />
     </div>
   );

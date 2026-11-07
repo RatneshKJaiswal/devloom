@@ -1,4 +1,4 @@
-import { auth } from "@/lib/auth/config";
+import { getAuthenticatedUser } from "@/lib/auth/api-auth";
 import { createTask, listTasks } from "@/lib/dal/tasks";
 import { createTaskSchema } from "@/lib/validators";
 import {
@@ -10,8 +10,8 @@ import {
 
 export async function GET(req: Request) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) return unauthorizedResponse();
+    const user = await getAuthenticatedUser(req);
+    if (!user) return unauthorizedResponse();
 
     const { searchParams } = new URL(req.url);
     const status = searchParams.get("status") as any;
@@ -20,7 +20,7 @@ export async function GET(req: Request) {
     const limit = searchParams.get("limit") ? parseInt(searchParams.get("limit")!, 10) : undefined;
     const offset = searchParams.get("offset") ? parseInt(searchParams.get("offset")!, 10) : undefined;
 
-    const data = await listTasks(session.user.id, {
+    const data = await listTasks(user.id, {
       status,
       priority,
       projectId,
@@ -36,15 +36,15 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) return unauthorizedResponse();
+    const user = await getAuthenticatedUser(req);
+    if (!user) return unauthorizedResponse();
 
     const body = await req.json();
     const parsed = createTaskSchema.safeParse(body);
     if (!parsed.success) return badRequestResponse(parsed.error);
 
     const { tagIds, bugIds, ...taskData } = parsed.data;
-    const created = await createTask(session.user.id, taskData, tagIds, bugIds);
+    const created = await createTask(user.id, taskData, tagIds, bugIds);
 
     return jsonResponse(created, 201);
   } catch (error) {

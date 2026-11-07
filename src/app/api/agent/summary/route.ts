@@ -1,4 +1,4 @@
-import { auth } from "@/lib/auth/config";
+import { getAuthenticatedUser } from "@/lib/auth/api-auth";
 import { generateWorkspaceSummary } from "@/lib/agent/summary";
 import { z } from "zod";
 import {
@@ -14,15 +14,15 @@ const summaryRequestSchema = z.object({
 
 export async function POST(req: Request) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) return unauthorizedResponse();
+    const user = await getAuthenticatedUser(req);
+    if (!user) return unauthorizedResponse();
 
     const body = await req.json();
     const parsed = summaryRequestSchema.safeParse(body);
     if (!parsed.success) return badRequestResponse(parsed.error);
 
     const result = await generateWorkspaceSummary({
-      userId: session.user.id,
+      userId: user.id,
       mode: parsed.data.mode,
     });
 

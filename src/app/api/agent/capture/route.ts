@@ -1,4 +1,4 @@
-import { auth } from "@/lib/auth/config";
+import { getAuthenticatedUser } from "@/lib/auth/api-auth";
 import { processSmartCapture } from "@/lib/agent/capture";
 import { z } from "zod";
 import {
@@ -15,15 +15,15 @@ const captureRequestSchema = z.object({
 
 export async function POST(req: Request) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) return unauthorizedResponse();
+    const user = await getAuthenticatedUser(req);
+    if (!user) return unauthorizedResponse();
 
     const body = await req.json();
     const parsed = captureRequestSchema.safeParse(body);
     if (!parsed.success) return badRequestResponse(parsed.error);
 
     const result = await processSmartCapture({
-      userId: session.user.id,
+      userId: user.id,
       rawInput: parsed.data.rawInput,
       autoSave: parsed.data.autoSave,
     });

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { Bug, CheckSquare, X, Loader2, FolderKanban, Calendar, ChevronDown } from "lucide-react";
 import { formatBugId, formatTaskId } from "@/lib/identifiers";
+import { DevActionsToolbar } from "@/components/common/dev-actions-toolbar";
 
 interface EditBugModalProps {
   isOpen: boolean;
@@ -169,6 +170,19 @@ export function EditBugModal({
               Update defect details, priority, target resolution, and stack traces.
             </p>
           </div>
+        </div>
+
+        <div className="mb-3.5">
+          <DevActionsToolbar
+            type="bug"
+            idDisplay={formatBugId(bug)}
+            title={title}
+            description={description}
+            stackTrace={stackTrace}
+            suspectedCause={suspectedCause}
+            reproSteps={reproSteps}
+            projectName={projects.find((p) => p.id === projectId)?.name}
+          />
         </div>
 
         {error && (

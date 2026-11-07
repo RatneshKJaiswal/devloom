@@ -1,4 +1,4 @@
-import { auth } from "@/lib/auth/config";
+import { getAuthenticatedUser } from "@/lib/auth/api-auth";
 import { createLearning, listLearnings } from "@/lib/dal/learnings";
 import { createLearningSchema } from "@/lib/validators";
 import {
@@ -10,8 +10,8 @@ import {
 
 export async function GET(req: Request) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) return unauthorizedResponse();
+    const user = await getAuthenticatedUser(req);
+    if (!user) return unauthorizedResponse();
 
     const { searchParams } = new URL(req.url);
     const status = searchParams.get("status") as any;
@@ -19,7 +19,7 @@ export async function GET(req: Request) {
     const limit = searchParams.get("limit") ? parseInt(searchParams.get("limit")!, 10) : undefined;
     const offset = searchParams.get("offset") ? parseInt(searchParams.get("offset")!, 10) : undefined;
 
-    const data = await listLearnings(session.user.id, {
+    const data = await listLearnings(user.id, {
       status,
       projectId,
       limit,
@@ -34,15 +34,15 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) return unauthorizedResponse();
+    const user = await getAuthenticatedUser(req);
+    if (!user) return unauthorizedResponse();
 
     const body = await req.json();
     const parsed = createLearningSchema.safeParse(body);
     if (!parsed.success) return badRequestResponse(parsed.error);
 
     const { tagIds, ...learningData } = parsed.data;
-    const created = await createLearning(session.user.id, learningData, tagIds);
+    const created = await createLearning(user.id, learningData, tagIds);
 
     return jsonResponse(created, 201);
   } catch (error) {

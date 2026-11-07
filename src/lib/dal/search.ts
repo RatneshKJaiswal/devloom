@@ -6,6 +6,8 @@ import { ilike, or, desc, eq } from "drizzle-orm";
 export interface UnifiedSearchResult {
   id: string;
   type: "task" | "bug" | "learning";
+  taskNumber?: number | null;
+  bugNumber?: number | null;
   title: string;
   preview: string;
   status?: string;
@@ -31,6 +33,7 @@ export async function searchAcrossEntities(
     db
       .select({
         id: tasks.id,
+        taskNumber: tasks.taskNumber,
         title: tasks.title,
         description: tasks.description,
         status: tasks.status,
@@ -55,6 +58,7 @@ export async function searchAcrossEntities(
     db
       .select({
         id: bugs.id,
+        bugNumber: bugs.bugNumber,
         title: bugs.title,
         description: bugs.description,
         stackTrace: bugs.stackTrace,
@@ -110,6 +114,7 @@ export async function searchAcrossEntities(
     ...matchedTasks.map((t) => ({
       id: t.id,
       type: "task" as const,
+      taskNumber: t.taskNumber,
       title: t.title,
       preview: t.description || "No description",
       status: t.status,
@@ -121,6 +126,7 @@ export async function searchAcrossEntities(
     ...matchedBugs.map((b) => ({
       id: b.id,
       type: "bug" as const,
+      bugNumber: b.bugNumber,
       title: b.title,
       preview: b.description || b.suspectedCause || b.stackTrace || "No details",
       status: b.status,

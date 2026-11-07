@@ -23,6 +23,7 @@ import {
   Minimize2,
   ZoomIn,
   ZoomOut,
+  Zap,
 } from "lucide-react";
 import { TASK_STATUS_CONFIG, PRIORITY_CONFIG } from "@/lib/tokens";
 import type { DependencyWithDetails } from "@/lib/dal/dependencies";
@@ -33,6 +34,7 @@ import {
   parseDateOnly,
   addDaysToStr,
   calculateReschedule,
+  calculateCriticalPath,
 } from "@/lib/timeline";
 
 export { toDateStr, parseDateOnly, addDaysToStr };
@@ -94,12 +96,21 @@ export function ProjectTimelineView({
   const [zoomScale, setZoomScale] = useState<number>(1);
   const [isExpanded, setIsExpanded] = useState(false);
   const [isDepModalOpen, setIsDepModalOpen] = useState(false);
+  const [showCriticalPath, setShowCriticalPath] = useState(false);
 
   // Local optimistic task state
   const [localTasks, setLocalTasks] = useState(tasks);
   useEffect(() => {
     setLocalTasks(tasks);
   }, [tasks]);
+
+  const criticalPathTaskIds = useMemo(() => {
+    if (!showCriticalPath) return new Set<string>();
+    return calculateCriticalPath(
+      localTasks.map((t) => ({ id: t.id, startDate: t.startDate, dueDate: t.dueDate })),
+      dependencies.map((d) => ({ taskId: d.successorId, dependsOnTaskId: d.predecessorId }))
+    );
+  }, [showCriticalPath, localTasks, dependencies]);
 
   // Active drag state
   const [activeDrag, setActiveDrag] = useState<DragState | null>(null);
@@ -711,6 +722,21 @@ export function ProjectTimelineView({
             <span>Dependencies ({dependencies.length})</span>
           </button>
 
+          {/* Critical Path Analysis Toggle */}
+          <button
+            type="button"
+            onClick={() => setShowCriticalPath((prev) => !prev)}
+            title="Toggle Critical Path analysis (identifies zero-slack delivery bottlenecks)"
+            className={`px-3 py-1.5 rounded-xl border text-xs font-medium flex items-center gap-1.5 transition cursor-pointer shadow-sm ${
+              showCriticalPath
+                ? "bg-amber-500/20 border-amber-500/40 text-amber-300 shadow-amber-500/10"
+                : "border-slate-700 bg-slate-850 hover:bg-slate-800 text-slate-300"
+            }`}
+          >
+            <Zap className={`w-3.5 h-3.5 ${showCriticalPath ? "text-amber-400 fill-amber-400" : "text-amber-400"}`} />
+            <span>Critical Path{showCriticalPath && criticalPathTaskIds.size > 0 ? ` (${criticalPathTaskIds.size})` : ""}</span>
+          </button>
+
           {/* Day / Week Resolution Toggle */}
           <div className="flex items-center p-0.5 rounded-xl border border-slate-800 bg-slate-950 text-[11px]">
             <button
@@ -881,6 +907,17 @@ export function ProjectTimelineView({
                   >
                     <path d="M 0 1 L 10 5 L 0 9 z" fill="#EA4335" />
                   </marker>
+                  <marker
+                    id="arrow-critical"
+                    viewBox="0 0 10 10"
+                    refX="6"
+                    refY="5"
+                    markerWidth="6"
+                    markerHeight="6"
+                    orient="auto-start-reverse"
+                  >
+                    <path d="M 0 1 L 10 5 L 0 9 z" fill="#F59E0B" />
+                  </marker>
                 </defs>
 
                 {dependencies.map((dep) => {
@@ -902,6 +939,10 @@ export function ProjectTimelineView({
                   const y2 = computedTasksStartY + succIdx * taskRowHeight + 14;
 
                   const isBlocked = dep.predecessorStatus !== "done";
+                  const isCriticalEdge =
+                    showCriticalPath &&
+                    criticalPathTaskIds.has(predTask.id) &&
+                    criticalPathTaskIds.has(succTask.id);
                   const c1x = x1 + Math.max(Math.abs(x2 - x1) / 2, 24);
                   const c2x = x2 - Math.max(Math.abs(x2 - x1) / 2, 24);
 
@@ -912,11 +953,17 @@ export function ProjectTimelineView({
                       key={dep.id}
                       d={pathD}
                       fill="none"
-                      stroke={isBlocked ? "#EA4335" : "#60A5FA"}
-                      strokeWidth={isBlocked ? 2 : 1.5}
-                      strokeDasharray={isBlocked ? "4 3" : undefined}
-                      markerEnd={isBlocked ? "url(#arrow-blocked)" : "url(#arrow-resolved)"}
-                      className="transition-all opacity-85 hover:opacity-100"
+                      stroke={isCriticalEdge ? "#F59E0B" : isBlocked ? "#EA4335" : "#60A5FA"}
+                      strokeWidth={isCriticalEdge ? 2.5 : isBlocked ? 2 : 1.5}
+                      strokeDasharray={isCriticalEdge ? undefined : isBlocked ? "4 3" : undefined}
+                      markerEnd={
+                        isCriticalEdge
+                          ? "url(#arrow-critical)"
+                          : isBlocked
+                          ? "url(#arrow-blocked)"
+                          : "url(#arrow-resolved)"
+                      }
+                      className="transition-all opacity-95 hover:opacity-100"
                     />
                   );
                 })}
@@ -1009,6 +1056,7 @@ export function ProjectTimelineView({
                       const blockedInfo = blockedMap.get(t.id);
                       const isBlocked = !isDone && !!blockedInfo?.isBlocked;
                       const isCurrentlyDragging = activeDrag?.taskId === t.id;
+                      const isCritical = showCriticalPath && criticalPathTaskIds.has(t.id);
 
                       const priorityColor =
                         PRIORITY_CONFIG[t.priority]?.badgeClass || "border-slate-700 text-slate-300";
@@ -1037,10 +1085,14 @@ export function ProjectTimelineView({
                             className={`absolute h-7 rounded-lg border text-xs flex items-center justify-between gap-1 select-none cursor-grab active:cursor-grabbing outline-none focus:ring-2 focus:ring-primary/80 transition-shadow ${
                               isCurrentlyDragging
                                 ? "ring-2 ring-primary bg-primary/40 border-primary z-30 shadow-lg shadow-primary/30"
+                                : isCritical
+                                ? "bg-amber-950/50 border-amber-400 ring-1 ring-amber-400/50 text-white shadow-md shadow-amber-500/20 z-20"
                                 : isDone
                                 ? "bg-emerald-950/25 border-emerald-500/30 text-slate-400 hover:border-emerald-500/50"
                                 : isBlocked
                                 ? "bg-rose-950/40 border-rose-500/60 text-white hover:border-rose-400 shadow-sm shadow-rose-950/30"
+                                : showCriticalPath
+                                ? "bg-slate-900/40 border-slate-800 text-slate-500 opacity-60"
                                 : "bg-gradient-to-r from-blue-600/30 via-blue-500/20 to-blue-600/25 border-blue-500/50 text-white hover:border-blue-400 hover:bg-blue-600/35 shadow-sm shadow-blue-500/10"
                             }`}
                             onPointerDown={(e) => handlePointerDown(e, t, "move")}

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { CheckSquare, Bug, X, Loader2, FolderKanban, Calendar, Plus, Check, ChevronDown } from "lucide-react";
 import { formatTaskId, formatBugId } from "@/lib/identifiers";
+import { DevActionsToolbar } from "@/components/common/dev-actions-toolbar";
 
 interface EditTaskModalProps {
   isOpen: boolean;
@@ -175,6 +176,16 @@ export function EditTaskModal({
               Update task details, priority, timeline, and associated bugs.
             </p>
           </div>
+        </div>
+
+        <div className="mb-3.5">
+          <DevActionsToolbar
+            type="task"
+            idDisplay={formatTaskId(task)}
+            title={title}
+            description={description}
+            projectName={projects.find((p) => p.id === projectId)?.name}
+          />
         </div>
 
         {error && (

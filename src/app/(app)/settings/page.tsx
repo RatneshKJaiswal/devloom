@@ -15,6 +15,7 @@ import {
   Check,
 } from "lucide-react";
 import { GithubIcon } from "@/components/icons/github";
+import { DeveloperTokensCard } from "@/components/settings/developer-tokens-card";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -310,7 +311,10 @@ export default function SettingsPage() {
         )}
       </div>
 
-      {/* 2. AI Agent & LLM Privacy Disclosure */}
+      {/* 2. Developer Tokens & CLI Suite */}
+      <DeveloperTokensCard />
+
+      {/* 3. AI Agent & LLM Privacy Disclosure */}
       <div className="p-6 rounded-2xl border border-slate-800 bg-slate-900/50 space-y-3 shadow-sm">
         <div className="flex items-center gap-2 text-primary">
           <ShieldCheck className="w-5 h-5" />

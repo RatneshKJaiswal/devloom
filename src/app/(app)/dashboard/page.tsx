@@ -6,6 +6,7 @@ import { AIIcon } from "@/components/icons/ai";
 import Link from "next/link";
 import { QuickCaptureModal } from "@/components/quick-capture-dialog";
 import { AIPlannerModal } from "@/components/agent/ai-planner-modal";
+import { ReleaseNotesModal } from "@/components/dashboard/release-notes-modal";
 import { DueTasksByProjectChart } from "@/components/dashboard/due-tasks-by-project-chart";
 import { ProjectStatusChart } from "@/components/dashboard/project-status-chart";
 import { BugTriageChart } from "@/components/dashboard/bug-triage-chart";
@@ -21,6 +22,7 @@ export default function DashboardPage() {
   const [isQuickCaptureOpen, setIsQuickCaptureOpen] = useState(false);
   const [isPlannerOpen, setIsPlannerOpen] = useState(false);
   const [plannerMode, setPlannerMode] = useState<"daily_plan" | "weekly_standup">("daily_plan");
+  const [isReleaseNotesOpen, setIsReleaseNotesOpen] = useState(false);
 
   async function loadDashboard() {
     setLoading(true);
@@ -97,6 +99,16 @@ export default function DashboardPage() {
         </div>
 
         <div className="flex items-center gap-2 self-start sm:self-auto">
+          <button
+            type="button"
+            onClick={() => setIsReleaseNotesOpen(true)}
+            className="px-3.5 py-2 rounded-xl border border-slate-700 bg-slate-800/80 hover:bg-slate-750 text-slate-300 hover:text-white text-xs font-medium flex items-center gap-1.5 transition cursor-pointer"
+            title="Draft release notes from completed tasks and resolved bugs"
+          >
+            <FileText className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Release Notes</span>
+          </button>
+
           <button
             type="button"
             onClick={() => {
@@ -224,6 +236,11 @@ export default function DashboardPage() {
         onClose={() => setIsPlannerOpen(false)}
         defaultMode={plannerMode}
         onSuccess={loadDashboard}
+      />
+
+      <ReleaseNotesModal
+        isOpen={isReleaseNotesOpen}
+        onClose={() => setIsReleaseNotesOpen(false)}
       />
     </div>
   );

@@ -19,6 +19,7 @@ import {
   Tag,
   ExternalLink,
   ChevronDown,
+  Download,
 } from "lucide-react";
 import { QuickCaptureModal } from "@/components/quick-capture-dialog";
 import { EditLearningModal } from "@/components/edit-learning-modal";
@@ -169,13 +170,25 @@ export default function LearningsPage() {
           </p>
         </div>
 
-        <button
-          onClick={() => setIsCreateOpen(true)}
-          className="px-4 py-2 rounded-xl bg-primary hover:bg-primary-hover text-white text-xs font-medium flex items-center gap-1.5 shadow-md shadow-primary/20 transition cursor-pointer self-start sm:self-auto"
-        >
-          <Plus className="w-4 h-4" />
-          <span>New Entry</span>
-        </button>
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <a
+            href="/api/learnings/export"
+            download
+            className="h-8 px-3 rounded-lg border border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-medium flex items-center gap-1.5 transition cursor-pointer"
+            title="Download Obsidian / Markdown vault"
+          >
+            <Download className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Export Vault</span>
+          </a>
+
+          <button
+            onClick={() => setIsCreateOpen(true)}
+            className="h-8 px-3.5 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-medium flex items-center gap-1.5 shadow-sm shadow-primary/20 transition cursor-pointer"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>New Entry</span>
+          </button>
+        </div>
       </div>
 
       {/* Category Pills Bar */}
