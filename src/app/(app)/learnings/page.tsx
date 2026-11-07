@@ -24,6 +24,7 @@ import {
 import { QuickCaptureModal } from "@/components/quick-capture-dialog";
 import { EditLearningModal } from "@/components/edit-learning-modal";
 import { ViewLearningModal } from "@/components/learnings/view-learning-modal";
+import { RecallActivityHeatmap } from "@/components/learnings/recall-activity-heatmap";
 import { stripMarkdown } from "@/components/ui/markdown-preview";
 import {
   inferKnowledgeCategory,
@@ -190,6 +191,9 @@ export default function LearningsPage() {
           </button>
         </div>
       </div>
+
+      {/* 12-Week Recall & Review Activity Heatmap */}
+      <RecallActivityHeatmap items={learnings} />
 
       {/* Category Pills Bar */}
       <div className="flex flex-wrap items-center gap-2 border-b border-slate-800 pb-4">

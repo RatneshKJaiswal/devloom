@@ -148,7 +148,6 @@ export DEVLOOM_TOKEN="devloom_pat_xxxxxxxx..."
 | `devloom gotcha` | Save a technical gotcha into Leitner Box 1 | `devloom gotcha "Drizzle PgBouncer mode" -s "Set prepare: false in client config"` |
 | `devloom capture` | AI Smart-Capture unstructured notes/URLs | `devloom capture "Investigate memory spike on large exports"` |
 | `devloom standup` | Fetch daily AI standup & focus items | `devloom standup` |
-| `devloom branch` | Generate Git branch (or `-c` to checkout) | `devloom branch TSK-3 -c` |
 | `devloom list` | View recent workspace items | `devloom list tasks` / `devloom list bugs` |
 
 ### 4. Terminal Shell Shortcuts (Optional)

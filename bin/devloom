@@ -476,66 +476,6 @@ async function cmdStandup() {
   }
 }
 
-async function cmdBranch(args) {
-  const config = loadConfig();
-  if (!config) {
-    error("Not logged in. Run 'devloom login' to authenticate.");
-    process.exit(1);
-  }
-
-  let doCheckout = false;
-  const filteredArgs = [];
-  for (const a of args) {
-    if (a === "-c" || a === "--checkout") {
-      doCheckout = true;
-    } else {
-      filteredArgs.push(a);
-    }
-  }
-
-  const query = filteredArgs.join(" ").trim();
-  if (!query) {
-    error("Specify task/bug number or title. E.g. devloom branch TSK-3");
-    process.exit(1);
-  }
-
-  let branchName = "";
-
-  // If format is TSK-X or BUG-X
-  const tskMatch = query.match(/^tsk-(\d+)/i);
-  const bugMatch = query.match(/^bug-(\d+)/i);
-
-  if (tskMatch) {
-    const num = parseInt(tskMatch[1], 10);
-    // Find task
-    const res = await apiRequest({ method: "GET", endpoint: "/api/tasks", config });
-    const match = res.data?.find((t) => t.taskNumber === num);
-    const slug = match ? slugify(match.title) : `task-${num}`;
-    branchName = `feature/tsk-${num}-${slug}`;
-  } else if (bugMatch) {
-    const num = parseInt(bugMatch[1], 10);
-    const res = await apiRequest({ method: "GET", endpoint: "/api/bugs", config });
-    const match = res.data?.find((b) => b.bugNumber === num);
-    const slug = match ? slugify(match.title) : `bug-${num}`;
-    branchName = `fix/bug-${num}-${slug}`;
-  } else {
-    branchName = `feature/${slugify(query)}`;
-  }
-
-  print(`Branch: ${colors.bold}${colors.cyan}${branchName}${colors.reset}`);
-
-  if (doCheckout) {
-    try {
-      execSync(`git checkout -b "${branchName}"`, { stdio: "inherit" });
-      success(`Checked out new branch: ${branchName}`);
-    } catch (err) {
-      error(`Failed to checkout git branch: ${err.message}`);
-    }
-  } else {
-    print(`Run: ${colors.yellow}git checkout -b ${branchName}${colors.reset}`);
-  }
-}
-
 async function cmdList(args) {
   const config = loadConfig();
   if (!config) {
@@ -589,7 +529,6 @@ ${colors.bold}COMMANDS:${colors.reset}
   ${colors.bold}gotcha${colors.reset} <title> [-s notes]   Record a technical gotcha / Leitner entry
   ${colors.bold}capture${colors.reset} <text|url>          Smart-capture unstructured note or issue
   ${colors.bold}standup${colors.reset}                     Fetch daily AI planner summary & standup
-  ${colors.bold}branch${colors.reset} <id> [-c]            Generate Git branch (or -c to checkout)
   ${colors.bold}list${colors.reset} [tasks|bugs|gotchas]   View recent items in terminal
   ${colors.bold}help${colors.reset}                        Show this help message
 
@@ -598,7 +537,6 @@ ${colors.bold}EXAMPLES:${colors.reset}
   devloom bug "Postgres connection pool exhausted" -p urgent
   devloom gotcha "Drizzle PgBouncer mode" -s "Set prepare: false"
   devloom capture "Investigate memory spike on /api/agent/summary"
-  devloom branch TSK-3 -c
   devloom standup
 `);
 }
@@ -635,9 +573,6 @@ async function main() {
     case "standup":
     case "plan":
       await cmdStandup();
-      break;
-    case "branch":
-      await cmdBranch(args);
       break;
     case "list":
     case "ls":

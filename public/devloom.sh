@@ -53,14 +53,6 @@ devloom-standup() {
   _devloom_exec standup
 }
 
-devloom-branch() {
-  _devloom_exec branch "$@"
-}
-
-devloom-checkout() {
-  _devloom_exec branch "$@" -c
-}
-
 devloom-whoami() {
   _devloom_exec whoami
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { GitBranch, GitCommit, Sparkles, Check, Copy } from "lucide-react";
+import { GitCommit, Sparkles, Check, Copy } from "lucide-react";
 
 interface DevActionsToolbarProps {
   type: "task" | "bug";
@@ -35,12 +35,8 @@ export function DevActionsToolbar({
   const [copiedAction, setCopiedAction] = useState<string | null>(null);
 
   const cleanTitle = title.trim();
-  const titleSlug = slugify(cleanTitle);
-  const idSlug = slugify(idDisplay);
   const projectScope = projectName ? slugify(projectName) : "core";
 
-  const prefix = type === "task" ? "feature" : "fix";
-  const branchName = `${prefix}/${idSlug}-${titleSlug}`;
   const commitType = type === "task" ? "feat" : "fix";
   const commitMsg = `${commitType}(${projectScope}): ${cleanTitle} [${idDisplay}]`;
 
@@ -88,21 +84,6 @@ ${reproSteps}
   return (
     <div className="flex flex-wrap items-center gap-1.5 p-1.5 rounded-lg bg-slate-950/60 border border-slate-800 text-[11px]">
       <span className="text-slate-500 font-medium px-1.5 hidden sm:inline">Actions:</span>
-
-      {/* Git Branch */}
-      <button
-        type="button"
-        onClick={() => copyText(`git checkout -b ${branchName}`, "branch")}
-        className="px-2 py-1 rounded-md bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white flex items-center gap-1.5 transition cursor-pointer"
-        title={`git checkout -b ${branchName}`}
-      >
-        {copiedAction === "branch" ? (
-          <Check className="w-3.5 h-3.5 text-emerald-400" />
-        ) : (
-          <GitBranch className="w-3.5 h-3.5 text-primary" />
-        )}
-        <span>{copiedAction === "branch" ? "Copied Branch" : "Git Branch"}</span>
-      </button>
 
       {/* Conventional Commit */}
       <button
