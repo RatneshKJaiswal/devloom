@@ -38,5 +38,6 @@ export const tasks = pgTable(
     index("idx_tasks_user_status").on(table.userId, table.status),
     index("idx_tasks_user_project").on(table.userId, table.projectId),
     index("idx_tasks_user_due").on(table.userId, table.dueDate),
+    index("idx_tasks_user_proj_due_status").on(table.userId, table.projectId, table.status, table.dueDate),
   ]
 );
