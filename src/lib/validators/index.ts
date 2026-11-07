@@ -15,37 +15,42 @@ export const sdlcPhaseEnum = z.enum([
 
 export const dateOnlyString = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Must be YYYY-MM-DD format");
 
+// Coerces empty string "" to null for optional foreign keys and dates
+const emptyStringToNull = <T extends z.ZodTypeAny>(schema: T) =>
+  z.preprocess((val) => (val === "" ? null : val), schema);
+
 export const createTaskSchema = z.object({
   title: z.string().min(1, "Title is required").max(255),
-  description: z.string().optional(),
+  description: emptyStringToNull(z.string().nullable().optional()),
   status: taskStatusEnum.default("todo"),
   priority: priorityEnum.default("medium"),
   phase: sdlcPhaseEnum.optional().nullable(),
-  projectId: z.string().uuid().optional().nullable(),
-  startDate: z.string().optional().nullable(),
-  dueDate: z.string().optional().nullable(),
+  projectId: emptyStringToNull(z.string().uuid().nullable().optional()),
+  startDate: emptyStringToNull(z.string().nullable().optional()),
+  dueDate: emptyStringToNull(z.string().nullable().optional()),
   tagIds: z.array(z.string().uuid()).optional(),
 });
 
 export const updateTaskSchema = createTaskSchema.partial();
 
 export const rescheduleTaskSchema = z.object({
-  startDate: z.string().optional().nullable(),
-  dueDate: z.string().optional().nullable(),
+  startDate: emptyStringToNull(z.string().nullable().optional()),
+  dueDate: emptyStringToNull(z.string().nullable().optional()),
   expectedVersion: z.number().int().min(1, "expectedVersion must be a positive integer"),
 });
 
 export const createBugSchema = z.object({
   title: z.string().min(1, "Title is required").max(255),
-  description: z.string().optional(),
-  stackTrace: z.string().optional(),
-  reproSteps: z.string().optional(),
-  suspectedCause: z.string().optional(),
+  description: emptyStringToNull(z.string().nullable().optional()),
+  stackTrace: emptyStringToNull(z.string().nullable().optional()),
+  reproSteps: emptyStringToNull(z.string().nullable().optional()),
+  suspectedCause: emptyStringToNull(z.string().nullable().optional()),
   status: bugStatusEnum.default("open"),
   priority: priorityEnum.default("medium"),
   phase: sdlcPhaseEnum.optional().nullable(),
-  projectId: z.string().uuid().optional().nullable(),
-  dueDate: z.string().datetime().optional().nullable(),
+  projectId: emptyStringToNull(z.string().uuid().nullable().optional()),
+  startDate: emptyStringToNull(z.string().nullable().optional()),
+  dueDate: emptyStringToNull(z.string().nullable().optional()),
   tagIds: z.array(z.string().uuid()).optional(),
 });
 
@@ -54,7 +59,7 @@ export const updateBugSchema = createBugSchema.partial();
 export const createLearningSchema = z.object({
   title: z.string().min(1, "Title is required").max(255),
   content: z.string().min(1, "Content is required"),
-  projectId: z.string().uuid().optional().nullable(),
+  projectId: emptyStringToNull(z.string().uuid().nullable().optional()),
   tagIds: z.array(z.string().uuid()).optional(),
 });
 

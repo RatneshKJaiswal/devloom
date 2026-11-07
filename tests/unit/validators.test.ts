@@ -1,7 +1,9 @@
 import { describe, it, expect } from "vitest";
 import {
   createTaskSchema,
+  updateTaskSchema,
   createBugSchema,
+  updateBugSchema,
   createLearningSchema,
   createProjectSchema,
 } from "@/lib/validators";
@@ -14,6 +16,39 @@ describe("Input Validation Schemas", () => {
       status: "todo",
     });
     expect(valid.success).toBe(true);
+  });
+
+  it("should coerce empty strings to null for optional task fields", () => {
+    const res = updateTaskSchema.safeParse({
+      description: "",
+      projectId: "",
+      startDate: "",
+      dueDate: "2026-11-12",
+    });
+    expect(res.success).toBe(true);
+    if (res.success) {
+      expect(res.data.description).toBeNull();
+      expect(res.data.projectId).toBeNull();
+      expect(res.data.startDate).toBeNull();
+      expect(res.data.dueDate).toBe("2026-11-12");
+    }
+  });
+
+  it("should validate bug due date update with date-only string and null technical fields", () => {
+    const res = updateBugSchema.safeParse({
+      dueDate: "2026-11-12",
+      stackTrace: null,
+      reproSteps: "",
+      suspectedCause: null,
+      projectId: "",
+    });
+    expect(res.success).toBe(true);
+    if (res.success) {
+      expect(res.data.dueDate).toBe("2026-11-12");
+      expect(res.data.stackTrace).toBeNull();
+      expect(res.data.reproSteps).toBeNull();
+      expect(res.data.projectId).toBeNull();
+    }
   });
 
   it("should reject task with empty title", () => {
