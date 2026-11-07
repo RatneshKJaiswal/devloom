@@ -102,6 +102,72 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
+## DevLoom CLI & Terminal Suite
+
+DevLoom includes a zero-dependency, native Node.js CLI executable (`bin/devloom`) that lets developers manage tasks, log defects, capture knowledge, and draft AI standups directly from their terminal or any git repository.
+
+### 1. Installation
+
+**Option A: 1-Line Remote Installer (Vercel / Web App Users)**
+Generate a Personal Access Token in **Settings** (`/settings`), then run the auto-installer:
+```bash
+curl -fsSL "https://your-app.vercel.app/api/cli/install?token=devloom_pat_xxxxxxxx" | bash
+```
+*This downloads the binary to `~/.devloom/bin`, configures your PATH, and pre-authenticates your session.*
+
+**Option B: Local Repository Contributors**
+If you cloned the DevLoom repository:
+```bash
+npm link
+devloom login
+```
+
+### 2. Authentication & Configuration
+
+The CLI authenticates via SHA-256 hashed Personal Access Tokens (PAT):
+```bash
+# Interactive setup: prompts for DevLoom URL & Personal Access Token
+devloom login
+
+# Verify active session and registered tokens
+devloom whoami
+```
+
+You can also configure credentials via environment variables in `~/.zshrc` or CI/CD pipelines:
+```bash
+export DEVLOOM_API_URL="https://your-app.vercel.app" # Defaults to http://localhost:3000
+export DEVLOOM_TOKEN="devloom_pat_xxxxxxxx..."
+```
+
+### 3. Command Reference & Examples
+
+| Command | Description | Example |
+| :--- | :--- | :--- |
+| `devloom task` | Create a task with priority and notes | `devloom task "Implement Redis caching" -p high -d "Cache summary responses"` |
+| `devloom bug` | File a defect report with stack traces | `devloom bug "Postgres timeout under load" -p urgent -s "Error: connection timeout"` |
+| `devloom gotcha` | Save a technical gotcha into Leitner Box 1 | `devloom gotcha "Drizzle PgBouncer mode" -s "Set prepare: false in client config"` |
+| `devloom capture` | AI Smart-Capture unstructured notes/URLs | `devloom capture "Investigate memory spike on large exports"` |
+| `devloom standup` | Fetch daily AI standup & focus items | `devloom standup` |
+| `devloom branch` | Generate Git branch (or `-c` to checkout) | `devloom branch TSK-3 -c` |
+| `devloom list` | View recent workspace items | `devloom list tasks` / `devloom list bugs` |
+
+### 4. Terminal Shell Shortcuts (Optional)
+
+Add this line to your `~/.zshrc` or `~/.bashrc` to unlock direct terminal aliases:
+```bash
+source /path/to/devloom/public/devloom.sh
+```
+
+Available shortcuts:
+- `devloom-task "Task title" -p high`
+- `devloom-bug "Bug title" -p urgent`
+- `devloom-gotcha "Gotcha title" -s "Solution notes"`
+- `devloom-capture "Note or URL"`
+- `devloom-standup`
+- `devloom-checkout TSK-3` (automatically generates and checks out `feature/tsk-3-slug`)
+
+---
+
 ## Testing & Quality Verification
 
 Run the test suite:
