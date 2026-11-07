@@ -174,7 +174,7 @@ export function ProjectSDLCBar({
                 >
                   <div className="space-y-0.5">
                     <span
-                      className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded border ${
+                      className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-md border leading-none ${
                         SDLC_PHASE_CONFIG[item.phase]?.badgeClass || "border-slate-700 text-slate-300"
                       }`}
                     >

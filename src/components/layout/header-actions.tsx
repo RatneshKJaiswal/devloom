@@ -90,10 +90,10 @@ export function HeaderActions({ userProfile }: HeaderActionsProps) {
           onClick={() => setIsSearchOpen(true)}
           className="relative w-full text-left"
         >
-          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-          <div className="w-full pl-9 pr-3.5 py-2 rounded-xl border border-slate-800 bg-slate-900/60 text-xs text-slate-400 hover:border-slate-700 transition flex items-center justify-between cursor-pointer">
+          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <div className="w-full !pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-800 bg-slate-900/60 text-xs text-slate-400 hover:border-slate-700 transition flex items-center justify-between cursor-pointer">
             <span className="truncate">Search tasks, bugs, learnings...</span>
-            <kbd className="hidden sm:inline-block px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-[10px] text-slate-400 shrink-0">
+            <kbd className="hidden sm:inline-block px-2 py-0.5 rounded-md bg-slate-800 border border-slate-700 text-[11px] font-mono text-slate-400 shrink-0 leading-none">
               ⌘K
             </kbd>
           </div>

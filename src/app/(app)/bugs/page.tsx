@@ -228,12 +228,12 @@ export default function BugsPage() {
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-1.5 flex-1 min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="font-mono text-[11px] font-bold px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/25">
+              <span className="font-mono text-[11px] font-bold px-2.5 py-1 rounded-md bg-amber-500/10 text-amber-400 border border-amber-500/25 leading-none">
                 {formatBugId(bug)}
               </span>
 
               <span
-                className={`text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded border ${
+                className={`text-[10px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-md border leading-none ${
                   PRIORITY_CONFIG[bug.priority]?.badgeClass || PRIORITY_CONFIG.medium.badgeClass
                 }`}
               >
@@ -242,7 +242,7 @@ export default function BugsPage() {
 
               {bug.projectName && (
                 <span
-                  className="text-[11px] font-medium px-2 py-0.5 rounded bg-slate-800 text-slate-300 cursor-pointer"
+                  className="text-[11px] font-medium px-2.5 py-1 rounded-md bg-slate-800 text-slate-300 cursor-pointer leading-none hover:bg-slate-700 transition"
                   onClick={() => setProjectFilter(bug.projectId)}
                   title="Filter by this project"
                 >
@@ -251,7 +251,7 @@ export default function BugsPage() {
               )}
 
               <span
-                className={`text-xs font-medium uppercase tracking-wider px-2 py-0.5 rounded border ${
+                className={`text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md border leading-none ${
                   BUG_STATUS_CONFIG[bug.status]?.badgeClass || "text-slate-400 border-slate-700"
                 }`}
               >
@@ -261,7 +261,7 @@ export default function BugsPage() {
               {/* Due Date / Resolution Deadline Indicator */}
               {dateStatus && (
                 <span
-                  className={`text-[11px] px-2 py-0.5 rounded border flex items-center gap-1 ${dateStatus.badgeClass}`}
+                  className={`text-[11px] px-2.5 py-1 rounded-md border flex items-center gap-1.5 leading-none ${dateStatus.badgeClass}`}
                 >
                   {dateStatus.type === "overdue" && (
                     <AlertCircle className="w-3 h-3 text-red-400 shrink-0" />
@@ -294,7 +294,7 @@ export default function BugsPage() {
                 {bug.associatedTasks.map((t: any) => (
                   <span
                     key={t.id}
-                    className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-primary-subtle text-primary border border-primary/25"
+                    className="text-[10px] font-mono font-semibold px-2.5 py-1 rounded-md bg-primary-subtle text-primary border border-primary/25 leading-none"
                     title={`${formatTaskId(t)}: ${t.title}`}
                   >
                     {formatTaskId(t)}: {t.title}
@@ -468,7 +468,7 @@ export default function BugsPage() {
 
         <button
           onClick={() => setIsCreateOpen(true)}
-          className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-medium flex items-center gap-1.5 shadow-md shadow-amber-600/20 transition cursor-pointer self-start sm:self-auto"
+          className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-md shadow-amber-600/20 transition cursor-pointer self-start sm:self-auto"
         >
           <Plus className="w-4 h-4" />
           <span>Log Bug</span>
@@ -476,9 +476,9 @@ export default function BugsPage() {
       </div>
 
       {/* Filter and Sort Toolbar */}
-      <div className="flex flex-wrap items-center gap-2.5 p-3.5 rounded-xl border border-slate-800 bg-slate-900/60">
+      <div className="flex flex-wrap items-center gap-2.5 p-3.5 rounded-2xl border border-slate-800 bg-slate-900/60">
         {/* Project Filter */}
-        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-800 bg-slate-950 text-xs text-slate-300">
+        <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl border border-slate-800 bg-slate-950 text-xs text-slate-300">
           <FolderKanban className="w-3.5 h-3.5 text-amber-400" />
           <select
             value={projectFilter}
@@ -495,7 +495,7 @@ export default function BugsPage() {
         </div>
 
         {/* Status Filter */}
-        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-800 bg-slate-950 text-xs text-slate-300">
+        <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl border border-slate-800 bg-slate-950 text-xs text-slate-300">
           <Filter className="w-3.5 h-3.5 text-slate-400" />
           <select
             value={statusFilter}
@@ -513,7 +513,7 @@ export default function BugsPage() {
         </div>
 
         {/* Deadline Filter */}
-        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-800 bg-slate-950 text-xs text-slate-300">
+        <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl border border-slate-800 bg-slate-950 text-xs text-slate-300">
           <Calendar className="w-3.5 h-3.5 text-amber-400" />
           <select
             value={dateFilter}
@@ -529,7 +529,7 @@ export default function BugsPage() {
         </div>
 
         {/* Sort By */}
-        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-800 bg-slate-950 text-xs text-slate-300 sm:ml-auto">
+        <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl border border-slate-800 bg-slate-950 text-xs text-slate-300 sm:ml-auto">
           <ArrowUpDown className="w-3.5 h-3.5 text-slate-400" />
           <select
             value={sortBy}

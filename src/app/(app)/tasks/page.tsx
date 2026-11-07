@@ -221,12 +221,12 @@ export default function TasksPage() {
       >
         <div className="space-y-1.5 flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="font-mono text-[11px] font-bold px-2 py-0.5 rounded bg-primary-subtle text-primary border border-primary/25">
+            <span className="font-mono text-[11px] font-bold px-2.5 py-1 rounded-md bg-primary-subtle text-primary border border-primary/25 leading-none">
               {formatTaskId(task)}
             </span>
 
             <span
-              className={`text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded border ${
+              className={`text-[10px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-md border leading-none ${
                 PRIORITY_CONFIG[task.priority]?.badgeClass || PRIORITY_CONFIG.medium.badgeClass
               }`}
             >
@@ -235,7 +235,7 @@ export default function TasksPage() {
 
             {task.projectName && (
               <span
-                className="text-[11px] font-medium px-2 py-0.5 rounded bg-primary-subtle text-primary border border-primary/20 cursor-pointer"
+                className="text-[11px] font-medium px-2.5 py-1 rounded-md bg-primary-subtle text-primary border border-primary/20 cursor-pointer leading-none hover:bg-primary/20 transition"
                 onClick={() => setProjectFilter(task.projectId)}
                 title="Filter by this project"
               >
@@ -246,7 +246,7 @@ export default function TasksPage() {
             {/* Due Date & Overdue Indicators */}
             {dateStatus && (
               <span
-                className={`text-[11px] px-2 py-0.5 rounded border flex items-center gap-1 ${dateStatus.badgeClass}`}
+                className={`text-[11px] px-2.5 py-1 rounded-md border flex items-center gap-1.5 leading-none ${dateStatus.badgeClass}`}
               >
                 {dateStatus.type === "overdue" && (
                   <AlertCircle className="w-3 h-3 text-red-400 shrink-0" />
@@ -285,7 +285,7 @@ export default function TasksPage() {
                 return (
                   <span
                     key={b.id}
-                    className={`text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded border flex items-center gap-1 ${
+                    className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md border flex items-center gap-1 leading-none ${
                       isResolved
                         ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30 line-through"
                         : "bg-amber-500/10 text-amber-400 border-amber-500/30"
@@ -383,7 +383,7 @@ export default function TasksPage() {
           <select
             value={task.status}
             onChange={(e) => updateStatus(task.id, e.target.value)}
-            className="px-2.5 py-1 rounded-lg border border-slate-800 bg-slate-950 text-xs text-slate-300 focus:outline-none focus:border-primary cursor-pointer"
+            className="px-3 py-1.5 rounded-xl border border-slate-800 bg-slate-950 text-xs text-slate-300 focus:outline-none focus:border-primary cursor-pointer"
           >
             <option value="todo">To Do</option>
             <option value="in_progress">In Progress</option>
@@ -429,7 +429,7 @@ export default function TasksPage() {
 
         <button
           onClick={() => setIsCreateOpen(true)}
-          className="px-4 py-2 rounded-xl bg-primary hover:bg-primary-hover text-white text-xs font-medium flex items-center gap-1.5 shadow-md shadow-primary/20 transition cursor-pointer self-start sm:self-auto"
+          className="px-4 py-2 rounded-xl bg-primary hover:bg-primary-hover text-white text-xs font-semibold flex items-center gap-1.5 shadow-md shadow-primary/20 transition cursor-pointer self-start sm:self-auto"
         >
           <Plus className="w-4 h-4" />
           <span>New Task</span>
@@ -437,9 +437,9 @@ export default function TasksPage() {
       </div>
 
       {/* Filter and Sort Toolbar */}
-      <div className="flex flex-wrap items-center gap-2.5 p-3.5 rounded-xl border border-slate-800 bg-slate-900/60">
+      <div className="flex flex-wrap items-center gap-2.5 p-3.5 rounded-2xl border border-slate-800 bg-slate-900/60">
         {/* Project Filter */}
-        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-800 bg-slate-950 text-xs text-slate-300">
+        <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl border border-slate-800 bg-slate-950 text-xs text-slate-300">
           <FolderKanban className="w-3.5 h-3.5 text-primary" />
           <select
             value={projectFilter}
@@ -456,7 +456,7 @@ export default function TasksPage() {
         </div>
 
         {/* Status Filter */}
-        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-800 bg-slate-950 text-xs text-slate-300">
+        <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl border border-slate-800 bg-slate-950 text-xs text-slate-300">
           <Filter className="w-3.5 h-3.5 text-slate-400" />
           <select
             value={statusFilter}
@@ -472,7 +472,7 @@ export default function TasksPage() {
         </div>
 
         {/* Date / Deadline Filter */}
-        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-800 bg-slate-950 text-xs text-slate-300">
+        <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl border border-slate-800 bg-slate-950 text-xs text-slate-300">
           <Calendar className="w-3.5 h-3.5 text-primary" />
           <select
             value={dateFilter}
@@ -488,7 +488,7 @@ export default function TasksPage() {
         </div>
 
         {/* Sort By */}
-        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-800 bg-slate-950 text-xs text-slate-300 sm:ml-auto">
+        <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl border border-slate-800 bg-slate-950 text-xs text-slate-300 sm:ml-auto">
           <ArrowUpDown className="w-3.5 h-3.5 text-slate-400" />
           <select
             value={sortBy}

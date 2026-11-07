@@ -113,14 +113,14 @@ export function AIPlannerModal({
         </div>
 
         {/* Mode switcher tabs */}
-        <div className="flex gap-2 p-1 rounded-xl bg-slate-950 border border-slate-800 mb-4 max-w-sm">
+        <div className="flex gap-2 p-1.5 rounded-2xl bg-slate-950 border border-slate-800 mb-4 max-w-md">
           <button
             type="button"
             onClick={() => {
               setMode("daily_plan");
               handleGenerate("daily_plan");
             }}
-            className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-medium transition cursor-pointer ${
+            className={`flex-1 py-2 px-3.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
               mode === "daily_plan"
                 ? "bg-primary text-white shadow-sm shadow-primary/20"
                 : "text-slate-400 hover:text-slate-200"
@@ -134,7 +134,7 @@ export function AIPlannerModal({
               setMode("weekly_standup");
               handleGenerate("weekly_standup");
             }}
-            className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-medium transition cursor-pointer ${
+            className={`flex-1 py-2 px-3.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
               mode === "weekly_standup"
                 ? "bg-primary text-white shadow-sm shadow-primary/20"
                 : "text-slate-400 hover:text-slate-200"
@@ -197,10 +197,10 @@ export function AIPlannerModal({
                           <div className="space-y-1 min-w-0">
                             <div className="font-semibold text-white flex items-center gap-2 flex-wrap">
                               {/* Unique Identifier */}
-                              <span className="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-black/50 text-blue-300 border border-blue-500/30">
+                              <span className="font-mono text-[11px] font-bold px-2 py-0.5 rounded-md bg-black/50 text-blue-300 border border-blue-500/30 leading-none">
                                 {item.itemId}
                               </span>
-                              <span className="text-[10px] uppercase font-bold text-slate-400 px-1.5 py-0.2 rounded bg-slate-800 border border-slate-700">
+                              <span className="text-[10px] uppercase font-bold text-slate-400 px-2 py-0.5 rounded-md bg-slate-800 border border-slate-700 leading-none">
                                 {item.type}
                               </span>
                               <span className="truncate">{item.title}</span>
@@ -210,7 +210,7 @@ export function AIPlannerModal({
                             </p>
                           </div>
                           <span
-                            className={`text-[9px] uppercase font-bold px-2 py-0.5 rounded border shrink-0 ${
+                            className={`text-[10px] uppercase font-bold px-2.5 py-1 rounded-md border shrink-0 leading-none ${
                               item.priority === "urgent"
                                 ? "bg-red-500/10 text-red-400 border-red-500/30"
                                 : item.priority === "high"

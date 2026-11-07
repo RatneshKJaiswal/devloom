@@ -90,7 +90,7 @@ export function ProjectMilestonesCard({
         <div className="flex items-center gap-2">
           <Flag className="w-4 h-4 text-warning" />
           <h3 className="text-xs font-semibold text-white">Project Milestones</h3>
-          <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-slate-800 text-slate-300">
+          <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 leading-none min-w-[20px] text-center">
             {milestones.filter((m) => m.isCompleted).length}/{milestones.length}
           </span>
         </div>

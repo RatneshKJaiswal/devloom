@@ -163,7 +163,7 @@ export function EditTaskModal({
         <div className="flex items-center gap-2.5 mb-5">
           <CheckSquare className="w-5 h-5 text-primary" />
           <h2 className="text-base font-semibold text-white">Edit Task</h2>
-          <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-primary-subtle text-primary border border-primary/25">
+          <span className="font-mono text-xs font-bold px-2.5 py-1 rounded-md bg-primary-subtle text-primary border border-primary/25 leading-none">
             {formatTaskId(task)}
           </span>
         </div>
@@ -297,7 +297,7 @@ export function EditTaskModal({
                       className="flex items-center justify-between px-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-xs"
                     >
                       <div className="flex items-center gap-2 truncate">
-                        <span className="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 shrink-0">
+                        <span className="font-mono text-[11px] font-bold px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-400 border border-amber-500/20 shrink-0 leading-none">
                           {formatBugId(b)}
                         </span>
                         <span className={`truncate text-slate-200 ${isResolved ? "line-through text-slate-400" : ""}`}>
@@ -307,7 +307,7 @@ export function EditTaskModal({
 
                       <div className="flex items-center gap-2 shrink-0">
                         <span
-                          className={`text-[10px] uppercase font-semibold px-2 py-0.5 rounded border ${
+                          className={`text-[10px] uppercase font-bold px-2.5 py-1 rounded-md border leading-none ${
                             isResolved
                               ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
                               : "bg-amber-500/10 text-amber-400 border-amber-500/30"

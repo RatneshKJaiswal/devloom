@@ -191,29 +191,29 @@ export function MiniTextEditor({
 
         <div className="flex items-center gap-1.5">
           {/* Write / Preview Tab Switcher */}
-          <div className="flex items-center gap-1 p-0.5 rounded-lg bg-slate-950 border border-slate-800 text-[11px]">
+          <div className="flex items-center gap-1 p-1 rounded-xl bg-slate-950 border border-slate-800">
             <button
               type="button"
               onClick={() => setActiveTab("write")}
-              className={`px-2 py-1 rounded-md font-medium flex items-center gap-1 transition cursor-pointer ${
+              className={`px-3 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer ${
                 activeTab === "write"
                   ? "bg-slate-800 text-white shadow-xs"
                   : "text-slate-400 hover:text-slate-200"
               }`}
             >
-              <Edit3 className="w-3 h-3" />
+              <Edit3 className="w-3.5 h-3.5" />
               <span>Write</span>
             </button>
             <button
               type="button"
               onClick={() => setActiveTab("preview")}
-              className={`px-2 py-1 rounded-md font-medium flex items-center gap-1 transition cursor-pointer ${
+              className={`px-3 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer ${
                 activeTab === "preview"
                   ? "bg-slate-800 text-white shadow-xs"
                   : "text-slate-400 hover:text-slate-200"
               }`}
             >
-              <Eye className="w-3 h-3" />
+              <Eye className="w-3.5 h-3.5" />
               <span>Preview</span>
             </button>
           </div>

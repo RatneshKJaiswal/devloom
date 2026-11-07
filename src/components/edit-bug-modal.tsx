@@ -157,7 +157,7 @@ export function EditBugModal({
         <div className="flex items-center gap-2.5 mb-5">
           <Bug className="w-5 h-5 text-amber-400" />
           <h2 className="text-base font-semibold text-white">Edit Bug Report</h2>
-          <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/25">
+          <span className="font-mono text-xs font-bold px-2.5 py-1 rounded-md bg-amber-500/10 text-amber-400 border border-amber-500/25 leading-none">
             {formatBugId(bug)}
           </span>
         </div>

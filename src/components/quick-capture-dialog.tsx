@@ -238,9 +238,9 @@ export function QuickCaptureModal({
             <button
               type="button"
               onClick={() => setActiveTab("bug")}
-              className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 transition cursor-pointer ${
+              className={`flex-1 py-2 px-3.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer ${
                 activeTab === "bug"
-                  ? "bg-amber-500 text-slate-950 font-semibold shadow-sm shadow-amber-500/20"
+                  ? "bg-amber-500 text-slate-950 font-bold shadow-sm shadow-amber-500/20"
                   : "text-slate-400 hover:text-slate-200"
               }`}
             >
@@ -250,7 +250,7 @@ export function QuickCaptureModal({
             <button
               type="button"
               onClick={() => setActiveTab("learning")}
-              className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 transition cursor-pointer ${
+              className={`flex-1 py-2 px-3.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer ${
                 activeTab === "learning"
                   ? "bg-success text-white shadow-sm shadow-success/20"
                   : "text-slate-400 hover:text-slate-200"

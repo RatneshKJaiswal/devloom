@@ -1100,7 +1100,7 @@ export function ProjectTimelineView({
                             {/* Center Content */}
                             <div className="flex items-center gap-1.5 truncate px-2.5 pointer-events-none min-w-0">
                               {/* Task Unique ID */}
-                              <span className="font-mono text-[9px] font-bold px-1.5 py-0.5 rounded bg-black/40 text-blue-300 border border-blue-500/30 shrink-0">
+                              <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded-md bg-black/50 text-blue-300 border border-blue-500/30 shrink-0 leading-none">
                                 {taskNum ? `TSK-${taskNum}` : `#${idx + 1}`}
                               </span>
 
@@ -1119,7 +1119,7 @@ export function ProjectTimelineView({
 
                             {/* Priority badge */}
                             <span
-                              className={`text-[8px] uppercase font-bold px-1.5 py-0.2 rounded border shrink-0 mr-2 pointer-events-none ml-auto ${priorityColor}`}
+                              className={`text-[9px] uppercase font-bold px-2 py-0.5 rounded-md border shrink-0 mr-2 pointer-events-none ml-auto leading-none ${priorityColor}`}
                             >
                               {t.priority}
                             </span>
@@ -1237,12 +1237,12 @@ export function ProjectTimelineView({
                   className="p-3 rounded-xl border border-slate-800 bg-slate-950 hover:border-slate-700 transition flex items-center justify-between gap-3 text-xs group shadow-sm"
                 >
                   <div className="flex items-center gap-2 min-w-0">
-                    <span className="font-mono text-[9px] font-bold px-1.5 py-0.5 rounded bg-slate-850 text-slate-300 border border-slate-700 shrink-0">
+                    <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-850 text-slate-300 border border-slate-700 shrink-0 leading-none">
                       {taskNum ? `TSK-${taskNum}` : `#${idx + 1}`}
                     </span>
                     <span className="text-slate-200 truncate font-medium">{t.title}</span>
                     <span
-                      className={`text-[9px] uppercase font-bold px-1.5 py-0.5 rounded border shrink-0 ${
+                      className={`text-[9px] uppercase font-bold px-2 py-0.5 rounded-md border shrink-0 leading-none ${
                         PRIORITY_CONFIG[t.priority]?.badgeClass || "border-slate-700 text-slate-400"
                       }`}
                     >

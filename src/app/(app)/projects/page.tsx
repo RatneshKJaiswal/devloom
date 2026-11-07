@@ -420,9 +420,9 @@ export default function ProjectsPage() {
                   <CheckSquare className="w-3.5 h-3.5 text-primary" />
                   <span>Tasks</span>
                   <span
-                    className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono ${
+                    className={`px-2 py-0.5 rounded-full text-[11px] font-mono font-bold leading-none min-w-[20px] text-center ${
                       activeTab === "tasks"
-                        ? "bg-primary/20 text-primary font-bold"
+                        ? "bg-primary/20 text-primary"
                         : "bg-slate-900 text-slate-400"
                     }`}
                   >
@@ -433,7 +433,7 @@ export default function ProjectsPage() {
                 <button
                   type="button"
                   onClick={() => setActiveTab("timeline")}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2 transition cursor-pointer whitespace-nowrap ${
+                  className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition cursor-pointer whitespace-nowrap ${
                     activeTab === "timeline"
                       ? "bg-slate-800 text-white border border-slate-700/80 shadow-sm"
                       : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/60"
@@ -446,7 +446,7 @@ export default function ProjectsPage() {
                 <button
                   type="button"
                   onClick={() => setActiveTab("bugs")}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2 transition cursor-pointer whitespace-nowrap ${
+                  className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition cursor-pointer whitespace-nowrap ${
                     activeTab === "bugs"
                       ? "bg-slate-800 text-white border border-slate-700/80 shadow-sm"
                       : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/60"
@@ -455,9 +455,9 @@ export default function ProjectsPage() {
                   <Bug className="w-3.5 h-3.5 text-amber-400" />
                   <span>Bugs</span>
                   <span
-                    className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono ${
+                    className={`px-2 py-0.5 rounded-full text-[11px] font-mono font-bold leading-none min-w-[20px] text-center ${
                       activeTab === "bugs"
-                        ? "bg-amber-500/20 text-amber-300 font-bold"
+                        ? "bg-amber-500/20 text-amber-300"
                         : "bg-slate-900 text-slate-400"
                     }`}
                   >
@@ -468,7 +468,7 @@ export default function ProjectsPage() {
                 <button
                   type="button"
                   onClick={() => setActiveTab("learnings")}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2 transition cursor-pointer whitespace-nowrap ${
+                  className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition cursor-pointer whitespace-nowrap ${
                     activeTab === "learnings"
                       ? "bg-slate-800 text-white border border-slate-700/80 shadow-sm"
                       : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/60"
@@ -477,9 +477,9 @@ export default function ProjectsPage() {
                   <BookOpen className="w-3.5 h-3.5 text-emerald-400" />
                   <span>Knowledge</span>
                   <span
-                    className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono ${
+                    className={`px-2 py-0.5 rounded-full text-[11px] font-mono font-bold leading-none min-w-[20px] text-center ${
                       activeTab === "learnings"
-                        ? "bg-emerald-500/20 text-emerald-300 font-bold"
+                        ? "bg-emerald-500/20 text-emerald-300"
                         : "bg-slate-900 text-slate-400"
                     }`}
                   >
@@ -492,7 +492,7 @@ export default function ProjectsPage() {
                   <button
                     type="button"
                     onClick={() => setActiveTab("commits")}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2 transition cursor-pointer whitespace-nowrap ${
+                    className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition cursor-pointer whitespace-nowrap ${
                       activeTab === "commits"
                         ? "bg-slate-800 text-white border border-slate-700/80 shadow-sm"
                         : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/60"
@@ -502,9 +502,9 @@ export default function ProjectsPage() {
                     <span>Commits</span>
                     {gitHubData.commits && gitHubData.commits.length > 0 && (
                       <span
-                        className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono ${
+                        className={`px-2 py-0.5 rounded-full text-[11px] font-mono font-bold leading-none min-w-[20px] text-center ${
                           activeTab === "commits"
-                            ? "bg-sky-500/20 text-sky-300 font-bold"
+                            ? "bg-sky-500/20 text-sky-300"
                             : "bg-slate-900 text-slate-400"
                         }`}
                       >
@@ -519,7 +519,7 @@ export default function ProjectsPage() {
                   <button
                     type="button"
                     onClick={() => setActiveTab("issues")}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2 transition cursor-pointer whitespace-nowrap ${
+                    className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition cursor-pointer whitespace-nowrap ${
                       activeTab === "issues"
                         ? "bg-slate-800 text-white border border-slate-700/80 shadow-sm"
                         : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/60"
@@ -529,9 +529,9 @@ export default function ProjectsPage() {
                     <span>Open Issues</span>
                     {gitHubData.issues && gitHubData.issues.length > 0 && (
                       <span
-                        className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono ${
+                        className={`px-2 py-0.5 rounded-full text-[11px] font-mono font-bold leading-none min-w-[20px] text-center ${
                           activeTab === "issues"
-                            ? "bg-emerald-500/20 text-emerald-300 font-bold"
+                            ? "bg-emerald-500/20 text-emerald-300"
                             : "bg-slate-900 text-slate-400"
                         }`}
                       >
@@ -567,7 +567,7 @@ export default function ProjectsPage() {
                       >
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
-                            <span className="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-primary-subtle text-primary border border-primary/25">
+                            <span className="font-mono text-[11px] font-bold px-2.5 py-1 rounded-md bg-primary-subtle text-primary border border-primary/25 leading-none">
                               {formatTaskId(task)}
                             </span>
                             <span className="font-semibold text-white">{task.title}</span>
@@ -577,10 +577,10 @@ export default function ProjectsPage() {
                           )}
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
-                          <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-slate-800 text-slate-300">
+                          <span className="text-[10px] uppercase font-bold px-2.5 py-1 rounded-md bg-slate-800 text-slate-300 leading-none">
                             {task.priority}
                           </span>
-                          <span className="text-[10px] uppercase px-1.5 py-0.5 rounded bg-primary-subtle text-primary border border-primary/20">
+                          <span className="text-[10px] uppercase font-semibold px-2.5 py-1 rounded-md bg-primary-subtle text-primary border border-primary/20 leading-none">
                             {task.status}
                           </span>
                         </div>
@@ -604,7 +604,7 @@ export default function ProjectsPage() {
                       >
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
-                            <span className="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/25">
+                            <span className="font-mono text-[11px] font-bold px-2.5 py-1 rounded-md bg-amber-500/10 text-amber-400 border border-amber-500/25 leading-none">
                               {formatBugId(bug)}
                             </span>
                             <span className="font-semibold text-white">{bug.title}</span>
@@ -614,10 +614,10 @@ export default function ProjectsPage() {
                           )}
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
-                          <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-slate-800 text-slate-300">
+                          <span className="text-[10px] uppercase font-bold px-2.5 py-1 rounded-md bg-slate-800 text-slate-300 leading-none">
                             {bug.priority}
                           </span>
-                          <span className="text-[10px] uppercase px-1.5 py-0.5 rounded bg-amber-950/40 text-amber-300 border border-amber-500/20">
+                          <span className="text-[10px] uppercase font-semibold px-2.5 py-1 rounded-md bg-amber-950/40 text-amber-300 border border-amber-500/20 leading-none">
                             {bug.status}
                           </span>
                         </div>
@@ -649,7 +649,7 @@ export default function ProjectsPage() {
                             <span className="font-semibold text-white group-hover:text-primary transition block truncate">{learning.title}</span>
                             <p className="text-slate-400 text-[11px] line-clamp-1">{stripMarkdown(learning.content)}</p>
                           </div>
-                          <span className={`text-[10px] uppercase font-semibold px-2 py-0.5 rounded-full border shrink-0 ${catCfg.badgeClass}`}>
+                          <span className={`text-[10px] uppercase font-bold px-2.5 py-1 rounded-md border shrink-0 leading-none ${catCfg.badgeClass}`}>
                             {catCfg.shortLabel}
                           </span>
                         </div>
@@ -707,7 +707,7 @@ export default function ProjectsPage() {
                             href={c.htmlUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="px-2 py-0.5 rounded font-mono text-[11px] bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:border-slate-700 transition shrink-0 cursor-pointer"
+                            className="px-2.5 py-1 rounded-md font-mono text-[11px] bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:border-slate-700 transition shrink-0 cursor-pointer leading-none"
                             title="Open commit on GitHub"
                           >
                             {c.shortSha}
@@ -766,7 +766,7 @@ export default function ProjectsPage() {
                               {iss.labels.map((l: string) => (
                                 <span
                                   key={l}
-                                  className="px-1.5 py-0.2 rounded text-[10px] font-medium bg-slate-800 border border-slate-700 text-slate-300"
+                                  className="px-2 py-0.5 rounded-md text-[11px] font-medium bg-slate-800 border border-slate-700 text-slate-300 leading-none"
                                 >
                                   {l}
                                 </span>

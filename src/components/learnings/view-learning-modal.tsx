@@ -93,7 +93,7 @@ export function ViewLearningModal({
         {/* Modal Header: Category & Metadata */}
         <div className="flex flex-wrap items-center gap-2 pr-10 mb-3">
           <span
-            className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border flex items-center gap-1.5 ${catCfg.badgeClass}`}
+            className={`text-xs font-semibold px-2.5 py-1 rounded-md border flex items-center gap-1.5 leading-none ${catCfg.badgeClass}`}
           >
             {category === "gotcha" && <Zap className="w-3.5 h-3.5 text-amber-400" />}
             {category === "pattern" && <Layers className="w-3.5 h-3.5 text-purple-400" />}
@@ -102,7 +102,7 @@ export function ViewLearningModal({
           </span>
 
           {learning.projectName && (
-            <span className="text-xs font-medium px-2.5 py-0.5 rounded bg-primary-subtle text-primary border border-primary/20 flex items-center gap-1">
+            <span className="text-xs font-medium px-2.5 py-1 rounded-md bg-primary-subtle text-primary border border-primary/20 flex items-center gap-1.5 leading-none">
               <FolderKanban className="w-3.5 h-3.5" />
               <span>{learning.projectName}</span>
             </span>
@@ -132,7 +132,7 @@ export function ViewLearningModal({
               {learning.tags.map((t: any) => (
                 <span
                   key={t.id || t.name}
-                  className="text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700/80 font-mono"
+                  className="text-xs px-2.5 py-1 rounded-md bg-slate-800 text-slate-300 border border-slate-700/80 font-mono leading-none"
                 >
                   #{t.name}
                 </span>

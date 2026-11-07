@@ -168,7 +168,7 @@ export default function LearningsPage() {
         <button
           type="button"
           onClick={() => setSelectedCategory("all")}
-          className={`px-3.5 py-1.5 rounded-xl text-xs font-medium flex items-center gap-2 transition cursor-pointer ${
+          className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition cursor-pointer ${
             selectedCategory === "all"
               ? "bg-slate-800 text-white border border-slate-700 shadow-sm"
               : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/60"
@@ -176,9 +176,9 @@ export default function LearningsPage() {
         >
           <span>All Entries</span>
           <span
-            className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
+            className={`px-2 py-0.5 rounded-full text-[11px] font-mono font-bold leading-none min-w-[20px] text-center ${
               selectedCategory === "all"
-                ? "bg-primary/20 text-primary font-bold"
+                ? "bg-primary/20 text-primary"
                 : "bg-slate-900 text-slate-400"
             }`}
           >
@@ -189,7 +189,7 @@ export default function LearningsPage() {
         <button
           type="button"
           onClick={() => setSelectedCategory("gotcha")}
-          className={`px-3.5 py-1.5 rounded-xl text-xs font-medium flex items-center gap-2 transition cursor-pointer ${
+          className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition cursor-pointer ${
             selectedCategory === "gotcha"
               ? "bg-amber-500/15 text-amber-300 border border-amber-500/30 shadow-sm shadow-amber-500/10"
               : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/60"
@@ -197,7 +197,7 @@ export default function LearningsPage() {
         >
           <Zap className="w-3.5 h-3.5 text-amber-400" />
           <span>Technical Gotchas</span>
-          <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-amber-500/20 text-amber-300 font-bold">
+          <span className="px-2 py-0.5 rounded-full text-[11px] font-mono font-bold leading-none min-w-[20px] text-center bg-amber-500/20 text-amber-300">
             {counts.gotcha}
           </span>
         </button>
@@ -205,7 +205,7 @@ export default function LearningsPage() {
         <button
           type="button"
           onClick={() => setSelectedCategory("pattern")}
-          className={`px-3.5 py-1.5 rounded-xl text-xs font-medium flex items-center gap-2 transition cursor-pointer ${
+          className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition cursor-pointer ${
             selectedCategory === "pattern"
               ? "bg-purple-500/15 text-purple-300 border border-purple-500/30 shadow-sm shadow-purple-500/10"
               : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/60"
@@ -213,7 +213,7 @@ export default function LearningsPage() {
         >
           <Layers className="w-3.5 h-3.5 text-purple-400" />
           <span>Design Patterns</span>
-          <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-purple-500/20 text-purple-300 font-bold">
+          <span className="px-2 py-0.5 rounded-full text-[11px] font-mono font-bold leading-none min-w-[20px] text-center bg-purple-500/20 text-purple-300">
             {counts.pattern}
           </span>
         </button>
@@ -221,7 +221,7 @@ export default function LearningsPage() {
         <button
           type="button"
           onClick={() => setSelectedCategory("snippet")}
-          className={`px-3.5 py-1.5 rounded-xl text-xs font-medium flex items-center gap-2 transition cursor-pointer ${
+          className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition cursor-pointer ${
             selectedCategory === "snippet"
               ? "bg-sky-500/15 text-sky-300 border border-sky-500/30 shadow-sm shadow-sky-500/10"
               : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/60"
@@ -229,7 +229,7 @@ export default function LearningsPage() {
         >
           <Terminal className="w-3.5 h-3.5 text-sky-400" />
           <span>CLI Snippets</span>
-          <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-sky-500/20 text-sky-300 font-bold">
+          <span className="px-2 py-0.5 rounded-full text-[11px] font-mono font-bold leading-none min-w-[20px] text-center bg-sky-500/20 text-sky-300">
             {counts.snippet}
           </span>
         </button>
@@ -245,13 +245,13 @@ export default function LearningsPage() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search gotchas, design patterns, commands, or tags..."
-            className="w-full !pl-10 pr-9 py-2 rounded-xl border border-slate-800 bg-slate-900/70 text-white placeholder:text-slate-500 focus:outline-none focus:border-primary text-xs"
+            className="w-full !pl-10 pr-9 py-2.5 rounded-xl border border-slate-800 bg-slate-900/70 text-white placeholder:text-slate-500 focus:outline-none focus:border-primary text-xs"
           />
           {searchQuery && (
             <button
               type="button"
               onClick={() => setSearchQuery("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 rounded text-slate-400 hover:text-white"
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-lg text-slate-400 hover:text-white"
             >
               <X className="w-3.5 h-3.5" />
             </button>
@@ -265,7 +265,7 @@ export default function LearningsPage() {
             <select
               value={projectFilter}
               onChange={(e) => setProjectFilter(e.target.value)}
-              className="w-full !pl-9 pr-8 py-2 rounded-xl border border-slate-800 bg-slate-900/70 text-slate-300 focus:outline-none focus:border-primary text-xs cursor-pointer"
+              className="w-full !pl-9 pr-8 py-2.5 rounded-xl border border-slate-800 bg-slate-900/70 text-slate-300 focus:outline-none focus:border-primary text-xs cursor-pointer"
             >
               <option value="all">All Projects</option>
               {projects.map((p) => (
@@ -330,7 +330,7 @@ export default function LearningsPage() {
                     <div className="flex flex-wrap items-center gap-1.5">
                       {/* Category Badge */}
                       <span
-                        className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border flex items-center gap-1 ${catCfg.badgeClass}`}
+                        className={`text-[11px] font-semibold px-2.5 py-1 rounded-md border flex items-center gap-1.5 leading-none ${catCfg.badgeClass}`}
                       >
                         {item.category === "gotcha" && <Zap className="w-3 h-3 text-amber-400" />}
                         {item.category === "pattern" && <Layers className="w-3 h-3 text-purple-400" />}
@@ -342,7 +342,7 @@ export default function LearningsPage() {
                       {item.projectName && (
                         <span
                           onClick={() => setProjectFilter(item.projectId)}
-                          className="text-[10px] font-medium px-2 py-0.5 rounded bg-primary-subtle text-primary border border-primary/20 cursor-pointer hover:bg-primary/20 transition"
+                          className="text-[11px] font-medium px-2.5 py-1 rounded-md bg-primary-subtle text-primary border border-primary/20 cursor-pointer hover:bg-primary/20 transition leading-none"
                           title="Filter by this project"
                         >
                           {item.projectName}
@@ -430,11 +430,11 @@ export default function LearningsPage() {
                   </span>
 
                   {item.tags && item.tags.length > 0 && (
-                    <div className="flex flex-wrap items-center gap-1">
+                    <div className="flex flex-wrap items-center gap-1.5">
                       {item.tags.map((t: any) => (
                         <span
                           key={t.id || t.name}
-                          className="text-[10px] px-1.5 py-0.2 rounded bg-slate-800/80 text-slate-300 border border-slate-700/60 font-mono"
+                          className="text-[11px] px-2 py-0.5 rounded-md bg-slate-800/80 text-slate-300 border border-slate-700/60 font-mono leading-none"
                         >
                           #{t.name}
                         </span>

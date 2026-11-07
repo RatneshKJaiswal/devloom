@@ -221,7 +221,7 @@ export default function SettingsPage() {
                     placeholder="e.g. Alex Rivera"
                     required
                     style={{ paddingLeft: "2.75rem" }}
-                    className="w-full pr-4 py-2.5 rounded-xl border border-slate-700 bg-slate-950 text-white placeholder:text-slate-500 focus:outline-none focus:border-primary text-xs"
+                    className="w-full !pl-11 pr-4 py-2.5 rounded-xl border border-slate-700 bg-slate-950 text-white placeholder:text-slate-500 focus:outline-none focus:border-primary text-xs"
                   />
                 </div>
               </div>
@@ -238,7 +238,7 @@ export default function SettingsPage() {
                     value={email}
                     disabled
                     style={{ paddingLeft: "2.75rem" }}
-                    className="w-full pr-4 py-2.5 rounded-xl border border-slate-800 bg-slate-950/60 text-slate-400 text-xs cursor-not-allowed"
+                    className="w-full !pl-11 pr-4 py-2.5 rounded-xl border border-slate-800 bg-slate-950/60 text-slate-400 text-xs cursor-not-allowed"
                   />
                 </div>
               </div>
@@ -255,7 +255,7 @@ export default function SettingsPage() {
                     onChange={(e) => setOrganization(e.target.value)}
                     placeholder="e.g. Stripe, OpenAI, Independent"
                     style={{ paddingLeft: "2.75rem" }}
-                    className="w-full pr-4 py-2.5 rounded-xl border border-slate-700 bg-slate-950 text-white placeholder:text-slate-500 focus:outline-none focus:border-primary text-xs"
+                    className="w-full !pl-11 pr-4 py-2.5 rounded-xl border border-slate-700 bg-slate-950 text-white placeholder:text-slate-500 focus:outline-none focus:border-primary text-xs"
                   />
                 </div>
               </div>
@@ -272,7 +272,7 @@ export default function SettingsPage() {
                     onChange={(e) => setRole(e.target.value)}
                     placeholder="e.g. Staff Software Engineer"
                     style={{ paddingLeft: "2.75rem" }}
-                    className="w-full pr-4 py-2.5 rounded-xl border border-slate-700 bg-slate-950 text-white placeholder:text-slate-500 focus:outline-none focus:border-primary text-xs"
+                    className="w-full !pl-11 pr-4 py-2.5 rounded-xl border border-slate-700 bg-slate-950 text-white placeholder:text-slate-500 focus:outline-none focus:border-primary text-xs"
                   />
                 </div>
               </div>
