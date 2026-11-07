@@ -1,6 +1,15 @@
 "use client";
 
 import { TrendingUp } from "lucide-react";
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+} from "recharts";
 
 interface VelocityItem {
   weekLabel: string;
@@ -11,9 +20,22 @@ interface VelocityChartProps {
   data: VelocityItem[];
 }
 
+function CustomTooltip({ active, payload, label }: any) {
+  if (active && payload && payload.length) {
+    return (
+      <div className="rounded-xl border border-slate-700 bg-slate-950/95 backdrop-blur px-3 py-2 shadow-2xl text-xs">
+        <p className="font-semibold text-slate-200">{label}</p>
+        <p className="text-emerald-400 font-mono font-medium mt-0.5">
+          {payload[0].value} {payload[0].value === 1 ? "task" : "tasks"} completed
+        </p>
+      </div>
+    );
+  }
+  return null;
+}
+
 export function VelocityChart({ data }: VelocityChartProps) {
   const items = data || [];
-  const maxCompleted = Math.max(...items.map((i) => i.completedTasks), 1);
   const totalCompleted = items.reduce((sum, i) => sum + i.completedTasks, 0);
 
   return (
@@ -30,58 +52,48 @@ export function VelocityChart({ data }: VelocityChartProps) {
         </div>
 
         <div className="text-right">
-          <span className="text-base font-bold text-white font-mono">{totalCompleted}</span>
+          <span className="text-base font-bold text-emerald-400 font-mono">{totalCompleted}</span>
           <span className="text-xs text-slate-400 ml-1">total done</span>
         </div>
       </div>
 
-      {/* SVG Bar Chart */}
-      <div className="pt-2">
-        <svg
-          viewBox="0 0 280 80"
-          className="w-full h-20 overflow-visible"
-          role="img"
-          aria-label={`Weekly completed tasks: ${items.map((i) => `${i.weekLabel}: ${i.completedTasks}`).join(", ")}`}
-        >
-          {items.map((item, idx) => {
-            const barWidth = 36;
-            const gap = (280 - items.length * barWidth) / (items.length + 1);
-            const x = gap + idx * (barWidth + gap);
-            const height = Math.max((item.completedTasks / maxCompleted) * 55, 4);
-            const y = 65 - height;
-
-            return (
-              <g key={item.weekLabel} className="group cursor-pointer">
-                <rect
-                  x={x}
-                  y={y}
-                  width={barWidth}
-                  height={height}
-                  rx={4}
-                  className="fill-success transition-all duration-200 group-hover:opacity-80"
-                />
-                {/* Count on top of bar */}
-                <text
-                  x={x + barWidth / 2}
-                  y={y - 5}
-                  textAnchor="middle"
-                  className="fill-slate-300 text-[10px] font-mono font-semibold"
-                >
-                  {item.completedTasks}
-                </text>
-                {/* Week Label */}
-                <text
-                  x={x + barWidth / 2}
-                  y={77}
-                  textAnchor="middle"
-                  className="fill-slate-400 text-[9px]"
-                >
-                  {item.weekLabel}
-                </text>
-              </g>
-            );
-          })}
-        </svg>
+      {/* Engineering Area Chart */}
+      <div className="h-44 w-full pt-1">
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={items} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+            <defs>
+              <linearGradient id="velocityGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#10b981" stopOpacity={0.35} />
+                <stop offset="95%" stopColor="#10b981" stopOpacity={0.0} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid stroke="#1e293b" strokeDasharray="3 3" vertical={false} />
+            <XAxis
+              dataKey="weekLabel"
+              stroke="#64748b"
+              fontSize={11}
+              tickLine={false}
+              axisLine={false}
+            />
+            <YAxis
+              stroke="#64748b"
+              fontSize={11}
+              tickLine={false}
+              axisLine={false}
+              allowDecimals={false}
+            />
+            <Tooltip content={<CustomTooltip />} />
+            <Area
+              type="monotone"
+              dataKey="completedTasks"
+              stroke="#10b981"
+              strokeWidth={2.5}
+              fillOpacity={1}
+              fill="url(#velocityGradient)"
+              activeDot={{ r: 5, fill: "#10b981", stroke: "#022c22", strokeWidth: 2 }}
+            />
+          </AreaChart>
+        </ResponsiveContainer>
       </div>
     </div>
   );

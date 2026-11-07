@@ -1,6 +1,14 @@
 "use client";
 
 import { PieChart } from "lucide-react";
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+} from "recharts";
 
 interface StatusProjectItem {
   projectId: string | null;
@@ -17,6 +25,25 @@ interface ProjectStatusChartProps {
   data: StatusProjectItem[];
 }
 
+function CustomTooltip({ active, payload }: any) {
+  if (active && payload && payload.length) {
+    const item = payload[0].payload as StatusProjectItem;
+    return (
+      <div className="rounded-xl border border-slate-700 bg-slate-950/95 backdrop-blur px-3 py-2 shadow-2xl text-xs space-y-1">
+        <p className="font-semibold text-slate-200">{item.projectName}</p>
+        <div className="space-y-0.5 text-[11px] font-mono">
+          <p className="text-slate-400">Todo: {item.todo}</p>
+          <p className="text-blue-400">In Progress: {item.inProgress}</p>
+          <p className="text-emerald-400">Done: {item.done}</p>
+          {item.cancelled > 0 && <p className="text-slate-500">Cancelled: {item.cancelled}</p>}
+          <p className="text-slate-300 pt-0.5 border-t border-slate-800">Total: {item.total}</p>
+        </div>
+      </div>
+    );
+  }
+  return null;
+}
+
 export function ProjectStatusChart({ data }: ProjectStatusChartProps) {
   if (!data || data.length === 0) {
     return (
@@ -25,6 +52,8 @@ export function ProjectStatusChart({ data }: ProjectStatusChartProps) {
       </div>
     );
   }
+
+  const chartHeight = Math.max(data.length * 42, 160);
 
   return (
     <div className="p-5 rounded-2xl border border-slate-800 bg-slate-900/40 space-y-4">
@@ -42,84 +71,52 @@ export function ProjectStatusChart({ data }: ProjectStatusChartProps) {
         {/* Legend */}
         <div className="flex flex-wrap items-center gap-2.5 text-[10px]">
           <span className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-sm bg-slate-600" />
+            <span className="w-2 h-2 rounded-sm bg-slate-500" />
             <span className="text-slate-400">Todo</span>
           </span>
           <span className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-sm bg-primary" />
+            <span className="w-2 h-2 rounded-sm bg-blue-500" />
             <span className="text-slate-300">In Progress</span>
           </span>
           <span className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-sm bg-success" />
+            <span className="w-2 h-2 rounded-sm bg-emerald-500" />
             <span className="text-slate-300">Done</span>
           </span>
         </div>
       </div>
 
-      <div
-        className="space-y-3 pt-1"
-        role="region"
-        aria-label="Status distribution by project"
-      >
-        {data.map((item) => {
-          const total = item.total || 1;
-          const todoPct = (item.todo / total) * 100;
-          const inProgressPct = (item.inProgress / total) * 100;
-          const donePct = (item.done / total) * 100;
-          const cancelledPct = (item.cancelled / total) * 100;
-
-          return (
-            <div key={item.projectId || item.projectName} className="space-y-1.5">
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-medium text-slate-200 truncate max-w-[200px]">
-                  {item.projectName}
-                </span>
-                <span className="text-[11px] font-mono text-slate-400">
-                  {item.done}/{item.total} done ({Math.round(donePct)}%)
-                </span>
-              </div>
-
-              {/* Segmented bar */}
-              <div
-                className="h-2 w-full bg-slate-800 rounded-full overflow-hidden flex"
-                role="progressbar"
-                aria-valuenow={item.done}
-                aria-valuemin={0}
-                aria-valuemax={item.total}
-                aria-label={`${item.projectName}: ${item.todo} todo, ${item.inProgress} in progress, ${item.done} done`}
-              >
-                {donePct > 0 && (
-                  <div
-                    className="h-full bg-success"
-                    style={{ width: `${donePct}%` }}
-                    title={`${item.done} done`}
-                  />
-                )}
-                {inProgressPct > 0 && (
-                  <div
-                    className="h-full bg-primary"
-                    style={{ width: `${inProgressPct}%` }}
-                    title={`${item.inProgress} in progress`}
-                  />
-                )}
-                {todoPct > 0 && (
-                  <div
-                    className="h-full bg-slate-600"
-                    style={{ width: `${todoPct}%` }}
-                    title={`${item.todo} todo`}
-                  />
-                )}
-                {cancelledPct > 0 && (
-                  <div
-                    className="h-full bg-slate-800"
-                    style={{ width: `${cancelledPct}%` }}
-                    title={`${item.cancelled} cancelled`}
-                  />
-                )}
-              </div>
-            </div>
-          );
-        })}
+      {/* Horizontal Stacked Bar Chart */}
+      <div style={{ height: chartHeight }} className="w-full">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart
+            layout="vertical"
+            data={data}
+            margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
+          >
+            <XAxis
+              type="number"
+              stroke="#64748b"
+              fontSize={11}
+              tickLine={false}
+              axisLine={false}
+              allowDecimals={false}
+            />
+            <YAxis
+              type="category"
+              dataKey="projectName"
+              width={110}
+              stroke="#64748b"
+              fontSize={11}
+              tickLine={false}
+              axisLine={false}
+              tick={{ fill: "#cbd5e1" }}
+            />
+            <Tooltip content={<CustomTooltip />} />
+            <Bar dataKey="todo" name="Todo" stackId="st" fill="#64748b" radius={[0, 0, 0, 0]} />
+            <Bar dataKey="inProgress" name="In Progress" stackId="st" fill="#3b82f6" radius={[0, 0, 0, 0]} />
+            <Bar dataKey="done" name="Done" stackId="st" fill="#10b981" radius={[0, 4, 4, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
       </div>
     </div>
   );

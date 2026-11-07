@@ -1,6 +1,14 @@
 "use client";
 
-import { AlertCircle, Clock, CheckCircle2 } from "lucide-react";
+import { Clock, CheckCircle2 } from "lucide-react";
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+} from "recharts";
 
 interface DueProjectItem {
   projectId: string | null;
@@ -13,6 +21,23 @@ interface DueProjectItem {
 
 interface DueTasksByProjectChartProps {
   data: DueProjectItem[];
+}
+
+function CustomTooltip({ active, payload }: any) {
+  if (active && payload && payload.length) {
+    const item = payload[0].payload as DueProjectItem;
+    return (
+      <div className="rounded-xl border border-slate-700 bg-slate-950/95 backdrop-blur px-3 py-2 shadow-2xl text-xs space-y-1">
+        <p className="font-semibold text-slate-200">{item.projectName}</p>
+        <div className="space-y-0.5 text-[11px] font-mono">
+          <p className="text-red-400">Overdue: {item.overdueCount}</p>
+          <p className="text-amber-400">Due Soon: {item.dueSoonCount}</p>
+          <p className="text-slate-400">Total Open: {item.totalOpen}</p>
+        </div>
+      </div>
+    );
+  }
+  return null;
 }
 
 export function DueTasksByProjectChart({ data }: DueTasksByProjectChartProps) {
@@ -28,8 +53,8 @@ export function DueTasksByProjectChart({ data }: DueTasksByProjectChartProps) {
     );
   }
 
-  // Find max value for proportional scaling
-  const maxTotal = Math.max(...data.map((d) => d.totalOpen), 1);
+  // Dynamic height based on number of projects (min 160px)
+  const chartHeight = Math.max(data.length * 42, 160);
 
   return (
     <div className="p-5 rounded-2xl border border-slate-800 bg-slate-900/40 space-y-4">
@@ -47,80 +72,47 @@ export function DueTasksByProjectChart({ data }: DueTasksByProjectChartProps) {
         {/* Legend */}
         <div className="flex items-center gap-3 text-[11px]">
           <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-sm bg-danger" />
+            <span className="w-2.5 h-2.5 rounded-sm bg-red-500" />
             <span className="text-slate-300">Overdue</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-sm bg-warning" />
+            <span className="w-2.5 h-2.5 rounded-sm bg-amber-500" />
             <span className="text-slate-300">Due Soon</span>
           </div>
         </div>
       </div>
 
-      <div
-        className="space-y-3 pt-2"
-        role="region"
-        aria-label="Due tasks breakdown by project"
-      >
-        {data.map((item) => {
-          const overduePct = (item.overdueCount / maxTotal) * 100;
-          const dueSoonPct = (item.dueSoonCount / maxTotal) * 100;
-
-          return (
-            <div key={item.projectId || item.projectName} className="space-y-1.5">
-              <div className="flex items-center justify-between text-xs">
-                <div className="flex items-center gap-2 truncate max-w-[200px] sm:max-w-[260px]">
-                  <span
-                    className="w-2 h-2 rounded-full shrink-0"
-                    style={{ backgroundColor: item.projectColor }}
-                  />
-                  <span className="font-medium text-slate-200 truncate">
-                    {item.projectName}
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-2 text-[11px] font-mono">
-                  {item.overdueCount > 0 && (
-                    <span className="text-red-400 font-semibold flex items-center gap-1">
-                      <AlertCircle className="w-3 h-3" />
-                      {item.overdueCount} overdue
-                    </span>
-                  )}
-                  {item.dueSoonCount > 0 && (
-                    <span className="text-amber-300 font-semibold">
-                      {item.dueSoonCount} due soon
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {/* Stacked Proportional Bar */}
-              <div
-                className="h-2.5 w-full bg-slate-800/80 rounded-full overflow-hidden flex"
-                role="progressbar"
-                aria-valuenow={item.totalOpen}
-                aria-valuemin={0}
-                aria-valuemax={maxTotal}
-                aria-label={`${item.projectName}: ${item.overdueCount} overdue, ${item.dueSoonCount} due soon`}
-              >
-                {item.overdueCount > 0 && (
-                  <div
-                    className="h-full bg-danger transition-all duration-300"
-                    style={{ width: `${overduePct}%` }}
-                    title={`${item.overdueCount} overdue`}
-                  />
-                )}
-                {item.dueSoonCount > 0 && (
-                  <div
-                    className="h-full bg-warning transition-all duration-300"
-                    style={{ width: `${dueSoonPct}%` }}
-                    title={`${item.dueSoonCount} due soon`}
-                  />
-                )}
-              </div>
-            </div>
-          );
-        })}
+      {/* Horizontal Stacked Bar Chart */}
+      <div style={{ height: chartHeight }} className="w-full">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart
+            layout="vertical"
+            data={data}
+            margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
+          >
+            <XAxis
+              type="number"
+              stroke="#64748b"
+              fontSize={11}
+              tickLine={false}
+              axisLine={false}
+              allowDecimals={false}
+            />
+            <YAxis
+              type="category"
+              dataKey="projectName"
+              width={110}
+              stroke="#64748b"
+              fontSize={11}
+              tickLine={false}
+              axisLine={false}
+              tick={{ fill: "#cbd5e1" }}
+            />
+            <Tooltip content={<CustomTooltip />} />
+            <Bar dataKey="overdueCount" name="Overdue" stackId="a" fill="#ef4444" radius={[0, 0, 0, 0]} />
+            <Bar dataKey="dueSoonCount" name="Due Soon" stackId="a" fill="#f59e0b" radius={[0, 4, 4, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
       </div>
     </div>
   );
