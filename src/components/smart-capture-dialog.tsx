@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
 import { X, Loader2, Check, AlertCircle, Bug, CheckSquare, Brain, Link2 } from "lucide-react";
 import { AIIcon } from "@/components/icons/ai";
@@ -14,6 +15,7 @@ interface SmartCaptureModalProps {
 }
 
 export function SmartCaptureModal({ isOpen, onClose, onSuccess }: SmartCaptureModalProps) {
+  const router = useRouter();
   const [mode, setMode] = useState<"text" | "github">("text");
   const [rawText, setRawText] = useState("");
   const [githubUrl, setGithubUrl] = useState("");
@@ -142,10 +144,18 @@ export function SmartCaptureModal({ isOpen, onClose, onSuccess }: SmartCaptureMo
         throw new Error(data.error || "Failed to save item");
       }
 
+      const targetRoute =
+        candidate.entityType === "bug"
+          ? "/bugs"
+          : candidate.entityType === "learning"
+          ? "/learnings"
+          : "/tasks";
+
       setRawText("");
       setCandidate(null);
       onClose();
       if (onSuccess) onSuccess();
+      router.push(targetRoute);
     } catch (err: any) {
       setError(err.message || "Failed to commit item to workspace");
     } finally {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
   Plus,
   FolderKanban,
@@ -27,6 +28,7 @@ import { SDLC_PHASE_CONFIG } from "@/lib/tokens";
 import { formatTaskId, formatBugId } from "@/lib/identifiers";
 
 export default function ProjectsPage() {
+  const router = useRouter();
   const [projects, setProjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -128,13 +130,8 @@ export default function ProjectsPage() {
       }
 
       setGitHubNotice(data.message || `Successfully added Issue #${issue.number} as ${entityType}!`);
-      // Reload project details
-      const [pRes, ghRes] = await Promise.all([
-        fetch(`/api/projects/${selectedProjectId}`),
-        fetch(`/api/projects/${selectedProjectId}/github`),
-      ]);
-      if (pRes.ok) setProjectDetails(await pRes.json());
-      if (ghRes.ok) setGitHubData(await ghRes.json());
+      // Redirect user to the modified task or bug page
+      router.push(entityType === "bug" ? "/bugs" : "/tasks");
     } catch (err: any) {
       setGitHubNotice(`Error: ${err.message || "Failed to import issue"}`);
     } finally {
