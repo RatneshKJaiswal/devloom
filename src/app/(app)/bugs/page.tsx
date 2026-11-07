@@ -16,12 +16,14 @@ import {
   Pencil,
   ArrowUpDown,
   CheckCheck,
+  CheckSquare,
 } from "lucide-react";
 import { QuickCaptureModal } from "@/components/quick-capture-dialog";
 import { EditBugModal } from "@/components/edit-bug-modal";
 import { GitHubLinkBadge } from "@/components/github/github-link-badge";
 import { MarkdownPreview, stripMarkdown } from "@/components/ui/markdown-preview";
 import { PRIORITY_CONFIG, BUG_STATUS_CONFIG } from "@/lib/tokens";
+import { formatBugId, formatTaskId } from "@/lib/identifiers";
 
 function getBugDateStatus(dueDateStr?: string | null, status?: string) {
   if (!dueDateStr || status === "resolved" || status === "closed" || status === "wont_fix") {
@@ -226,6 +228,10 @@ export default function BugsPage() {
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-1.5 flex-1 min-w-0">
             <div className="flex flex-wrap items-center gap-2">
+              <span className="font-mono text-[11px] font-bold px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/25">
+                {formatBugId(bug)}
+              </span>
+
               <span
                 className={`text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded border ${
                   PRIORITY_CONFIG[bug.priority]?.badgeClass || PRIORITY_CONFIG.medium.badgeClass
@@ -277,6 +283,25 @@ export default function BugsPage() {
             >
               {bug.title}
             </h3>
+
+            {/* Linked Tasks */}
+            {bug.associatedTasks && bug.associatedTasks.length > 0 && (
+              <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                <span className="text-[11px] font-medium text-slate-400 flex items-center gap-1">
+                  <CheckSquare className="w-3.5 h-3.5 text-primary" />
+                  <span>Linked Task:</span>
+                </span>
+                {bug.associatedTasks.map((t: any) => (
+                  <span
+                    key={t.id}
+                    className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-primary-subtle text-primary border border-primary/25"
+                    title={`${formatTaskId(t)}: ${t.title}`}
+                  >
+                    {formatTaskId(t)}: {t.title}
+                  </span>
+                ))}
+              </div>
+            )}
 
             {/* GitHub Link Badges */}
             {bug.githubLinks && bug.githubLinks.length > 0 && (

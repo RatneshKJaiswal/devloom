@@ -16,12 +16,14 @@ import {
   ChevronDown,
   ChevronUp,
   CheckCheck,
+  Bug,
 } from "lucide-react";
 import { QuickCaptureModal } from "@/components/quick-capture-dialog";
 import { EditTaskModal } from "@/components/edit-task-modal";
 import { GitHubLinkBadge } from "@/components/github/github-link-badge";
 import { MarkdownPreview, stripMarkdown } from "@/components/ui/markdown-preview";
 import { PRIORITY_CONFIG, TASK_STATUS_CONFIG } from "@/lib/tokens";
+import { formatTaskId, formatBugId } from "@/lib/identifiers";
 
 function getDateStatus(dueDateStr?: string | null, status?: string) {
   if (!dueDateStr || status === "done" || status === "cancelled") return null;
@@ -219,6 +221,10 @@ export default function TasksPage() {
       >
         <div className="space-y-1.5 flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-2">
+            <span className="font-mono text-[11px] font-bold px-2 py-0.5 rounded bg-primary-subtle text-primary border border-primary/25">
+              {formatTaskId(task)}
+            </span>
+
             <span
               className={`text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded border ${
                 PRIORITY_CONFIG[task.priority]?.badgeClass || PRIORITY_CONFIG.medium.badgeClass
@@ -264,6 +270,34 @@ export default function TasksPage() {
           >
             {task.title}
           </div>
+
+          {/* Associated Bugs */}
+          {task.associatedBugs && task.associatedBugs.length > 0 && (
+            <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+              <span className="text-[11px] font-medium text-slate-400 flex items-center gap-1">
+                <Bug className="w-3 h-3 text-amber-400" />
+                <span>
+                  Bugs ({task.associatedBugs.filter((b: any) => b.status === "resolved" || b.status === "closed").length}/{task.associatedBugs.length} resolved):
+                </span>
+              </span>
+              {task.associatedBugs.map((b: any) => {
+                const isResolved = b.status === "resolved" || b.status === "closed";
+                return (
+                  <span
+                    key={b.id}
+                    className={`text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded border flex items-center gap-1 ${
+                      isResolved
+                        ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30 line-through"
+                        : "bg-amber-500/10 text-amber-400 border-amber-500/30"
+                    }`}
+                    title={`${formatBugId(b)}: ${b.title} (${b.status})`}
+                  >
+                    {formatBugId(b)}
+                  </span>
+                );
+              })}
+            </div>
+          )}
 
           {/* GitHub Link Badges */}
           {task.githubLinks && task.githubLinks.length > 0 && (

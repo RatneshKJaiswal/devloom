@@ -24,6 +24,8 @@ import { ProjectMilestonesCard } from "@/components/project/project-milestones-c
 import { ProjectTimelineView } from "@/components/project/project-timeline-view";
 import { SDLC_PHASE_CONFIG } from "@/lib/tokens";
 
+import { formatTaskId, formatBugId } from "@/lib/identifiers";
+
 export default function ProjectsPage() {
   const [projects, setProjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -556,12 +558,17 @@ export default function ProjectsPage() {
                         className="p-3.5 rounded-xl border border-slate-800 bg-slate-950/60 flex items-center justify-between gap-3 text-xs"
                       >
                         <div className="space-y-1">
-                          <span className="font-semibold text-white">{task.title}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-primary-subtle text-primary border border-primary/25">
+                              {formatTaskId(task)}
+                            </span>
+                            <span className="font-semibold text-white">{task.title}</span>
+                          </div>
                           {task.description && (
                             <p className="text-slate-400 text-[11px] line-clamp-1">{task.description}</p>
                           )}
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 shrink-0">
                           <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-slate-800 text-slate-300">
                             {task.priority}
                           </span>
@@ -588,12 +595,17 @@ export default function ProjectsPage() {
                         className="p-3.5 rounded-xl border border-slate-800 bg-slate-950/60 flex items-center justify-between gap-3 text-xs"
                       >
                         <div className="space-y-1">
-                          <span className="font-semibold text-white">{bug.title}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/25">
+                              {formatBugId(bug)}
+                            </span>
+                            <span className="font-semibold text-white">{bug.title}</span>
+                          </div>
                           {bug.description && (
                             <p className="text-slate-400 text-[11px] line-clamp-1">{bug.description}</p>
                           )}
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 shrink-0">
                           <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-slate-800 text-slate-300">
                             {bug.priority}
                           </span>
