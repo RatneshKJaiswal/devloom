@@ -171,3 +171,140 @@ export async function fetchGitHubFileContent(
     return null;
   }
 }
+
+export interface GitHubCommitItem {
+  sha: string;
+  shortSha: string;
+  message: string;
+  author: string;
+  authorAvatar?: string;
+  date: string;
+  htmlUrl: string;
+}
+
+export interface GitHubIssueItem {
+  id: number;
+  number: number;
+  title: string;
+  body?: string;
+  author: string;
+  authorAvatar?: string;
+  labels: string[];
+  state: "open" | "closed";
+  isPullRequest: boolean;
+  createdAt: string;
+  htmlUrl: string;
+}
+
+/**
+ * Fetches recent repository commits from GitHub API.
+ */
+export async function fetchGitHubCommits(
+  repoOwner: string,
+  repoName: string,
+  accessToken?: string | null,
+  perPage = 20
+): Promise<GitHubCommitItem[]> {
+  const endpoint = `${GITHUB_API_BASE}/repos/${repoOwner}/${repoName}/commits?per_page=${perPage}`;
+
+  const headers: Record<string, string> = {
+    Accept: "application/vnd.github.v3+json",
+    "User-Agent": "DevLoom-App",
+  };
+
+  if (accessToken) {
+    headers.Authorization = `Bearer ${accessToken}`;
+  }
+
+  try {
+    const res = await fetch(endpoint, {
+      headers,
+      signal: AbortSignal.timeout(8000),
+    });
+
+    if (!res.ok) {
+      console.warn(`Failed to fetch commits for ${repoOwner}/${repoName} [${res.status}]`);
+      return [];
+    }
+
+    const data = await res.json();
+    if (!Array.isArray(data)) return [];
+
+    return data.map((item: any) => {
+      const fullMessage = item.commit?.message || "No commit message";
+      const firstLine = fullMessage.split("\n")[0];
+
+      return {
+        sha: item.sha,
+        shortSha: item.sha ? item.sha.slice(0, 7) : "",
+        message: firstLine,
+        author: item.author?.login || item.commit?.author?.name || "Unknown",
+        authorAvatar: item.author?.avatar_url,
+        date: item.commit?.author?.date || new Date().toISOString(),
+        htmlUrl: item.html_url || `https://github.com/${repoOwner}/${repoName}/commit/${item.sha}`,
+      };
+    });
+  } catch (err) {
+    console.error("Error fetching GitHub commits:", err);
+    return [];
+  }
+}
+
+/**
+ * Fetches open issues and pull requests for a repository from GitHub API.
+ */
+export async function fetchGitHubOpenIssues(
+  repoOwner: string,
+  repoName: string,
+  accessToken?: string | null,
+  perPage = 30
+): Promise<GitHubIssueItem[]> {
+  const endpoint = `${GITHUB_API_BASE}/repos/${repoOwner}/${repoName}/issues?state=open&per_page=${perPage}&sort=updated`;
+
+  const headers: Record<string, string> = {
+    Accept: "application/vnd.github.v3+json",
+    "User-Agent": "DevLoom-App",
+  };
+
+  if (accessToken) {
+    headers.Authorization = `Bearer ${accessToken}`;
+  }
+
+  try {
+    const res = await fetch(endpoint, {
+      headers,
+      signal: AbortSignal.timeout(8000),
+    });
+
+    if (!res.ok) {
+      console.warn(`Failed to fetch issues for ${repoOwner}/${repoName} [${res.status}]`);
+      return [];
+    }
+
+    const data = await res.json();
+    if (!Array.isArray(data)) return [];
+
+    return data.map((item: any) => {
+      const labels = Array.isArray(item.labels)
+        ? item.labels.map((l: any) => (typeof l === "string" ? l : l.name)).filter(Boolean)
+        : [];
+
+      return {
+        id: item.id,
+        number: item.number,
+        title: item.title,
+        body: item.body || "",
+        author: item.user?.login || "Unknown",
+        authorAvatar: item.user?.avatar_url,
+        labels,
+        state: item.state || "open",
+        isPullRequest: !!item.pull_request,
+        createdAt: item.created_at,
+        htmlUrl: item.html_url,
+      };
+    });
+  } catch (err) {
+    console.error("Error fetching GitHub open issues:", err);
+    return [];
+  }
+}

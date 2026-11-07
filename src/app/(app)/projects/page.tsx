@@ -12,7 +12,10 @@ import {
   Brain,
   ArrowRight,
   Calendar,
+  ExternalLink,
+  Check,
 } from "lucide-react";
+import { GoGitCommit, GoIssueOpened, GoRepo, GoCheck } from "react-icons/go";
 import { GithubIcon } from "@/components/icons/github";
 import { GitHubRepoImportModal } from "@/components/github/github-repo-import-modal";
 import { QuickCaptureModal } from "@/components/quick-capture-dialog";
@@ -29,8 +32,21 @@ export default function ProjectsPage() {
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [projectDetails, setProjectDetails] = useState<any | null>(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
-  const [activeTab, setActiveTab] = useState<"tasks" | "bugs" | "learnings" | "timeline">("tasks");
+  const [activeTab, setActiveTab] = useState<"tasks" | "bugs" | "learnings" | "timeline" | "commits" | "issues">("tasks");
   const [isQuickCaptureOpen, setIsQuickCaptureOpen] = useState(false);
+
+  // GitHub integration state for selected project
+  const [gitHubData, setGitHubData] = useState<{
+    connected: boolean;
+    repoOwner?: string;
+    repoName?: string;
+    fullName?: string;
+    commits?: any[];
+    issues?: any[];
+    message?: string;
+  } | null>(null);
+  const [importingIssue, setImportingIssue] = useState<number | null>(null);
+  const [gitHubNotice, setGitHubNotice] = useState<string | null>(null);
 
   // Form state for manual project creation
   const [name, setName] = useState("");
@@ -61,16 +77,66 @@ export default function ProjectsPage() {
   async function loadProjectDetails(projectId: string) {
     setSelectedProjectId(projectId);
     setLoadingDetails(true);
+    setGitHubNotice(null);
     try {
-      const res = await fetch(`/api/projects/${projectId}`);
+      const [res, ghRes] = await Promise.all([
+        fetch(`/api/projects/${projectId}`),
+        fetch(`/api/projects/${projectId}/github`),
+      ]);
+
       if (res.ok) {
         const data = await res.json();
         setProjectDetails(data);
+      }
+      if (ghRes.ok) {
+        const ghData = await ghRes.json();
+        setGitHubData(ghData);
+      } else {
+        setGitHubData(null);
       }
     } catch (err) {
       console.error("Failed to load project details:", err);
     } finally {
       setLoadingDetails(false);
+    }
+  }
+
+  async function handleImportIssueAs(issue: any, entityType: "task" | "bug") {
+    if (!selectedProjectId) return;
+    setImportingIssue(issue.number);
+    setGitHubNotice(null);
+
+    try {
+      const res = await fetch(`/api/projects/${selectedProjectId}/github`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          issueNumber: issue.number,
+          entityType,
+          title: issue.title,
+          body: issue.body,
+          htmlUrl: issue.htmlUrl,
+          labels: issue.labels,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to import issue");
+      }
+
+      setGitHubNotice(data.message || `Successfully added Issue #${issue.number} as ${entityType}!`);
+      // Reload project details
+      const [pRes, ghRes] = await Promise.all([
+        fetch(`/api/projects/${selectedProjectId}`),
+        fetch(`/api/projects/${selectedProjectId}/github`),
+      ]);
+      if (pRes.ok) setProjectDetails(await pRes.json());
+      if (ghRes.ok) setGitHubData(await ghRes.json());
+    } catch (err: any) {
+      setGitHubNotice(`Error: ${err.message || "Failed to import issue"}`);
+    } finally {
+      setImportingIssue(null);
     }
   }
 
@@ -330,56 +396,140 @@ export default function ProjectsPage() {
                 onRefresh={() => loadProjectDetails(selectedProjectId)}
               />
 
-              {/* Tabs */}
-              <div className="flex flex-wrap gap-2 p-1 rounded-xl bg-slate-950 border border-slate-800 max-w-lg">
+              {/* Engineering Segmented Tab Bar */}
+              <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-950 border border-slate-800 overflow-x-auto scrollbar-none shadow-sm">
                 <button
                   type="button"
                   onClick={() => setActiveTab("tasks")}
-                  className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 transition ${
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2 transition cursor-pointer whitespace-nowrap ${
                     activeTab === "tasks"
-                      ? "bg-primary text-white shadow-sm"
-                      : "text-slate-400 hover:text-slate-200"
+                      ? "bg-slate-800 text-white border border-slate-700/80 shadow-sm"
+                      : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/60"
                   }`}
                 >
-                  <CheckSquare className="w-3.5 h-3.5" />
-                  <span>Tasks ({projectDetails?.tasks?.length || 0})</span>
+                  <CheckSquare className="w-3.5 h-3.5 text-primary" />
+                  <span>Tasks</span>
+                  <span
+                    className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono ${
+                      activeTab === "tasks"
+                        ? "bg-primary/20 text-primary font-bold"
+                        : "bg-slate-900 text-slate-400"
+                    }`}
+                  >
+                    {projectDetails?.tasks?.length || 0}
+                  </span>
                 </button>
+
                 <button
                   type="button"
                   onClick={() => setActiveTab("timeline")}
-                  className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 transition ${
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2 transition cursor-pointer whitespace-nowrap ${
                     activeTab === "timeline"
-                      ? "bg-primary text-white shadow-sm"
-                      : "text-slate-400 hover:text-slate-200"
+                      ? "bg-slate-800 text-white border border-slate-700/80 shadow-sm"
+                      : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/60"
                   }`}
                 >
-                  <Calendar className="w-3.5 h-3.5" />
+                  <Calendar className="w-3.5 h-3.5 text-indigo-400" />
                   <span>Timeline</span>
                 </button>
+
                 <button
                   type="button"
                   onClick={() => setActiveTab("bugs")}
-                  className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 transition ${
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2 transition cursor-pointer whitespace-nowrap ${
                     activeTab === "bugs"
-                      ? "bg-amber-600 text-white shadow-sm"
-                      : "text-slate-400 hover:text-slate-200"
+                      ? "bg-slate-800 text-white border border-slate-700/80 shadow-sm"
+                      : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/60"
                   }`}
                 >
-                  <Bug className="w-3.5 h-3.5" />
-                  <span>Bugs ({projectDetails?.bugs?.length || 0})</span>
+                  <Bug className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Bugs</span>
+                  <span
+                    className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono ${
+                      activeTab === "bugs"
+                        ? "bg-amber-500/20 text-amber-300 font-bold"
+                        : "bg-slate-900 text-slate-400"
+                    }`}
+                  >
+                    {projectDetails?.bugs?.length || 0}
+                  </span>
                 </button>
+
                 <button
                   type="button"
                   onClick={() => setActiveTab("learnings")}
-                  className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 transition ${
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2 transition cursor-pointer whitespace-nowrap ${
                     activeTab === "learnings"
-                      ? "bg-success text-white shadow-sm"
-                      : "text-slate-400 hover:text-slate-200"
+                      ? "bg-slate-800 text-white border border-slate-700/80 shadow-sm"
+                      : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/60"
                   }`}
                 >
-                  <Brain className="w-3.5 h-3.5" />
-                  <span>Learnings ({projectDetails?.learnings?.length || 0})</span>
+                  <Brain className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Learnings</span>
+                  <span
+                    className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono ${
+                      activeTab === "learnings"
+                        ? "bg-emerald-500/20 text-emerald-300 font-bold"
+                        : "bg-slate-900 text-slate-400"
+                    }`}
+                  >
+                    {projectDetails?.learnings?.length || 0}
+                  </span>
                 </button>
+
+                {/* GitHub Commits Tab */}
+                {gitHubData?.connected && (
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("commits")}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2 transition cursor-pointer whitespace-nowrap ${
+                      activeTab === "commits"
+                        ? "bg-slate-800 text-white border border-slate-700/80 shadow-sm"
+                        : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/60"
+                    }`}
+                  >
+                    <GoGitCommit className="w-4 h-4 text-sky-400" />
+                    <span>Commits</span>
+                    {gitHubData.commits && gitHubData.commits.length > 0 && (
+                      <span
+                        className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono ${
+                          activeTab === "commits"
+                            ? "bg-sky-500/20 text-sky-300 font-bold"
+                            : "bg-slate-900 text-slate-400"
+                        }`}
+                      >
+                        {gitHubData.commits.length}
+                      </span>
+                    )}
+                  </button>
+                )}
+
+                {/* GitHub Open Issues Tab */}
+                {gitHubData?.connected && (
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("issues")}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2 transition cursor-pointer whitespace-nowrap ${
+                      activeTab === "issues"
+                        ? "bg-slate-800 text-white border border-slate-700/80 shadow-sm"
+                        : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/60"
+                    }`}
+                  >
+                    <GoIssueOpened className="w-4 h-4 text-emerald-400" />
+                    <span>Open Issues</span>
+                    {gitHubData.issues && gitHubData.issues.length > 0 && (
+                      <span
+                        className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono ${
+                          activeTab === "issues"
+                            ? "bg-emerald-500/20 text-emerald-300 font-bold"
+                            : "bg-slate-900 text-slate-400"
+                        }`}
+                      >
+                        {gitHubData.issues.length}
+                      </span>
+                    )}
+                  </button>
+                )}
               </div>
 
               {/* Tab Content */}
@@ -478,6 +628,180 @@ export default function ProjectsPage() {
                         </span>
                       </div>
                     ))
+                  )}
+                </div>
+              )}
+
+              {/* GitHub Previous Commits */}
+              {activeTab === "commits" && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3.5 rounded-xl border border-slate-800 bg-slate-950/80 text-xs">
+                    <div className="flex items-center gap-2">
+                      <GoRepo className="w-4 h-4 text-sky-400" />
+                      <span className="font-semibold text-white">{gitHubData?.fullName}</span>
+                      <span className="text-slate-500">•</span>
+                      <span className="text-slate-400">Previous Commits</span>
+                    </div>
+                    <a
+                      href={`https://github.com/${gitHubData?.fullName}/commits`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline flex items-center gap-1 font-medium cursor-pointer"
+                    >
+                      <span>View on GitHub</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </div>
+
+                  {(!gitHubData?.commits || gitHubData.commits.length === 0) ? (
+                    <div className="p-8 text-center text-xs text-slate-400 border border-dashed border-slate-800 rounded-xl">
+                      No recent commits found for this repository.
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {gitHubData.commits.map((c: any) => (
+                        <div
+                          key={c.sha}
+                          className="p-3.5 rounded-xl border border-slate-800 bg-slate-950/60 hover:border-slate-700 transition flex items-start justify-between gap-3 text-xs group"
+                        >
+                          <div className="flex items-start gap-3 min-w-0 flex-1">
+                            <GoGitCommit className="w-4 h-4 text-sky-400 mt-0.5 shrink-0" />
+                            <div className="space-y-1 min-w-0">
+                              <span className="font-medium text-white block truncate">{c.message}</span>
+                              <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-400">
+                                <span>{c.author}</span>
+                                <span>•</span>
+                                <span>{new Date(c.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <a
+                            href={c.htmlUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-2 py-0.5 rounded font-mono text-[11px] bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:border-slate-700 transition shrink-0 cursor-pointer"
+                            title="Open commit on GitHub"
+                          >
+                            {c.shortSha}
+                          </a>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* GitHub Open Issues & Add to Bug / Task */}
+              {activeTab === "issues" && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3.5 rounded-xl border border-slate-800 bg-slate-950/80 text-xs">
+                    <div className="flex items-center gap-2">
+                      <GoIssueOpened className="w-4 h-4 text-emerald-400" />
+                      <span className="font-semibold text-white">{gitHubData?.fullName}</span>
+                      <span className="text-slate-500">•</span>
+                      <span className="text-slate-400">Open Issues ({gitHubData?.issues?.length || 0})</span>
+                    </div>
+                    <a
+                      href={`https://github.com/${gitHubData?.fullName}/issues`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline flex items-center gap-1 font-medium cursor-pointer"
+                    >
+                      <span>Browse on GitHub</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </div>
+
+                  {gitHubNotice && (
+                    <div className="p-3 rounded-xl border border-primary/30 bg-primary/10 text-primary-200 text-xs flex items-center justify-between">
+                      <span>{gitHubNotice}</span>
+                      <button type="button" onClick={() => setGitHubNotice(null)} className="text-primary-300 hover:text-white cursor-pointer">
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
+
+                  {(!gitHubData?.issues || gitHubData.issues.length === 0) ? (
+                    <div className="p-8 text-center text-xs text-slate-400 border border-dashed border-slate-800 rounded-xl">
+                      No open issues found in this repository.
+                    </div>
+                  ) : (
+                    <div className="space-y-2.5">
+                      {gitHubData.issues.map((iss: any) => (
+                        <div
+                          key={iss.id}
+                          className="p-4 rounded-xl border border-slate-800 bg-slate-950/60 hover:border-slate-700 transition flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs"
+                        >
+                          <div className="space-y-1.5 flex-1 min-w-0">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="font-mono text-emerald-400 font-semibold">#{iss.number}</span>
+                              {iss.labels.map((l: string) => (
+                                <span
+                                  key={l}
+                                  className="px-1.5 py-0.2 rounded text-[10px] font-medium bg-slate-800 border border-slate-700 text-slate-300"
+                                >
+                                  {l}
+                                </span>
+                              ))}
+                              <span className="text-[11px] text-slate-500">by @{iss.author}</span>
+                            </div>
+
+                            <a
+                              href={iss.htmlUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="font-semibold text-white hover:text-primary transition block truncate"
+                            >
+                              {iss.title}
+                            </a>
+
+                            {iss.body && (
+                              <p className="text-slate-400 text-[11px] line-clamp-1">{iss.body}</p>
+                            )}
+                          </div>
+
+                          <div className="flex items-center gap-2 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-850">
+                            {iss.alreadyImported ? (
+                              <span className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1.5">
+                                <GoCheck className="w-3.5 h-3.5" />
+                                <span>Imported as {iss.importedAs}</span>
+                              </span>
+                            ) : (
+                              <>
+                                <button
+                                  type="button"
+                                  disabled={importingIssue === iss.number}
+                                  onClick={() => handleImportIssueAs(iss, "task")}
+                                  className="px-2.5 py-1 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-medium flex items-center gap-1.5 transition shadow-sm cursor-pointer disabled:opacity-50"
+                                >
+                                  {importingIssue === iss.number ? (
+                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                  ) : (
+                                    <CheckSquare className="w-3.5 h-3.5" />
+                                  )}
+                                  <span>+ Add as Task</span>
+                                </button>
+
+                                <button
+                                  type="button"
+                                  disabled={importingIssue === iss.number}
+                                  onClick={() => handleImportIssueAs(iss, "bug")}
+                                  className="px-2.5 py-1 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-xs font-medium flex items-center gap-1.5 transition shadow-sm cursor-pointer disabled:opacity-50"
+                                >
+                                  {importingIssue === iss.number ? (
+                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                  ) : (
+                                    <Bug className="w-3.5 h-3.5" />
+                                  )}
+                                  <span>+ Add as Bug</span>
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   )}
                 </div>
               )}
