@@ -15,6 +15,9 @@ import {
 import { GithubIcon } from "@/components/icons/github";
 import { GitHubRepoImportModal } from "@/components/github/github-repo-import-modal";
 import { QuickCaptureModal } from "@/components/quick-capture-dialog";
+import { ProjectSDLCBar } from "@/components/project/project-sdlc-bar";
+import { ProjectMilestonesCard } from "@/components/project/project-milestones-card";
+import { SDLC_PHASE_CONFIG } from "@/lib/tokens";
 
 export default function ProjectsPage() {
   const [projects, setProjects] = useState<any[]>([]);
@@ -200,6 +203,15 @@ export default function ProjectsPage() {
                       <h3 className="text-base font-semibold text-white truncate max-w-[200px]">
                         {p.name}
                       </h3>
+                      {p.currentPhase && (
+                        <span
+                          className={`text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded border ${
+                            SDLC_PHASE_CONFIG[p.currentPhase as keyof typeof SDLC_PHASE_CONFIG]?.badgeClass || "border-slate-700 text-slate-300"
+                          }`}
+                        >
+                          {p.currentPhase}
+                        </span>
+                      )}
                     </div>
 
                     <button
@@ -297,7 +309,25 @@ export default function ProjectsPage() {
               <Loader2 className="w-6 h-6 text-indigo-400 animate-spin" />
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-6">
+              {/* Project SDLC Tracking Bar */}
+              <ProjectSDLCBar
+                projectId={selectedProjectId}
+                currentPhase={projectDetails?.project?.currentPhase || "planning"}
+                phaseHistory={projectDetails?.phaseHistory || []}
+                onPhaseChange={() => {
+                  loadProjectDetails(selectedProjectId);
+                  loadProjects();
+                }}
+              />
+
+              {/* Project Milestones */}
+              <ProjectMilestonesCard
+                projectId={selectedProjectId}
+                milestones={projectDetails?.milestones || []}
+                onRefresh={() => loadProjectDetails(selectedProjectId)}
+              />
+
               {/* Tabs */}
               <div className="flex gap-2 p-1 rounded-xl bg-slate-950 border border-slate-800 max-w-sm">
                 <button

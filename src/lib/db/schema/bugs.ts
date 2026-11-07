@@ -1,6 +1,6 @@
 import { pgTable, text, timestamp, uuid, pgEnum, index } from "drizzle-orm/pg-core";
 import { users } from "./auth";
-import { projects } from "./organization";
+import { projects, sdlcPhaseEnum } from "./organization";
 import { priorityEnum } from "./tasks";
 
 export const bugStatusEnum = pgEnum("bug_status", [
@@ -29,6 +29,7 @@ export const bugs = pgTable(
     suspectedCause: text("suspected_cause"),
     status: bugStatusEnum("status").default("open").notNull(),
     priority: priorityEnum("priority").default("medium").notNull(),
+    phase: sdlcPhaseEnum("phase"),
     dueDate: timestamp("due_date", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),

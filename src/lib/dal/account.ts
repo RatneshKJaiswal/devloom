@@ -1,5 +1,15 @@
 import { db } from "@/lib/db";
-import { users, projects, tags, tasks, bugs, learnings, githubLinks } from "@/lib/db/schema";
+import {
+  users,
+  projects,
+  projectPhaseHistory,
+  projectMilestones,
+  tags,
+  tasks,
+  bugs,
+  learnings,
+  githubLinks,
+} from "@/lib/db/schema";
 import { withUserScope } from "./base";
 import { eq } from "drizzle-orm";
 
@@ -17,22 +27,34 @@ export async function exportUserData(userId: string) {
 
   if (!userProfile) return null;
 
-  const [userProjects, userTags, userTasks, userBugs, userLearnings, userGithubLinks] =
-    await Promise.all([
-      db.select().from(projects).where(withUserScope(projects, userId)),
-      db.select().from(tags).where(withUserScope(tags, userId)),
-      db.select().from(tasks).where(withUserScope(tasks, userId)),
-      db.select().from(bugs).where(withUserScope(bugs, userId)),
-      db.select().from(learnings).where(withUserScope(learnings, userId)),
-      db.select().from(githubLinks).where(withUserScope(githubLinks, userId)),
-    ]);
+  const [
+    userProjects,
+    userPhaseHistory,
+    userMilestones,
+    userTags,
+    userTasks,
+    userBugs,
+    userLearnings,
+    userGithubLinks,
+  ] = await Promise.all([
+    db.select().from(projects).where(withUserScope(projects, userId)),
+    db.select().from(projectPhaseHistory).where(withUserScope(projectPhaseHistory, userId)),
+    db.select().from(projectMilestones).where(withUserScope(projectMilestones, userId)),
+    db.select().from(tags).where(withUserScope(tags, userId)),
+    db.select().from(tasks).where(withUserScope(tasks, userId)),
+    db.select().from(bugs).where(withUserScope(bugs, userId)),
+    db.select().from(learnings).where(withUserScope(learnings, userId)),
+    db.select().from(githubLinks).where(withUserScope(githubLinks, userId)),
+  ]);
 
   return {
     exportedAt: new Date().toISOString(),
-    version: "1.0",
+    version: "1.1",
     profile: userProfile,
     data: {
       projects: userProjects,
+      phaseHistory: userPhaseHistory,
+      milestones: userMilestones,
       tags: userTags,
       tasks: userTasks,
       bugs: userBugs,
