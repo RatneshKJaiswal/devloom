@@ -4,7 +4,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "DevLoom — Personal Engineering Workspace",
   description:
-    "Track tasks, technical bugs, and learnings in one unified workspace with AI-assisted capture and spaced review.",
+    "Track tasks, technical bugs, and learnings in one unified workspace with AI-assisted capture and engineering knowledge base.",
   icons: {
     icon: "/icon.svg",
     shortcut: "/icon.svg",
@@ -18,30 +18,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
+    <html lang="en" className="dark">
       <head>
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(){
               try {
-                var t = localStorage.getItem('devloom-theme');
-                var isDark = true;
-                if (t === 'light') {
-                  isDark = false;
-                } else if (t === 'dark') {
-                  isDark = true;
-                } else {
-                  isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-                }
-                if (!isDark) {
-                  document.documentElement.classList.remove('dark');
-                  document.documentElement.classList.add('light');
-                  document.documentElement.setAttribute('data-theme', 'light');
-                } else {
-                  document.documentElement.classList.remove('light');
-                  document.documentElement.classList.add('dark');
-                  document.documentElement.setAttribute('data-theme', 'dark');
-                }
+                localStorage.removeItem('devloom-theme');
+                document.documentElement.classList.remove('light');
+                document.documentElement.classList.add('dark');
               } catch(e) {}
             })()`,
           }}

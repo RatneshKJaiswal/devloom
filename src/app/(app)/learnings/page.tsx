@@ -6,8 +6,6 @@ import {
   BookOpen,
   Trash2,
   Pencil,
-  ChevronDown,
-  ChevronUp,
   FolderKanban,
   Calendar,
   Search,
@@ -19,10 +17,12 @@ import {
   X,
   Loader2,
   Tag,
+  ExternalLink,
 } from "lucide-react";
 import { QuickCaptureModal } from "@/components/quick-capture-dialog";
 import { EditLearningModal } from "@/components/edit-learning-modal";
-import { MarkdownPreview, stripMarkdown } from "@/components/ui/markdown-preview";
+import { ViewLearningModal } from "@/components/learnings/view-learning-modal";
+import { stripMarkdown } from "@/components/ui/markdown-preview";
 import {
   inferKnowledgeCategory,
   KNOWLEDGE_CATEGORIES,
@@ -35,7 +35,7 @@ export default function LearningsPage() {
   const [loading, setLoading] = useState(true);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingLearning, setEditingLearning] = useState<any | null>(null);
-  const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({});
+  const [viewingLearning, setViewingLearning] = useState<any | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   // Filters
@@ -80,13 +80,6 @@ export default function LearningsPage() {
     } catch (err) {
       console.error("Failed to delete entry:", err);
     }
-  }
-
-  function toggleCardExpand(id: string) {
-    setExpandedCards((prev) => ({
-      ...prev,
-      [id]: !prev[id],
-    }));
   }
 
   function handleCopyContent(id: string, text: string) {
@@ -323,7 +316,6 @@ export default function LearningsPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {filteredLearnings.map((item) => {
-            const isExpanded = !!expandedCards[item.id];
             const catCfg = KNOWLEDGE_CATEGORIES[item.category as KnowledgeCategory] || KNOWLEDGE_CATEGORIES.gotcha;
             const isCopied = copiedId === item.id;
 
@@ -398,38 +390,33 @@ export default function LearningsPage() {
 
                   {/* Title */}
                   <h3
-                    onClick={() => setEditingLearning(item)}
+                    onClick={() => setViewingLearning(item)}
                     className="text-base font-semibold text-white hover:text-primary transition cursor-pointer leading-snug"
+                    title="Click to view full note"
                   >
                     {item.title}
                   </h3>
 
-                  {/* Content Preview / Full Markdown View */}
+                  {/* Content Preview */}
                   <div>
-                    {isExpanded ? (
-                      <div className="max-h-96 overflow-y-auto p-4 rounded-xl bg-slate-950/80 border border-slate-800 text-xs text-slate-200">
-                        <MarkdownPreview content={item.content} />
-                      </div>
-                    ) : (
-                      <div className="text-xs text-slate-300 leading-relaxed font-normal line-clamp-3">
-                        {stripMarkdown(item.content)}
-                      </div>
-                    )}
+                    <div
+                      onClick={() => setViewingLearning(item)}
+                      className="text-xs text-slate-300 leading-relaxed font-normal line-clamp-3 cursor-pointer hover:text-slate-100 transition"
+                      title="Click to view full note"
+                    >
+                      {stripMarkdown(item.content)}
+                    </div>
 
-                    {(item.content.length > 90 ||
+                    {(item.content.length > 80 ||
                       item.content.includes("\n") ||
                       item.content.includes("```")) && (
                       <button
                         type="button"
-                        onClick={() => toggleCardExpand(item.id)}
-                        className="mt-2 text-[11px] font-medium text-primary hover:underline transition flex items-center gap-1 cursor-pointer"
+                        onClick={() => setViewingLearning(item)}
+                        className="mt-2 text-[11px] font-medium text-primary hover:underline transition inline-flex items-center gap-1 cursor-pointer"
                       >
-                        <span>{isExpanded ? "Show less" : "Read full note / snippet"}</span>
-                        {isExpanded ? (
-                          <ChevronUp className="w-3 h-3" />
-                        ) : (
-                          <ChevronDown className="w-3 h-3" />
-                        )}
+                        <span>Read more</span>
+                        <ExternalLink className="w-3 h-3" />
                       </button>
                     )}
                   </div>
@@ -460,6 +447,14 @@ export default function LearningsPage() {
           })}
         </div>
       )}
+
+      {/* View Learning Popup Modal */}
+      <ViewLearningModal
+        isOpen={!!viewingLearning}
+        onClose={() => setViewingLearning(null)}
+        learning={viewingLearning}
+        onEdit={(item) => setEditingLearning(item)}
+      />
 
       {/* Create Learning Dialog */}
       <QuickCaptureModal

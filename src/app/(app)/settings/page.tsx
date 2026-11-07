@@ -8,9 +8,6 @@ import {
   ShieldCheck,
   AlertTriangle,
   Loader2,
-  Moon,
-  Sun,
-  Laptop,
   User,
   Building,
   Briefcase,
@@ -18,7 +15,6 @@ import {
   Check,
 } from "lucide-react";
 import { GithubIcon } from "@/components/icons/github";
-import { useTheme, ThemeMode } from "@/lib/theme";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -35,9 +31,6 @@ export default function SettingsPage() {
   const [organization, setOrganization] = useState("");
   const [role, setRole] = useState("");
   const [githubUsername, setGithubUsername] = useState<string | null>(null);
-
-  // Centralized Theme State
-  const { theme, setTheme: handleThemeChange } = useTheme();
 
   // Account Management State
   const [exporting, setExporting] = useState(false);
@@ -150,7 +143,7 @@ export default function SettingsPage() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-white">Settings</h1>
         <p className="mt-1 text-sm text-slate-400">
-          Manage your personal developer profile, workspace theme, and account preferences.
+          Manage your personal developer profile, workspace preferences, and account data.
         </p>
       </div>
 
@@ -317,100 +310,7 @@ export default function SettingsPage() {
         )}
       </div>
 
-      {/* 2. Appearance & Theme Section */}
-      <div className="p-6 rounded-2xl border border-slate-800 bg-slate-900/50 space-y-4 shadow-sm">
-        <div>
-          <h2 className="text-base font-semibold text-white flex items-center gap-2">
-            <Moon className="w-5 h-5 text-primary" />
-            <span>Appearance & Theme</span>
-          </h2>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Select your preferred visual mode for DevLoom.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-2">
-          {/* Dark Mode Card */}
-          <button
-            type="button"
-            onClick={() => handleThemeChange("dark")}
-            className={`p-4 rounded-xl border text-left flex flex-col justify-between gap-3 transition cursor-pointer ${
-              theme === "dark"
-                ? "border-primary bg-primary/10 ring-2 ring-primary/40 shadow-md"
-                : "border-slate-800 bg-slate-950 hover:border-slate-700 hover:bg-slate-900"
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <div className="p-2 rounded-lg bg-slate-900 text-blue-400 border border-slate-800">
-                <Moon className="w-4 h-4" />
-              </div>
-              {theme === "dark" && (
-                <span className="w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_#4285F4]" />
-              )}
-            </div>
-            <div>
-              <div className="text-xs font-semibold text-white">Dark Mode</div>
-              <div className="text-[11px] text-slate-400 mt-0.5">
-                Default high-contrast engineering dark palette (#121316).
-              </div>
-            </div>
-          </button>
-
-          {/* Light Mode Card */}
-          <button
-            type="button"
-            onClick={() => handleThemeChange("light")}
-            className={`p-4 rounded-xl border text-left flex flex-col justify-between gap-3 transition cursor-pointer ${
-              theme === "light"
-                ? "border-primary bg-primary/10 ring-2 ring-primary/40 shadow-md"
-                : "border-slate-800 bg-slate-950 hover:border-slate-700 hover:bg-slate-900"
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <div className="p-2 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                <Sun className="w-4 h-4" />
-              </div>
-              {theme === "light" && (
-                <span className="w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_#4285F4]" />
-              )}
-            </div>
-            <div>
-              <div className="text-xs font-semibold text-white">Light Mode</div>
-              <div className="text-[11px] text-slate-400 mt-0.5">
-                Clean daylight slate theme for well-lit office environments.
-              </div>
-            </div>
-          </button>
-
-          {/* System Mode Card */}
-          <button
-            type="button"
-            onClick={() => handleThemeChange("system")}
-            className={`p-4 rounded-xl border text-left flex flex-col justify-between gap-3 transition cursor-pointer ${
-              theme === "system"
-                ? "border-primary bg-primary/10 ring-2 ring-primary/40 shadow-md"
-                : "border-slate-800 bg-slate-950 hover:border-slate-700 hover:bg-slate-900"
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-                <Laptop className="w-4 h-4" />
-              </div>
-              {theme === "system" && (
-                <span className="w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_#4285F4]" />
-              )}
-            </div>
-            <div>
-              <div className="text-xs font-semibold text-white">System Preference</div>
-              <div className="text-[11px] text-slate-400 mt-0.5">
-                Automatically synchronizes with your OS appearance setting.
-              </div>
-            </div>
-          </button>
-        </div>
-      </div>
-
-      {/* 3. AI Agent & LLM Privacy Disclosure */}
+      {/* 2. AI Agent & LLM Privacy Disclosure */}
       <div className="p-6 rounded-2xl border border-slate-800 bg-slate-900/50 space-y-3 shadow-sm">
         <div className="flex items-center gap-2 text-primary">
           <ShieldCheck className="w-5 h-5" />
@@ -423,7 +323,7 @@ export default function SettingsPage() {
         </p>
       </div>
 
-      {/* 4. Data Management & Danger Zone */}
+      {/* 3. Data Management & Danger Zone */}
       <div className="p-6 rounded-2xl border border-slate-800 bg-slate-900/50 space-y-6 shadow-sm">
         <div>
           <h2 className="text-base font-semibold text-white">Data Portability</h2>

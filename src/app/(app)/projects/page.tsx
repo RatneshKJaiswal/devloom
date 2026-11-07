@@ -29,6 +29,7 @@ import { SDLC_PHASE_CONFIG } from "@/lib/tokens";
 import { formatTaskId, formatBugId } from "@/lib/identifiers";
 import { stripMarkdown } from "@/components/ui/markdown-preview";
 import { inferKnowledgeCategory, KNOWLEDGE_CATEGORIES } from "@/lib/knowledge";
+import { ViewLearningModal } from "@/components/learnings/view-learning-modal";
 
 export default function ProjectsPage() {
   const router = useRouter();
@@ -41,6 +42,7 @@ export default function ProjectsPage() {
   const [loadingDetails, setLoadingDetails] = useState(false);
   const [activeTab, setActiveTab] = useState<"tasks" | "bugs" | "learnings" | "timeline" | "commits" | "issues">("tasks");
   const [isQuickCaptureOpen, setIsQuickCaptureOpen] = useState(false);
+  const [viewingLearning, setViewingLearning] = useState<any | null>(null);
 
   // GitHub integration state for selected project
   const [gitHubData, setGitHubData] = useState<{
@@ -639,13 +641,15 @@ export default function ProjectsPage() {
                       return (
                         <div
                           key={learning.id}
-                          className="p-3.5 rounded-xl border border-slate-800 bg-slate-950/60 flex items-center justify-between gap-3 text-xs"
+                          onClick={() => setViewingLearning(learning)}
+                          className="p-3.5 rounded-xl border border-slate-800 bg-slate-950/60 hover:border-slate-700/80 hover:bg-slate-900/60 transition cursor-pointer flex items-center justify-between gap-3 text-xs group"
+                          title="Click to view full note"
                         >
-                          <div className="space-y-1">
-                            <span className="font-semibold text-white">{learning.title}</span>
+                          <div className="space-y-1 min-w-0 flex-1">
+                            <span className="font-semibold text-white group-hover:text-primary transition block truncate">{learning.title}</span>
                             <p className="text-slate-400 text-[11px] line-clamp-1">{stripMarkdown(learning.content)}</p>
                           </div>
-                          <span className={`text-[10px] uppercase font-semibold px-2 py-0.5 rounded-full border ${catCfg.badgeClass}`}>
+                          <span className={`text-[10px] uppercase font-semibold px-2 py-0.5 rounded-full border shrink-0 ${catCfg.badgeClass}`}>
                             {catCfg.shortLabel}
                           </span>
                         </div>
@@ -945,6 +949,13 @@ export default function ProjectsPage() {
           if (selectedProjectId) loadProjectDetails(selectedProjectId);
           loadProjects();
         }}
+      />
+
+      {/* View Learning Modal */}
+      <ViewLearningModal
+        isOpen={!!viewingLearning}
+        onClose={() => setViewingLearning(null)}
+        learning={viewingLearning}
       />
     </div>
   );
