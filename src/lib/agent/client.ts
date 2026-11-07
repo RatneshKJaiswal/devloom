@@ -2,7 +2,56 @@ import { AgentClient, AgentGenerateOptions, AgentResult } from "./types";
 
 const GEMINI_API_BASE = "https://generativelanguage.googleapis.com/v1beta/models";
 const DEFAULT_MODEL = process.env.GEMINI_MODEL || "gemini-3.5-flash";
-const REQUEST_TIMEOUT_MS = 10000;
+const REQUEST_TIMEOUT_MS = parseInt(process.env.AGENT_TIMEOUT_MS || "30000", 10);
+
+export function extractJsonFromText(rawText: string): unknown {
+  let cleaned = rawText.trim();
+
+  // 1. Try direct parse first
+  try {
+    return JSON.parse(cleaned);
+  } catch {
+    // Continue to extractors
+  }
+
+  // 2. Strip markdown code fences: ```json ... ``` or ``` ... ```
+  if (cleaned.startsWith("```")) {
+    cleaned = cleaned
+      .replace(/^```(?:json)?\s*\n?/, "")
+      .replace(/\n?```\s*$/, "")
+      .trim();
+    try {
+      return JSON.parse(cleaned);
+    } catch {
+      // Continue to bracket extractor
+    }
+  }
+
+  // 3. Find outermost JSON object or array: { ... } or [ ... ]
+  const firstBrace = cleaned.indexOf("{");
+  const firstBracket = cleaned.indexOf("[");
+  let startIndex = -1;
+  let endIndex = -1;
+
+  if (firstBrace !== -1 && (firstBracket === -1 || firstBrace < firstBracket)) {
+    startIndex = firstBrace;
+    endIndex = cleaned.lastIndexOf("}");
+  } else if (firstBracket !== -1) {
+    startIndex = firstBracket;
+    endIndex = cleaned.lastIndexOf("]");
+  }
+
+  if (startIndex !== -1 && endIndex > startIndex) {
+    const candidate = cleaned.slice(startIndex, endIndex + 1);
+    try {
+      return JSON.parse(candidate);
+    } catch {
+      // Continue
+    }
+  }
+
+  throw new Error("Failed to parse structured JSON from model output.");
+}
 
 export class GeminiAgentClient implements AgentClient {
   private apiKey: string;
@@ -107,7 +156,7 @@ export class GeminiAgentClient implements AgentClient {
         // Parse JSON
         let parsedJson: unknown;
         try {
-          parsedJson = JSON.parse(rawText);
+          parsedJson = extractJsonFromText(rawText);
         } catch (jsonErr) {
           if (attempts < maxAttempts) continue;
           return {
@@ -155,7 +204,7 @@ export class GeminiAgentClient implements AgentClient {
             success: false,
             error: {
               code: "TIMEOUT",
-              message: "The AI agent request timed out after 10 seconds. Please try again.",
+              message: "The AI agent request timed out after 30 seconds. Please try again.",
               retryable: true,
             },
           };

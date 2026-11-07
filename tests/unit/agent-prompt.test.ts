@@ -3,6 +3,7 @@ import {
   buildSmartCapturePrompt,
   smartCaptureOutputSchema,
 } from "@/lib/agent/prompts/capture";
+import { extractJsonFromText } from "@/lib/agent/client";
 
 describe("Smart Capture Prompt & Injection Containment", () => {
   it("should wrap untrusted input inside XML delimiters and sanitize closing tags", () => {
@@ -56,5 +57,24 @@ describe("Smart Capture Prompt & Injection Containment", () => {
 
     const parsed = smartCaptureOutputSchema.safeParse(invalidOutput);
     expect(parsed.success).toBe(false);
+  });
+
+  describe("extractJsonFromText", () => {
+    it("should parse pure JSON directly", () => {
+      const res = extractJsonFromText('{"mode": "daily_focus", "count": 5}');
+      expect(res).toEqual({ mode: "daily_focus", count: 5 });
+    });
+
+    it("should strip markdown code fences", () => {
+      const fenced = '```json\n{"mode": "daily_focus", "tasks": ["A", "B"]}\n```';
+      const res = extractJsonFromText(fenced);
+      expect(res).toEqual({ mode: "daily_focus", tasks: ["A", "B"] });
+    });
+
+    it("should extract JSON embedded in conversational prose", () => {
+      const messy = 'Sure! Here is your daily plan:\n```json\n{"title": "My Plan"}\n```\nLet me know if you need changes.';
+      const res = extractJsonFromText(messy);
+      expect(res).toEqual({ title: "My Plan" });
+    });
   });
 });
