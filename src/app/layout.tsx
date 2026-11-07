@@ -5,6 +5,11 @@ export const metadata: Metadata = {
   title: "DevLoom — Personal Engineering Workspace",
   description:
     "Track tasks, technical bugs, and learnings in one unified workspace with AI-assisted capture and spaced review.",
+  icons: {
+    icon: "/icon.svg",
+    shortcut: "/icon.svg",
+    apple: "/icon.svg",
+  },
 };
 
 export default function RootLayout({

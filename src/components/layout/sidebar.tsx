@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { DevLoomLogo } from "@/components/icons/devloom-logo";
 import {
   LayoutDashboard,
   CheckSquare,
@@ -28,9 +29,7 @@ export function Sidebar() {
     <aside className="hidden md:flex w-64 border-r border-slate-800 bg-slate-950/80 backdrop-blur flex-col shrink-0 sticky top-0 h-screen max-h-screen overflow-y-auto">
       {/* Brand */}
       <div className="h-16 px-6 flex items-center gap-3 border-b border-slate-800 shrink-0">
-        <div className="h-8 w-8 rounded-xl bg-primary flex items-center justify-center font-bold text-white shadow-md shadow-primary/20">
-          D
-        </div>
+        <DevLoomLogo className="h-8 w-8" />
         <span className="font-semibold text-base tracking-tight text-white">DevLoom</span>
         <span className="ml-auto text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded-full bg-primary-subtle text-primary border border-primary/20">
           Beta

@@ -17,6 +17,7 @@ import {
   Settings,
 } from "lucide-react";
 import { AIIcon } from "@/components/icons/ai";
+import { DevLoomLogo } from "@/components/icons/devloom-logo";
 import clsx from "clsx";
 import { QuickCaptureModal } from "@/components/quick-capture-dialog";
 import { SmartCaptureModal } from "@/components/smart-capture-dialog";
@@ -135,9 +136,7 @@ export function HeaderActions({ userProfile }: HeaderActionsProps) {
             {/* Header */}
             <div className="h-16 px-5 flex items-center justify-between border-b border-slate-800 shrink-0">
               <div className="flex items-center gap-2.5">
-                <div className="h-8 w-8 rounded-xl bg-primary flex items-center justify-center font-bold text-white shadow-md shadow-primary/20">
-                  D
-                </div>
+                <DevLoomLogo className="h-8 w-8" />
                 <span className="font-semibold text-base text-white">DevLoom</span>
               </div>
               <button

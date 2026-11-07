@@ -1,16 +1,15 @@
 import Link from "next/link";
 import { CheckSquare, Bug, Brain, Sparkles, ArrowRight } from "lucide-react";
 import { GithubIcon } from "@/components/icons/github";
+import { DevLoomLogo } from "@/components/icons/devloom-logo";
 
 export default function HomePage() {
   return (
     <div className="flex flex-col min-h-screen">
       {/* Navigation */}
       <header className="px-6 py-4 flex items-center justify-between border-b border-slate-800 bg-[#090d16]/80 backdrop-blur sticky top-0 z-50">
-        <div className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-xl bg-primary flex items-center justify-center font-bold text-white shadow-md shadow-primary/20">
-            D
-          </div>
+        <div className="flex items-center gap-2.5">
+          <DevLoomLogo className="h-8 w-8" />
           <span className="font-semibold text-lg tracking-tight text-white">DevLoom</span>
         </div>
         <div className="flex items-center gap-4">

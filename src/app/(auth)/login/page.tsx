@@ -1,15 +1,14 @@
 import { signIn } from "@/lib/auth/config";
 import { ShieldCheck } from "lucide-react";
 import { GithubIcon } from "@/components/icons/github";
+import { DevLoomLogo } from "@/components/icons/devloom-logo";
 
 export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-[#090d16]">
       <div className="w-full max-w-md p-8 rounded-2xl border border-slate-800 bg-slate-900/70 shadow-2xl backdrop-blur">
         <div className="text-center mb-8">
-          <div className="h-12 w-12 rounded-xl bg-primary flex items-center justify-center font-bold text-white text-xl mx-auto mb-4 shadow-lg shadow-primary/20">
-            D
-          </div>
+          <DevLoomLogo className="h-12 w-12 mx-auto mb-4" />
           <h1 className="text-2xl font-bold tracking-tight text-white">
             Sign in to DevLoom
           </h1>
