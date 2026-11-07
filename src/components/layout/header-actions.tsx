@@ -12,7 +12,7 @@ import {
   LayoutDashboard,
   CheckSquare,
   Bug,
-  Brain,
+  BookOpen,
   FolderKanban,
   Settings,
 } from "lucide-react";
@@ -28,7 +28,7 @@ const mobileNavItems = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Tasks", href: "/tasks", icon: CheckSquare },
   { name: "Bugs", href: "/bugs", icon: Bug },
-  { name: "Learnings", href: "/learnings", icon: Brain },
+  { name: "Knowledge Base", href: "/learnings", icon: BookOpen },
   { name: "Projects", href: "/projects", icon: FolderKanban },
   { name: "Settings", href: "/settings", icon: Settings },
 ];
@@ -120,7 +120,7 @@ export function HeaderActions({ userProfile }: HeaderActionsProps) {
           className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-800 bg-slate-900/80 hover:bg-slate-800 text-slate-300 text-xs font-medium transition cursor-pointer"
         >
           <Plus className="w-3.5 h-3.5" />
-          <span className="hidden md:inline">{pathname?.startsWith("/bugs") ? "Add Bug" : pathname?.startsWith("/tasks") ? "Add Task" : pathname?.startsWith("/learnings") ? "Add Note" : "Add"}</span>
+          <span className="hidden md:inline">{pathname?.startsWith("/bugs") ? "Add Bug" : pathname?.startsWith("/tasks") ? "Add Task" : pathname?.startsWith("/learnings") ? "Add Knowledge" : "Add"}</span>
         </button>
 
         {/* Theme Switcher Toggle */}

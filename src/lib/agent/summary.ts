@@ -163,7 +163,7 @@ export function computeRelevantWorkspaceItems(
         title: l.title,
         priority: "medium",
         status: l.reviewStatus || "review",
-        explanation: `Due for Leitner Box ${l.reviewBox || 1} spaced repetition review today.`,
+        explanation: "Key engineering gotcha or architectural note to keep in mind today.",
         score: 65,
       });
     }

@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { CheckSquare, Bug, Brain, X, Loader2, FolderKanban, Calendar, AlertCircle } from "lucide-react";
+import { CheckSquare, Bug, Brain, BookOpen, X, Loader2, FolderKanban, Calendar, AlertCircle, Zap, Layers, Terminal } from "lucide-react";
 import { MiniTextEditor } from "@/components/ui/mini-text-editor";
 import { formatTaskId } from "@/lib/identifiers";
+import { KnowledgeCategory } from "@/lib/knowledge";
 
 interface QuickCaptureModalProps {
   isOpen: boolean;
@@ -43,6 +44,7 @@ export function QuickCaptureModal({
   const [associatedTaskId, setAssociatedTaskId] = useState<string>("");
 
   // State
+  const [learningCategory, setLearningCategory] = useState<KnowledgeCategory>("gotcha");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
@@ -151,10 +153,30 @@ export function QuickCaptureModal({
         };
       } else if (activeTab === "learning") {
         endpoint = "/api/learnings";
+        let tagIds: string[] = [];
+        const catTagName =
+          learningCategory === "pattern"
+            ? "design-pattern"
+            : learningCategory === "snippet"
+            ? "cli-snippet"
+            : "gotcha";
+        try {
+          const tagRes = await fetch("/api/tags", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name: catTagName, color: "#4285F4" }),
+          });
+          if (tagRes.ok) {
+            const tagData = await tagRes.json();
+            if (tagData?.id) tagIds.push(tagData.id);
+          }
+        } catch {}
+
         body = {
           title: title.trim(),
           content: description.trim() || title.trim(),
           projectId: projectId.trim() || undefined,
+          tagIds: tagIds.length > 0 ? tagIds : undefined,
         };
       }
 
@@ -250,20 +272,20 @@ export function QuickCaptureModal({
               {activeTab === "bug" ? (
                 <Bug className="w-4 h-4" />
               ) : activeTab === "learning" ? (
-                <Brain className="w-4 h-4" />
+                <BookOpen className="w-4 h-4" />
               ) : (
                 <CheckSquare className="w-4 h-4" />
               )}
             </div>
             <div>
               <h2 className="text-base font-semibold text-white">
-                {activeTab === "bug" ? "Report New Bug" : activeTab === "learning" ? "Record Learning" : "Create New Task"}
+                {activeTab === "bug" ? "Report New Bug" : activeTab === "learning" ? "Record Knowledge" : "Create New Task"}
               </h2>
               <p className="text-xs text-slate-400">
                 {activeTab === "bug"
                   ? "Log defect details, priority, target resolution, and stack traces."
                   : activeTab === "learning"
-                  ? "Document insights, technical gotchas, and architectural takeaways."
+                  ? "Document technical gotchas, design patterns, and CLI snippets."
                   : "Track tasks, estimated dates, and development phases."}
               </p>
             </div>
@@ -302,6 +324,54 @@ export function QuickCaptureModal({
               </div>
             )}
           </div>
+
+          {activeTab === "learning" && (
+            <div>
+              <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                Knowledge Category *
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setLearningCategory("gotcha")}
+                  className={`p-2 rounded-xl border text-left flex items-center gap-2 transition cursor-pointer ${
+                    learningCategory === "gotcha"
+                      ? "bg-amber-500/15 border-amber-500/40 text-amber-300 font-medium"
+                      : "bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200"
+                  }`}
+                >
+                  <Zap className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                  <span className="text-xs">Technical Gotcha</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setLearningCategory("pattern")}
+                  className={`p-2 rounded-xl border text-left flex items-center gap-2 transition cursor-pointer ${
+                    learningCategory === "pattern"
+                      ? "bg-purple-500/15 border-purple-500/40 text-purple-300 font-medium"
+                      : "bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200"
+                  }`}
+                >
+                  <Layers className="w-3.5 h-3.5 text-purple-400 shrink-0" />
+                  <span className="text-xs">Design Pattern</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setLearningCategory("snippet")}
+                  className={`p-2 rounded-xl border text-left flex items-center gap-2 transition cursor-pointer ${
+                    learningCategory === "snippet"
+                      ? "bg-sky-500/15 border-sky-500/40 text-sky-300 font-medium"
+                      : "bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200"
+                  }`}
+                >
+                  <Terminal className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+                  <span className="text-xs">CLI Snippet</span>
+                </button>
+              </div>
+            </div>
+          )}
 
           <div>
             <label className="block text-xs font-medium text-slate-300 mb-1.5 flex items-center justify-between">

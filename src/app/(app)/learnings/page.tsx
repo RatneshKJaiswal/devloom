@@ -1,75 +1,53 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Plus,
-  Brain,
+  BookOpen,
   Trash2,
-  Eye,
-  CheckCircle2,
-  RotateCcw,
-  Sparkles,
-  Loader2,
-  HelpCircle,
   Pencil,
-  Play,
   ChevronDown,
   ChevronUp,
   FolderKanban,
   Calendar,
+  Search,
+  Copy,
+  Check,
+  Zap,
   Layers,
+  Terminal,
+  X,
+  Loader2,
+  Tag,
 } from "lucide-react";
 import { QuickCaptureModal } from "@/components/quick-capture-dialog";
 import { EditLearningModal } from "@/components/edit-learning-modal";
 import { MarkdownPreview, stripMarkdown } from "@/components/ui/markdown-preview";
-
-const BOX_INFO: Record<number, { label: string; interval: string; color: string }> = {
-  1: { label: "Box 1 • Daily", interval: "1d interval", color: "bg-sky-500/10 text-sky-400 border-sky-500/25" },
-  2: { label: "Box 2 • 3 Days", interval: "3d interval", color: "bg-cyan-500/10 text-cyan-400 border-cyan-500/25" },
-  3: { label: "Box 3 • Weekly", interval: "7d interval", color: "bg-amber-500/10 text-amber-400 border-amber-500/25" },
-  4: { label: "Box 4 • Bi-weekly", interval: "14d interval", color: "bg-emerald-500/10 text-emerald-400 border-emerald-500/25" },
-  5: { label: "Box 5 • Mastered", interval: "30d interval", color: "bg-purple-500/10 text-purple-400 border-purple-500/25" },
-};
-
-const STATUS_CONFIG: Record<string, { label: string; badgeClass: string }> = {
-  new: { label: "New Note", badgeClass: "bg-sky-500/15 text-sky-300 border-sky-500/30" },
-  learning: { label: "In Practice", badgeClass: "bg-amber-500/15 text-amber-300 border-amber-500/30" },
-  learned: { label: "Retained", badgeClass: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30" },
-  mastered: { label: "Mastered", badgeClass: "bg-purple-500/15 text-purple-300 border-purple-500/30" },
-};
+import {
+  inferKnowledgeCategory,
+  KNOWLEDGE_CATEGORIES,
+  KnowledgeCategory,
+} from "@/lib/knowledge";
 
 export default function LearningsPage() {
   const [learnings, setLearnings] = useState<any[]>([]);
-  const [dueLearnings, setDueLearnings] = useState<any[]>([]);
   const [projects, setProjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingLearning, setEditingLearning] = useState<any | null>(null);
   const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({});
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  // Review mode state
-  const [isReviewing, setIsReviewing] = useState(false);
-  const [reviewQueue, setReviewQueue] = useState<any[]>([]);
-  const [currentReviewIndex, setCurrentReviewIndex] = useState(0);
-  const [isAnswerRevealed, setIsAnswerRevealed] = useState(false);
-  const [submittingReview, setSubmittingReview] = useState(false);
-
-  // AI Quiz state
-  const [quizLoading, setQuizLoading] = useState(false);
-  const [quizData, setQuizData] = useState<{
-    question: string;
-    hints: string[];
-    explanation: string;
-    practicalScenario?: string;
-  } | null>(null);
-  const [showHint, setShowHint] = useState(false);
+  // Filters
+  const [selectedCategory, setSelectedCategory] = useState<KnowledgeCategory | "all">("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [projectFilter, setProjectFilter] = useState<string>("all");
 
   async function loadData() {
     setLoading(true);
     try {
-      const [allRes, dueRes, projRes] = await Promise.all([
+      const [allRes, projRes] = await Promise.all([
         fetch("/api/learnings"),
-        fetch("/api/learnings/review"),
         fetch("/api/projects"),
       ]);
 
@@ -77,16 +55,12 @@ export default function LearningsPage() {
         const allData = await allRes.json();
         setLearnings(Array.isArray(allData) ? allData : []);
       }
-      if (dueRes.ok) {
-        const dueData = await dueRes.json();
-        setDueLearnings(Array.isArray(dueData) ? dueData : []);
-      }
       if (projRes.ok) {
         const projData = await projRes.json();
         setProjects(Array.isArray(projData) ? projData : []);
       }
     } catch (err) {
-      console.error("Failed to load learnings:", err);
+      console.error("Failed to load knowledge entries:", err);
     } finally {
       setLoading(false);
     }
@@ -96,84 +70,15 @@ export default function LearningsPage() {
     loadData();
   }, []);
 
-  function startReviewSession(items: any[], startIndex = 0) {
-    if (!items || items.length === 0) return;
-    setReviewQueue(items);
-    setCurrentReviewIndex(startIndex);
-    setIsAnswerRevealed(false);
-    setQuizData(null);
-    setShowHint(false);
-    setIsReviewing(true);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }
-
-  async function handleLoadQuiz() {
-    const item = reviewQueue[currentReviewIndex];
-    if (!item) return;
-
-    setQuizLoading(true);
-    try {
-      const res = await fetch("/api/agent/quiz", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ learningId: item.id }),
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        setQuizData(data);
-      }
-    } catch (err) {
-      console.error("Failed to generate AI quiz:", err);
-    } finally {
-      setQuizLoading(false);
-    }
-  }
-
-  async function handleReviewResult(passed: boolean) {
-    const currentItem = reviewQueue[currentReviewIndex];
-    if (!currentItem) return;
-
-    setSubmittingReview(true);
-    try {
-      const res = await fetch(`/api/learnings/${currentItem.id}/review`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ passed }),
-      });
-
-      if (res.ok) {
-        setIsAnswerRevealed(false);
-        setQuizData(null);
-        setShowHint(false);
-
-        if (currentReviewIndex + 1 < reviewQueue.length) {
-          setCurrentReviewIndex((prev) => prev + 1);
-        } else {
-          // Completed review queue
-          setIsReviewing(false);
-          setCurrentReviewIndex(0);
-          setReviewQueue([]);
-          await loadData();
-        }
-      }
-    } catch (err) {
-      console.error("Failed to submit review:", err);
-    } finally {
-      setSubmittingReview(false);
-    }
-  }
-
   async function deleteLearning(id: string) {
-    if (!confirm("Are you sure you want to delete this learning note?")) return;
+    if (!confirm("Are you sure you want to delete this knowledge entry?")) return;
     try {
       const res = await fetch(`/api/learnings/${id}`, { method: "DELETE" });
       if (res.ok) {
         setLearnings((prev) => prev.filter((l) => l.id !== id));
-        setDueLearnings((prev) => prev.filter((l) => l.id !== id));
       }
     } catch (err) {
-      console.error("Failed to delete learning:", err);
+      console.error("Failed to delete entry:", err);
     }
   }
 
@@ -184,349 +89,377 @@ export default function LearningsPage() {
     }));
   }
 
-  const currentItem = reviewQueue[currentReviewIndex];
+  function handleCopyContent(id: string, text: string) {
+    navigator.clipboard.writeText(text);
+    setCopiedId(id);
+    setTimeout(() => {
+      setCopiedId((curr) => (curr === id ? null : curr));
+    }, 2000);
+  }
+
+  // Categorize items
+  const categorizedLearnings = useMemo(() => {
+    return learnings.map((item) => ({
+      ...item,
+      category: inferKnowledgeCategory(item),
+    }));
+  }, [learnings]);
+
+  // Counts per category
+  const counts = useMemo(() => {
+    const map = { all: learnings.length, gotcha: 0, pattern: 0, snippet: 0 };
+    for (const item of categorizedLearnings) {
+      if (item.category === "gotcha") map.gotcha++;
+      else if (item.category === "pattern") map.pattern++;
+      else if (item.category === "snippet") map.snippet++;
+    }
+    return map;
+  }, [categorizedLearnings, learnings.length]);
+
+  // Filtered list
+  const filteredLearnings = useMemo(() => {
+    return categorizedLearnings.filter((item) => {
+      // Category filter
+      if (selectedCategory !== "all" && item.category !== selectedCategory) {
+        return false;
+      }
+
+      // Project filter
+      if (projectFilter !== "all" && item.projectId !== projectFilter) {
+        return false;
+      }
+
+      // Search query
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase().trim();
+        const titleMatch = (item.title || "").toLowerCase().includes(q);
+        const contentMatch = (item.content || "").toLowerCase().includes(q);
+        const tagMatch = (item.tags || []).some((t: any) =>
+          (t.name || "").toLowerCase().includes(q)
+        );
+        const projectMatch = (item.projectName || "").toLowerCase().includes(q);
+        if (!titleMatch && !contentMatch && !tagMatch && !projectMatch) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }, [categorizedLearnings, selectedCategory, projectFilter, searchQuery]);
 
   return (
-    <div className="space-y-8 max-w-5xl mx-auto">
+    <div className="space-y-6 max-w-6xl mx-auto">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
-            <Brain className="w-6 h-6 text-emerald-400" />
-            <span>Learnings & Spaced Review</span>
+          <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2.5">
+            <BookOpen className="w-6 h-6 text-emerald-400" />
+            <span>Knowledge Base</span>
           </h1>
           <p className="mt-1 text-sm text-slate-400">
-            Resurface technical gotchas, design patterns, and CLI snippets with a 5-box Leitner review engine.
+            Engineering repository for technical gotchas, design patterns, and CLI snippets.
           </p>
         </div>
 
         <button
           onClick={() => setIsCreateOpen(true)}
-          className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium flex items-center gap-1.5 shadow-md shadow-emerald-600/20 transition cursor-pointer self-start sm:self-auto"
+          className="px-4 py-2 rounded-xl bg-primary hover:bg-primary-hover text-white text-xs font-medium flex items-center gap-1.5 shadow-md shadow-primary/20 transition cursor-pointer self-start sm:self-auto"
         >
           <Plus className="w-4 h-4" />
-          <span>New Learning</span>
+          <span>New Entry</span>
         </button>
       </div>
 
-      {/* Spaced Review Queue Banner */}
-      {!isReviewing && (
-        <div className="p-6 rounded-2xl border border-emerald-500/30 bg-emerald-950/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-emerald-400" />
-              <h2 className="text-base font-semibold text-white">
-                {dueLearnings.length > 0
-                  ? `${dueLearnings.length} learning${dueLearnings.length > 1 ? "s" : ""} scheduled for review`
-                  : "All notes up to date"}
-              </h2>
-            </div>
-            <p className="text-xs text-slate-300">
-              {dueLearnings.length > 0
-                ? "Revisiting insights at scheduled Leitner intervals cements them permanently in your memory."
-                : "No notes are overdue right now. You can still practice any card instantly below or launch a recall session."}
-            </p>
-          </div>
+      {/* Category Pills Bar */}
+      <div className="flex flex-wrap items-center gap-2 border-b border-slate-800 pb-4">
+        <button
+          type="button"
+          onClick={() => setSelectedCategory("all")}
+          className={`px-3.5 py-1.5 rounded-xl text-xs font-medium flex items-center gap-2 transition cursor-pointer ${
+            selectedCategory === "all"
+              ? "bg-slate-800 text-white border border-slate-700 shadow-sm"
+              : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/60"
+          }`}
+        >
+          <span>All Entries</span>
+          <span
+            className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
+              selectedCategory === "all"
+                ? "bg-primary/20 text-primary font-bold"
+                : "bg-slate-900 text-slate-400"
+            }`}
+          >
+            {counts.all}
+          </span>
+        </button>
 
-          <div className="flex items-center gap-2 shrink-0">
-            {dueLearnings.length > 0 ? (
-              <button
-                onClick={() => startReviewSession(dueLearnings)}
-                className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium shadow-lg shadow-emerald-600/30 transition cursor-pointer"
-              >
-                Start Scheduled Session ({dueLearnings.length})
-              </button>
-            ) : learnings.length > 0 ? (
-              <button
-                onClick={() => startReviewSession(learnings)}
-                className="px-4 py-2 rounded-xl border border-emerald-500/40 bg-emerald-950/30 hover:bg-emerald-900/40 text-emerald-300 text-xs font-medium transition cursor-pointer flex items-center gap-1.5"
-              >
-                <Play className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Practice All Notes</span>
-              </button>
-            ) : null}
-          </div>
-        </div>
-      )}
+        <button
+          type="button"
+          onClick={() => setSelectedCategory("gotcha")}
+          className={`px-3.5 py-1.5 rounded-xl text-xs font-medium flex items-center gap-2 transition cursor-pointer ${
+            selectedCategory === "gotcha"
+              ? "bg-amber-500/15 text-amber-300 border border-amber-500/30 shadow-sm shadow-amber-500/10"
+              : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/60"
+          }`}
+        >
+          <Zap className="w-3.5 h-3.5 text-amber-400" />
+          <span>Technical Gotchas</span>
+          <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-amber-500/20 text-amber-300 font-bold">
+            {counts.gotcha}
+          </span>
+        </button>
 
-      {/* Interactive Flashcard Review Runner */}
-      {isReviewing && currentItem && (
-        <div className="p-8 rounded-2xl border border-emerald-500/40 bg-slate-900 shadow-2xl space-y-6">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-4">
-            <div className="flex items-center gap-2">
-              <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${BOX_INFO[currentItem.reviewBox]?.color || "text-emerald-400"}`}>
-                {BOX_INFO[currentItem.reviewBox]?.label || `Box ${currentItem.reviewBox}`}
-              </span>
-              <span className="text-xs text-slate-400">
-                Card {currentReviewIndex + 1} of {reviewQueue.length}
-              </span>
-            </div>
+        <button
+          type="button"
+          onClick={() => setSelectedCategory("pattern")}
+          className={`px-3.5 py-1.5 rounded-xl text-xs font-medium flex items-center gap-2 transition cursor-pointer ${
+            selectedCategory === "pattern"
+              ? "bg-purple-500/15 text-purple-300 border border-purple-500/30 shadow-sm shadow-purple-500/10"
+              : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/60"
+          }`}
+        >
+          <Layers className="w-3.5 h-3.5 text-purple-400" />
+          <span>Design Patterns</span>
+          <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-purple-500/20 text-purple-300 font-bold">
+            {counts.pattern}
+          </span>
+        </button>
 
+        <button
+          type="button"
+          onClick={() => setSelectedCategory("snippet")}
+          className={`px-3.5 py-1.5 rounded-xl text-xs font-medium flex items-center gap-2 transition cursor-pointer ${
+            selectedCategory === "snippet"
+              ? "bg-sky-500/15 text-sky-300 border border-sky-500/30 shadow-sm shadow-sky-500/10"
+              : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/60"
+          }`}
+        >
+          <Terminal className="w-3.5 h-3.5 text-sky-400" />
+          <span>CLI Snippets</span>
+          <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-sky-500/20 text-sky-300 font-bold">
+            {counts.snippet}
+          </span>
+        </button>
+      </div>
+
+      {/* Filter and Search Controls */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+        {/* Search */}
+        <div className="relative flex-1">
+          <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search gotchas, design patterns, commands, or tags..."
+            className="w-full !pl-10 pr-9 py-2 rounded-xl border border-slate-800 bg-slate-900/70 text-white placeholder:text-slate-500 focus:outline-none focus:border-primary text-xs"
+          />
+          {searchQuery && (
             <button
-              onClick={() => {
-                setIsReviewing(false);
-                setQuizData(null);
-                setReviewQueue([]);
-              }}
-              className="text-xs text-slate-400 hover:text-white transition cursor-pointer px-2 py-1 rounded-lg hover:bg-slate-800"
+              type="button"
+              onClick={() => setSearchQuery("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 rounded text-slate-400 hover:text-white"
             >
-              Exit Session
+              <X className="w-3.5 h-3.5" />
             </button>
-          </div>
-
-          {/* Flashcard Content */}
-          <div className="space-y-4 py-2 min-h-[160px]">
-            <div>
-              <span className="text-xs uppercase tracking-wider text-slate-400 block mb-1">
-                Concept / Topic
-              </span>
-              <h2 className="text-xl font-bold text-white">{currentItem.title}</h2>
-            </div>
-
-            {/* AI Active-Recall Quiz Section */}
-            {quizData ? (
-              <div className="p-4 rounded-xl border border-primary/30 bg-primary-subtle space-y-3">
-                <div className="flex items-center gap-2 text-xs font-semibold text-primary">
-                  <Sparkles className="w-4 h-4" />
-                  <span>AI Recall Challenge</span>
-                </div>
-                <p className="text-sm font-medium text-white">{quizData.question}</p>
-
-                {quizData.hints.length > 0 && (
-                  <div>
-                    {!showHint ? (
-                      <button
-                        type="button"
-                        onClick={() => setShowHint(true)}
-                        className="text-xs text-primary hover:underline flex items-center gap-1 cursor-pointer"
-                      >
-                        <HelpCircle className="w-3.5 h-3.5" />
-                        <span>Need a hint?</span>
-                      </button>
-                    ) : (
-                      <div className="text-xs text-slate-300 italic p-2 rounded bg-black/40 border border-slate-800">
-                        Hint: {quizData.hints[0]}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            ) : (
-              <button
-                type="button"
-                disabled={quizLoading}
-                onClick={handleLoadQuiz}
-                className="px-3.5 py-1.5 rounded-lg border border-slate-700 bg-slate-800/60 hover:bg-slate-800 text-xs font-medium text-slate-300 flex items-center gap-2 transition cursor-pointer"
-              >
-                {quizLoading ? (
-                  <Loader2 className="w-3.5 h-3.5 text-primary animate-spin" />
-                ) : (
-                  <Sparkles className="w-3.5 h-3.5 text-primary" />
-                )}
-                <span>Generate Active-Recall Question</span>
-              </button>
-            )}
-
-            {/* Answer & Explanation */}
-            {isAnswerRevealed ? (
-              <div className="space-y-3 pt-3 border-t border-slate-800">
-                <span className="text-xs uppercase tracking-wider text-emerald-400 font-semibold block">
-                  Knowledge / Content
-                </span>
-                <div className="max-h-72 overflow-y-auto p-4 rounded-xl bg-slate-950/80 border border-slate-800 text-xs text-slate-200">
-                  <MarkdownPreview content={currentItem.content} />
-                </div>
-
-                {quizData?.explanation && (
-                  <div className="mt-3 p-3 rounded-lg bg-black/40 border border-slate-800 text-xs text-slate-300">
-                    <span className="font-semibold text-primary block mb-1">AI Takeaway:</span>
-                    {quizData.explanation}
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="pt-4 text-center">
-                <button
-                  type="button"
-                  onClick={() => setIsAnswerRevealed(true)}
-                  className="px-4 py-2 rounded-xl border border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-slate-200 text-xs font-medium inline-flex items-center gap-2 transition cursor-pointer"
-                >
-                  <Eye className="w-4 h-4 text-emerald-400" />
-                  <span>Reveal Answer</span>
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Evaluation Controls */}
-          {isAnswerRevealed && (
-            <div className="flex flex-col sm:flex-row items-center justify-end gap-3 pt-4 border-t border-slate-800">
-              <button
-                type="button"
-                disabled={submittingReview}
-                onClick={() => handleReviewResult(false)}
-                className="w-full sm:w-auto px-4 py-2 rounded-xl border border-red-500/30 bg-red-950/20 hover:bg-red-950/40 text-red-400 text-xs font-medium flex items-center justify-center gap-2 transition cursor-pointer"
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-                <span>Forgot (Reset to Box 1 • 1d)</span>
-              </button>
-
-              <button
-                type="button"
-                disabled={submittingReview}
-                onClick={() => handleReviewResult(true)}
-                className="w-full sm:w-auto px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium flex items-center justify-center gap-2 shadow-md shadow-emerald-600/20 transition cursor-pointer"
-              >
-                <CheckCircle2 className="w-4 h-4" />
-                <span>Remembered (Advance Stage)</span>
-              </button>
-            </div>
           )}
         </div>
-      )}
 
-      {/* Complete Learning Library */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-white">
-            Knowledge Base ({learnings.length})
-          </h2>
-          <span className="text-xs text-slate-400">
-            5-Stage Leitner retention engine
-          </span>
-        </div>
-
-        {loading ? (
-          <div className="p-16 flex items-center justify-center">
-            <Loader2 className="w-6 h-6 text-emerald-400 animate-spin" />
-          </div>
-        ) : learnings.length === 0 ? (
-          <div className="p-16 text-center border border-dashed border-slate-800 rounded-2xl bg-slate-900/20">
-            <Brain className="w-8 h-8 text-slate-600 mx-auto mb-3" />
-            <h3 className="text-sm font-semibold text-slate-300">No learnings recorded yet</h3>
-            <p className="mt-1 text-xs text-slate-400 max-w-sm mx-auto mb-4">
-              Whenever you encounter a tricky bug, architectural insight, or CLI command, record it here for automated spaced review.
-            </p>
-            <button
-              onClick={() => setIsCreateOpen(true)}
-              className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium transition cursor-pointer"
+        {/* Project Selector */}
+        {projects.length > 0 && (
+          <div className="relative min-w-[200px]">
+            <FolderKanban className="w-3.5 h-3.5 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <select
+              value={projectFilter}
+              onChange={(e) => setProjectFilter(e.target.value)}
+              className="w-full !pl-9 pr-8 py-2 rounded-xl border border-slate-800 bg-slate-900/70 text-slate-300 focus:outline-none focus:border-primary text-xs cursor-pointer"
             >
-              Add First Learning
-            </button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {learnings.map((item) => {
-              const isExpanded = !!expandedCards[item.id];
-              const boxCfg = BOX_INFO[item.reviewBox] || BOX_INFO[1];
-              const statusCfg = STATUS_CONFIG[item.reviewStatus] || STATUS_CONFIG.new;
-
-              return (
-                <div
-                  key={item.id}
-                  className="p-5 rounded-2xl border border-slate-800 bg-slate-900/50 hover:border-slate-700/80 transition flex flex-col justify-between gap-4 relative group"
-                >
-                  <div className="space-y-2.5">
-                    {/* Header Chips & Card Controls */}
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${boxCfg.color}`}>
-                          {boxCfg.label}
-                        </span>
-                        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${statusCfg.badgeClass}`}>
-                          {statusCfg.label}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center gap-1 shrink-0">
-                        {/* Instant practice button */}
-                        <button
-                          type="button"
-                          onClick={() => startReviewSession([item])}
-                          title="Practice this card now"
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-emerald-400 hover:bg-slate-800 transition cursor-pointer"
-                        >
-                          <Play className="w-3.5 h-3.5" />
-                        </button>
-
-                        {/* Edit Button */}
-                        <button
-                          type="button"
-                          onClick={() => setEditingLearning(item)}
-                          title="Edit learning"
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
-                        >
-                          <Pencil className="w-3.5 h-3.5" />
-                        </button>
-
-                        {/* Delete Button */}
-                        <button
-                          type="button"
-                          onClick={() => deleteLearning(item.id)}
-                          title="Delete learning"
-                          className="p-1.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-slate-800 transition cursor-pointer"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Note Title */}
-                    <h3
-                      onClick={() => setEditingLearning(item)}
-                      className="text-base font-semibold text-white hover:text-emerald-300 transition cursor-pointer"
-                    >
-                      {item.title}
-                    </h3>
-
-                    {/* Note Content (Expandable & Scrollable with Markdown) */}
-                    <div>
-                      {isExpanded ? (
-                        <div className="max-h-80 overflow-y-auto p-3.5 rounded-xl bg-slate-950/80 border border-slate-800/80 text-xs text-slate-200">
-                          <MarkdownPreview content={item.content} />
-                        </div>
-                      ) : (
-                        <p className="text-xs text-slate-300 line-clamp-3 leading-relaxed">
-                          {stripMarkdown(item.content)}
-                        </p>
-                      )}
-
-                      {(item.content.length > 80 || item.content.includes("\n") || item.content.includes("```")) && (
-                        <button
-                          type="button"
-                          onClick={() => toggleCardExpand(item.id)}
-                          className="mt-1.5 text-[11px] font-medium text-emerald-400 hover:text-emerald-300 transition flex items-center gap-1 cursor-pointer"
-                        >
-                          <span>{isExpanded ? "Collapse Note" : "Read Full Note (Markdown)"}</span>
-                          {isExpanded ? (
-                            <ChevronUp className="w-3 h-3" />
-                          ) : (
-                            <ChevronDown className="w-3 h-3" />
-                          )}
-                        </button>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Card Footer */}
-                  <div className="text-[11px] text-slate-400 pt-3 border-t border-slate-800/80 flex items-center justify-between">
-                    <span className="flex items-center gap-1">
-                      <Calendar className="w-3 h-3 text-slate-500" />
-                      <span>Next review: {new Date(item.nextReviewAt).toLocaleDateString()}</span>
-                    </span>
-                    {item.projectName && (
-                      <span className="text-emerald-400 font-medium flex items-center gap-1">
-                        <FolderKanban className="w-3 h-3" />
-                        <span>{item.projectName}</span>
-                      </span>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+              <option value="all">All Projects</option>
+              {projects.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+            </select>
           </div>
         )}
       </div>
+
+      {/* Content Library */}
+      {loading ? (
+        <div className="p-20 flex flex-col items-center justify-center gap-3 text-slate-400">
+          <Loader2 className="w-7 h-7 text-primary animate-spin" />
+          <p className="text-xs">Loading knowledge entries...</p>
+        </div>
+      ) : filteredLearnings.length === 0 ? (
+        <div className="p-16 text-center border border-dashed border-slate-800 rounded-2xl bg-slate-900/20">
+          <BookOpen className="w-9 h-9 text-slate-600 mx-auto mb-3" />
+          <h3 className="text-sm font-semibold text-white">No knowledge entries found</h3>
+          <p className="mt-1 text-xs text-slate-400 max-w-sm mx-auto mb-4">
+            {searchQuery || selectedCategory !== "all" || projectFilter !== "all"
+              ? "No entries match your current search or category filter. Try clearing filters."
+              : "Capture technical gotchas, design patterns, and CLI snippets so you and your team never solve the same problem twice."}
+          </p>
+          {searchQuery || selectedCategory !== "all" || projectFilter !== "all" ? (
+            <button
+              onClick={() => {
+                setSelectedCategory("all");
+                setProjectFilter("all");
+                setSearchQuery("");
+              }}
+              className="px-4 py-2 rounded-xl border border-slate-700 bg-slate-800 hover:bg-slate-700 text-white text-xs font-medium transition cursor-pointer"
+            >
+              Clear Filters
+            </button>
+          ) : (
+            <button
+              onClick={() => setIsCreateOpen(true)}
+              className="px-4 py-2 rounded-xl bg-primary hover:bg-primary-hover text-white text-xs font-medium shadow-md shadow-primary/20 transition cursor-pointer"
+            >
+              Add First Entry
+            </button>
+          )}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {filteredLearnings.map((item) => {
+            const isExpanded = !!expandedCards[item.id];
+            const catCfg = KNOWLEDGE_CATEGORIES[item.category as KnowledgeCategory] || KNOWLEDGE_CATEGORIES.gotcha;
+            const isCopied = copiedId === item.id;
+
+            return (
+              <div
+                key={item.id}
+                className="p-5 rounded-2xl border border-slate-800 bg-slate-900/60 hover:border-slate-700/80 transition flex flex-col justify-between gap-4 relative group"
+              >
+                <div className="space-y-3">
+                  {/* Top Header: Category Badge + Project + Actions */}
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {/* Category Badge */}
+                      <span
+                        className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border flex items-center gap-1 ${catCfg.badgeClass}`}
+                      >
+                        {item.category === "gotcha" && <Zap className="w-3 h-3 text-amber-400" />}
+                        {item.category === "pattern" && <Layers className="w-3 h-3 text-purple-400" />}
+                        {item.category === "snippet" && <Terminal className="w-3 h-3 text-sky-400" />}
+                        <span>{catCfg.label}</span>
+                      </span>
+
+                      {/* Project Badge */}
+                      {item.projectName && (
+                        <span
+                          onClick={() => setProjectFilter(item.projectId)}
+                          className="text-[10px] font-medium px-2 py-0.5 rounded bg-primary-subtle text-primary border border-primary/20 cursor-pointer hover:bg-primary/20 transition"
+                          title="Filter by this project"
+                        >
+                          {item.projectName}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex items-center gap-1 shrink-0">
+                      {/* Copy snippet button */}
+                      <button
+                        type="button"
+                        onClick={() => handleCopyContent(item.id, item.content)}
+                        title="Copy content / snippet"
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
+                      >
+                        {isCopied ? (
+                          <Check className="w-3.5 h-3.5 text-emerald-400" />
+                        ) : (
+                          <Copy className="w-3.5 h-3.5" />
+                        )}
+                      </button>
+
+                      {/* Edit Button */}
+                      <button
+                        type="button"
+                        onClick={() => setEditingLearning(item)}
+                        title="Edit knowledge entry"
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
+
+                      {/* Delete Button */}
+                      <button
+                        type="button"
+                        onClick={() => deleteLearning(item.id)}
+                        title="Delete entry"
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-slate-800 transition cursor-pointer"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Title */}
+                  <h3
+                    onClick={() => setEditingLearning(item)}
+                    className="text-base font-semibold text-white hover:text-primary transition cursor-pointer leading-snug"
+                  >
+                    {item.title}
+                  </h3>
+
+                  {/* Content Preview / Full Markdown View */}
+                  <div>
+                    {isExpanded ? (
+                      <div className="max-h-96 overflow-y-auto p-4 rounded-xl bg-slate-950/80 border border-slate-800 text-xs text-slate-200">
+                        <MarkdownPreview content={item.content} />
+                      </div>
+                    ) : (
+                      <div className="text-xs text-slate-300 leading-relaxed font-normal line-clamp-3">
+                        {stripMarkdown(item.content)}
+                      </div>
+                    )}
+
+                    {(item.content.length > 90 ||
+                      item.content.includes("\n") ||
+                      item.content.includes("```")) && (
+                      <button
+                        type="button"
+                        onClick={() => toggleCardExpand(item.id)}
+                        className="mt-2 text-[11px] font-medium text-primary hover:underline transition flex items-center gap-1 cursor-pointer"
+                      >
+                        <span>{isExpanded ? "Show less" : "Read full note / snippet"}</span>
+                        {isExpanded ? (
+                          <ChevronUp className="w-3 h-3" />
+                        ) : (
+                          <ChevronDown className="w-3 h-3" />
+                        )}
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Footer: Date + Tags */}
+                <div className="text-[11px] text-slate-400 pt-3 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-2">
+                  <span className="flex items-center gap-1 text-slate-500">
+                    <Calendar className="w-3 h-3" />
+                    <span>Added {new Date(item.createdAt).toLocaleDateString()}</span>
+                  </span>
+
+                  {item.tags && item.tags.length > 0 && (
+                    <div className="flex flex-wrap items-center gap-1">
+                      {item.tags.map((t: any) => (
+                        <span
+                          key={t.id || t.name}
+                          className="text-[10px] px-1.5 py-0.2 rounded bg-slate-800/80 text-slate-300 border border-slate-700/60 font-mono"
+                        >
+                          #{t.name}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Create Learning Dialog */}
       <QuickCaptureModal

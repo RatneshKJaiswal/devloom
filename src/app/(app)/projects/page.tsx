@@ -11,6 +11,7 @@ import {
   CheckSquare,
   Bug,
   Brain,
+  BookOpen,
   ArrowRight,
   Calendar,
   ExternalLink,
@@ -27,6 +28,7 @@ import { SDLC_PHASE_CONFIG } from "@/lib/tokens";
 
 import { formatTaskId, formatBugId } from "@/lib/identifiers";
 import { stripMarkdown } from "@/components/ui/markdown-preview";
+import { inferKnowledgeCategory, KNOWLEDGE_CATEGORIES } from "@/lib/knowledge";
 
 export default function ProjectsPage() {
   const router = useRouter();
@@ -470,8 +472,8 @@ export default function ProjectsPage() {
                       : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/60"
                   }`}
                 >
-                  <Brain className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>Learnings</span>
+                  <BookOpen className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Knowledge</span>
                   <span
                     className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono ${
                       activeTab === "learnings"
@@ -627,23 +629,28 @@ export default function ProjectsPage() {
                 <div className="space-y-2">
                   {(!projectDetails?.learnings || projectDetails.learnings.length === 0) ? (
                     <div className="p-8 text-center text-xs text-slate-400 border border-dashed border-slate-800 rounded-xl">
-                      No learnings recorded under this project yet.
+                      No knowledge entries recorded under this project yet.
                     </div>
                   ) : (
-                    projectDetails.learnings.map((learning: any) => (
-                      <div
-                        key={learning.id}
-                        className="p-3.5 rounded-xl border border-slate-800 bg-slate-950/60 flex items-center justify-between gap-3 text-xs"
-                      >
-                        <div className="space-y-1">
-                          <span className="font-semibold text-white">{learning.title}</span>
-                          <p className="text-slate-400 text-[11px] line-clamp-1">{stripMarkdown(learning.content)}</p>
+                    projectDetails.learnings.map((learning: any) => {
+                      const cat = inferKnowledgeCategory(learning);
+                      const catCfg = KNOWLEDGE_CATEGORIES[cat] || KNOWLEDGE_CATEGORIES.gotcha;
+
+                      return (
+                        <div
+                          key={learning.id}
+                          className="p-3.5 rounded-xl border border-slate-800 bg-slate-950/60 flex items-center justify-between gap-3 text-xs"
+                        >
+                          <div className="space-y-1">
+                            <span className="font-semibold text-white">{learning.title}</span>
+                            <p className="text-slate-400 text-[11px] line-clamp-1">{stripMarkdown(learning.content)}</p>
+                          </div>
+                          <span className={`text-[10px] uppercase font-semibold px-2 py-0.5 rounded-full border ${catCfg.badgeClass}`}>
+                            {catCfg.shortLabel}
+                          </span>
                         </div>
-                        <span className="text-[10px] uppercase px-1.5 py-0.5 rounded bg-emerald-950/40 text-emerald-300 border border-emerald-500/20">
-                          Box {learning.reviewBox}
-                        </span>
-                      </div>
-                    ))
+                      );
+                    })
                   )}
                 </div>
               )}

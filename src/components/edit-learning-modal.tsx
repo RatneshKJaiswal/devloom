@@ -2,8 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { Brain, X, Loader2, FolderKanban, Sparkles } from "lucide-react";
+import { BookOpen, X, Loader2, FolderKanban, Zap, Layers, Terminal } from "lucide-react";
 import { MiniTextEditor } from "@/components/ui/mini-text-editor";
+import {
+  inferKnowledgeCategory,
+  KnowledgeCategory,
+  KNOWLEDGE_CATEGORIES,
+} from "@/lib/knowledge";
 
 interface EditLearningModalProps {
   isOpen: boolean;
@@ -12,14 +17,6 @@ interface EditLearningModalProps {
   projects?: any[];
   onSuccess?: () => void;
 }
-
-const BOX_OPTIONS = [
-  { value: 1, label: "Box 1 • Daily (1 day review interval)" },
-  { value: 2, label: "Box 2 • 3 Days (short retention)" },
-  { value: 3, label: "Box 3 • Weekly (7 days review interval)" },
-  { value: 4, label: "Box 4 • Bi-weekly (14 days reinforcement)" },
-  { value: 5, label: "Box 5 • Mastered (30 days long-term retention)" },
-];
 
 export function EditLearningModal({
   isOpen,
@@ -31,8 +28,7 @@ export function EditLearningModal({
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [projectId, setProjectId] = useState<string>("");
-  const [reviewBox, setReviewBox] = useState<number>(1);
-  const [reviewStatus, setReviewStatus] = useState<"new" | "learning" | "learned" | "mastered">("new");
+  const [category, setCategory] = useState<KnowledgeCategory>("gotcha");
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -58,8 +54,7 @@ export function EditLearningModal({
       setTitle(learning.title || "");
       setContent(learning.content || "");
       setProjectId(learning.projectId || "");
-      setReviewBox(learning.reviewBox || 1);
-      setReviewStatus(learning.reviewStatus || "new");
+      setCategory(inferKnowledgeCategory(learning));
       setError(null);
     }
   }, [learning, isOpen]);
@@ -77,6 +72,31 @@ export function EditLearningModal({
     setError(null);
 
     try {
+      // 1. Resolve or create category tag
+      let tagIds = (learning.tags || []).map((t: any) => t.id).filter(Boolean);
+      const categoryTagMap: Record<KnowledgeCategory, string> = {
+        gotcha: "gotcha",
+        pattern: "design-pattern",
+        snippet: "cli-snippet",
+      };
+      const desiredTagName = categoryTagMap[category];
+
+      // Create or find category tag if not present
+      try {
+        const tagRes = await fetch("/api/tags", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: desiredTagName, color: "#4285F4" }),
+        });
+        if (tagRes.ok) {
+          const tagData = await tagRes.json();
+          if (tagData?.id && !tagIds.includes(tagData.id)) {
+            // Remove previous category tags if changing
+            tagIds = [...tagIds, tagData.id];
+          }
+        }
+      } catch {}
+
       const res = await fetch(`/api/learnings/${learning.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -84,14 +104,13 @@ export function EditLearningModal({
           title: title.trim(),
           content: content.trim(),
           projectId: projectId.trim() || null,
-          reviewBox: Number(reviewBox),
-          reviewStatus,
+          tagIds: tagIds.length > 0 ? tagIds : undefined,
         }),
       });
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        let message = data.error || "Failed to update learning note";
+        let message = data.error || "Failed to update knowledge entry";
         if (data.details) {
           const detailList = Object.entries(data.details)
             .map(([field, errs]) => `${field}: ${(errs as string[]).join(", ")}`)
@@ -104,15 +123,15 @@ export function EditLearningModal({
       onClose();
       if (onSuccess) onSuccess();
     } catch (err: any) {
-      setError(err.message || "Failed to update learning");
+      setError(err.message || "Failed to update knowledge entry");
     } finally {
       setLoading(false);
     }
   }
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs">
-      <div className="w-full max-w-2xl rounded-2xl border border-slate-800 bg-slate-900 shadow-2xl p-6 relative max-h-[92vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs">
+      <div className="w-full max-w-2xl rounded-2xl border border-slate-800 bg-slate-900 shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto">
         <button
           onClick={onClose}
           className="absolute right-4 top-4 p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
@@ -122,12 +141,12 @@ export function EditLearningModal({
 
         <div className="flex items-center gap-2.5 mb-5 pb-3 border-b border-slate-800">
           <div className="w-9 h-9 rounded-xl bg-success-subtle border border-success/20 flex items-center justify-center text-success">
-            <Brain className="w-5 h-5" />
+            <BookOpen className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-base font-semibold text-white">Edit Knowledge Note</h2>
+            <h2 className="text-base font-semibold text-white">Edit Knowledge Entry</h2>
             <p className="text-xs text-slate-400">
-              Update technical takeaways, code snippets, or Leitner retention stages.
+              Update technical gotchas, design patterns, or CLI snippets.
             </p>
           </div>
         </div>
@@ -149,80 +168,94 @@ export function EditLearningModal({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g. Next.js 16 Middleware edge runtime limitations"
-              className="w-full px-4 py-2.5 rounded-xl border border-slate-700 bg-slate-950 text-sm text-white focus:outline-none focus:border-emerald-500"
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-700 bg-slate-950 text-sm text-white focus:outline-none focus:border-primary"
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1.5 flex items-center gap-1">
-                <FolderKanban className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Project</span>
-              </label>
-              <select
-                value={projectId}
-                onChange={(e) => setProjectId(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-700 bg-slate-950 text-xs text-white focus:outline-none focus:border-emerald-500 cursor-pointer"
+          {/* Category Selector */}
+          <div>
+            <label className="block text-xs font-medium text-slate-300 mb-1.5">
+              Knowledge Category *
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <button
+                type="button"
+                onClick={() => setCategory("gotcha")}
+                className={`p-2.5 rounded-xl border text-left flex items-center gap-2 transition cursor-pointer ${
+                  category === "gotcha"
+                    ? "bg-amber-500/15 border-amber-500/40 text-amber-300 font-medium"
+                    : "bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200"
+                }`}
               >
-                <option value="">No Project (General)</option>
-                {projects.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+                <Zap className="w-4 h-4 text-amber-400 shrink-0" />
+                <div>
+                  <div className="text-xs font-semibold">Technical Gotcha</div>
+                  <div className="text-[10px] text-slate-400">Bug & caveat fixes</div>
+                </div>
+              </button>
 
-            <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1.5">
-                Leitner Box (Spaced Review)
-              </label>
-              <select
-                value={reviewBox}
-                onChange={(e) => {
-                  const b = Number(e.target.value);
-                  setReviewBox(b);
-                  if (b === 5) setReviewStatus("mastered");
-                  else if (b >= 4) setReviewStatus("learned");
-                  else if (b >= 2) setReviewStatus("learning");
-                }}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-700 bg-slate-950 text-xs text-white focus:outline-none focus:border-emerald-500 cursor-pointer"
+              <button
+                type="button"
+                onClick={() => setCategory("pattern")}
+                className={`p-2.5 rounded-xl border text-left flex items-center gap-2 transition cursor-pointer ${
+                  category === "pattern"
+                    ? "bg-purple-500/15 border-purple-500/40 text-purple-300 font-medium"
+                    : "bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200"
+                }`}
               >
-                {BOX_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-            </div>
+                <Layers className="w-4 h-4 text-purple-400 shrink-0" />
+                <div>
+                  <div className="text-xs font-semibold">Design Pattern</div>
+                  <div className="text-[10px] text-slate-400">Architecture & clean code</div>
+                </div>
+              </button>
 
-            <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1.5">
-                Retention Status
-              </label>
-              <select
-                value={reviewStatus}
-                onChange={(e) => setReviewStatus(e.target.value as any)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-700 bg-slate-950 text-xs text-white focus:outline-none focus:border-emerald-500 cursor-pointer"
+              <button
+                type="button"
+                onClick={() => setCategory("snippet")}
+                className={`p-2.5 rounded-xl border text-left flex items-center gap-2 transition cursor-pointer ${
+                  category === "snippet"
+                    ? "bg-sky-500/15 border-sky-500/40 text-sky-300 font-medium"
+                    : "bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200"
+                }`}
               >
-                <option value="new">New Note</option>
-                <option value="learning">In Practice</option>
-                <option value="learned">Retained</option>
-                <option value="mastered">Mastered</option>
-              </select>
+                <Terminal className="w-4 h-4 text-sky-400 shrink-0" />
+                <div>
+                  <div className="text-xs font-semibold">CLI Snippet</div>
+                  <div className="text-[10px] text-slate-400">Commands & one-liners</div>
+                </div>
+              </button>
             </div>
           </div>
 
           <div>
+            <label className="block text-xs font-medium text-slate-300 mb-1.5 flex items-center gap-1">
+              <FolderKanban className="w-3.5 h-3.5 text-primary" />
+              <span>Project (Optional)</span>
+            </label>
+            <select
+              value={projectId}
+              onChange={(e) => setProjectId(e.target.value)}
+              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-700 bg-slate-950 text-xs text-white focus:outline-none focus:border-primary cursor-pointer"
+            >
+              <option value="">No Project (General Knowledge)</option>
+              {projects.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
             <label className="block text-xs font-medium text-slate-300 mb-1.5">
-              Note Content * (Markdown)
+              Knowledge Content * (Markdown)
             </label>
             <MiniTextEditor
               value={content}
               onChange={setContent}
-              placeholder="Document the architectural pattern, fix details, or shell command..."
-              minHeight="min-h-[160px]"
-              required
+              placeholder="Paste terminal snippet, gotcha workaround, or design pattern explanation..."
+              minHeight="min-h-[180px]"
             />
           </div>
 
@@ -236,8 +269,8 @@ export function EditLearningModal({
             </button>
             <button
               type="submit"
-              disabled={loading}
-              className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-xs font-medium flex items-center gap-1.5 shadow-md shadow-emerald-600/20 transition cursor-pointer"
+              disabled={loading || !title.trim() || !content.trim()}
+              className="px-5 py-2 rounded-xl bg-primary hover:bg-primary-hover disabled:opacity-50 text-white text-xs font-medium flex items-center gap-2 shadow-lg shadow-primary/20 transition cursor-pointer"
             >
               {loading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
               <span>Save Changes</span>
