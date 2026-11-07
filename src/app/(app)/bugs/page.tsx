@@ -15,10 +15,12 @@ import {
   Clock,
   Pencil,
   ArrowUpDown,
+  CheckCheck,
 } from "lucide-react";
 import { QuickCaptureModal } from "@/components/quick-capture-dialog";
 import { EditBugModal } from "@/components/edit-bug-modal";
 import { GitHubLinkBadge } from "@/components/github/github-link-badge";
+import { MarkdownPreview, stripMarkdown } from "@/components/ui/markdown-preview";
 import { PRIORITY_CONFIG, BUG_STATUS_CONFIG } from "@/lib/tokens";
 
 function getBugDateStatus(dueDateStr?: string | null, status?: string) {
@@ -74,6 +76,7 @@ export default function BugsPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingBug, setEditingBug] = useState<any | null>(null);
   const [expandedBugs, setExpandedBugs] = useState<Record<string, boolean>>({});
+  const [showCompleted, setShowCompleted] = useState(true);
 
   async function loadProjects() {
     try {
@@ -195,8 +198,234 @@ export default function BugsPage() {
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
 
-    return list;
+    const active = list.filter(
+      (b) => b.status === "open" || b.status === "confirmed" || b.status === "fixing"
+    );
+    const completed = list.filter(
+      (b) => b.status === "resolved" || b.status === "closed" || b.status === "wont_fix"
+    );
+
+    return {
+      all: list,
+      active,
+      completed,
+    };
   }, [bugs, dateFilter, sortBy]);
+
+  function renderBugCard(bug: any) {
+    const isExpanded = !!expandedBugs[bug.id];
+    const hasTechnicalDetails = bug.stackTrace || bug.reproSteps || bug.suspectedCause;
+    const dateStatus = getBugDateStatus(bug.dueDate, bug.status);
+
+    return (
+      <div
+        key={bug.id}
+        id={`bug-${bug.id}`}
+        className="p-5 rounded-2xl border border-slate-800 bg-slate-900/50 hover:border-slate-700/80 transition space-y-3"
+      >
+        <div className="flex items-start justify-between gap-4">
+          <div className="space-y-1.5 flex-1 min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <span
+                className={`text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded border ${
+                  PRIORITY_CONFIG[bug.priority]?.badgeClass || PRIORITY_CONFIG.medium.badgeClass
+                }`}
+              >
+                {bug.priority}
+              </span>
+
+              {bug.projectName && (
+                <span
+                  className="text-[11px] font-medium px-2 py-0.5 rounded bg-slate-800 text-slate-300 cursor-pointer"
+                  onClick={() => setProjectFilter(bug.projectId)}
+                  title="Filter by this project"
+                >
+                  {bug.projectName}
+                </span>
+              )}
+
+              <span
+                className={`text-xs font-medium uppercase tracking-wider px-2 py-0.5 rounded border ${
+                  BUG_STATUS_CONFIG[bug.status]?.badgeClass || "text-slate-400 border-slate-700"
+                }`}
+              >
+                {BUG_STATUS_CONFIG[bug.status]?.label || bug.status.replace("_", " ")}
+              </span>
+
+              {/* Due Date / Resolution Deadline Indicator */}
+              {dateStatus && (
+                <span
+                  className={`text-[11px] px-2 py-0.5 rounded border flex items-center gap-1 ${dateStatus.badgeClass}`}
+                >
+                  {dateStatus.type === "overdue" && (
+                    <AlertCircle className="w-3 h-3 text-red-400 shrink-0" />
+                  )}
+                  {(dateStatus.type === "due_soon" || dateStatus.type === "due_today") && (
+                    <Clock className="w-3 h-3 text-amber-400 shrink-0" />
+                  )}
+                  {dateStatus.type === "scheduled" && (
+                    <Calendar className="w-3 h-3 text-slate-400 shrink-0" />
+                  )}
+                  <span>{dateStatus.label}</span>
+                </span>
+              )}
+            </div>
+
+            <h3
+              onClick={() => setEditingBug(bug)}
+              className="text-base font-semibold text-white cursor-pointer hover:text-amber-400 transition"
+            >
+              {bug.title}
+            </h3>
+
+            {/* GitHub Link Badges */}
+            {bug.githubLinks && bug.githubLinks.length > 0 && (
+              <div className="flex flex-wrap gap-2 pt-0.5">
+                {bug.githubLinks.map((link: any) => (
+                  <GitHubLinkBadge
+                    key={link.id}
+                    link={link}
+                    onRefresh={(updated) => {
+                      setBugs((prev) =>
+                        prev.map((b) =>
+                          b.id === bug.id
+                            ? {
+                                ...b,
+                                githubLinks: (b.githubLinks || []).map((l: any) =>
+                                  l.id === updated.id ? updated : l
+                                ),
+                              }
+                            : b
+                        )
+                      );
+                    }}
+                    onDelete={(deletedId) => {
+                      setBugs((prev) =>
+                        prev.map((b) =>
+                          b.id === bug.id
+                            ? {
+                                ...b,
+                                githubLinks: (b.githubLinks || []).filter(
+                                  (l: any) => l.id !== deletedId
+                                ),
+                              }
+                            : b
+                        )
+                      );
+                    }}
+                  />
+                ))}
+              </div>
+            )}
+
+            {bug.description && (
+              <div className="pt-1">
+                {isExpanded ? (
+                  <div className="pt-1 pb-1">
+                    <MarkdownPreview content={bug.description} />
+                  </div>
+                ) : (
+                  <div className="text-xs text-slate-300 leading-relaxed font-normal line-clamp-2">
+                    {stripMarkdown(bug.description)}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Status Dropdown, Edit, Delete */}
+          <div className="flex items-center gap-2 shrink-0">
+            <select
+              value={bug.status}
+              onChange={(e) => updateStatus(bug.id, e.target.value)}
+              className="px-2.5 py-1 rounded-lg border border-slate-800 bg-slate-950 text-xs text-slate-300 focus:outline-none focus:border-amber-500 cursor-pointer"
+            >
+              <option value="open">Open</option>
+              <option value="confirmed">Confirmed</option>
+              <option value="fixing">Fixing</option>
+              <option value="resolved">Resolved</option>
+              <option value="closed">Closed</option>
+              <option value="wont_fix">Won't Fix</option>
+            </select>
+
+            <button
+              type="button"
+              onClick={() => setEditingBug(bug)}
+              title="Edit bug"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
+            >
+              <Pencil className="w-3.5 h-3.5" />
+            </button>
+
+            <button
+              type="button"
+              onClick={() => deleteBug(bug.id)}
+              title="Delete bug"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-slate-800 transition cursor-pointer"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* Technical Accordion Section */}
+        {hasTechnicalDetails && (
+          <div className="pt-2 border-t border-slate-800/80">
+            <button
+              type="button"
+              onClick={() => toggleExpand(bug.id)}
+              className="text-xs font-medium text-slate-400 hover:text-slate-200 flex items-center gap-1.5 transition cursor-pointer"
+            >
+              {isExpanded ? (
+                <>
+                  <ChevronUp className="w-3.5 h-3.5" />
+                  <span>Hide Details & Logs</span>
+                </>
+              ) : (
+                <>
+                  <ChevronDown className="w-3.5 h-3.5" />
+                  <span>View Full Description & Logs</span>
+                </>
+              )}
+            </button>
+
+            {isExpanded && (
+              <div className="mt-3 space-y-3 pl-2 border-l-2 border-slate-800 text-xs">
+                {bug.suspectedCause && (
+                  <div>
+                    <span className="font-semibold text-slate-300 block mb-0.5">
+                      Suspected Cause:
+                    </span>
+                    <p className="text-slate-400">{bug.suspectedCause}</p>
+                  </div>
+                )}
+
+                {bug.reproSteps && (
+                  <div>
+                    <span className="font-semibold text-slate-300 block mb-0.5">
+                      Reproduction Steps:
+                    </span>
+                    <p className="text-slate-400 leading-relaxed">{bug.reproSteps}</p>
+                  </div>
+                )}
+
+                {bug.stackTrace && (
+                  <div>
+                    <span className="font-semibold text-slate-300 block mb-1">
+                      Stack Trace / Error Output:
+                    </span>
+                    <pre className="p-3 rounded-lg bg-black/60 border border-slate-800 font-mono text-[11px] text-amber-300/90 overflow-x-auto">
+                      {bug.stackTrace}
+                    </pre>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
@@ -295,7 +524,7 @@ export default function BugsPage() {
         <div className="p-16 flex items-center justify-center">
           <Loader2 className="w-6 h-6 text-amber-400 animate-spin" />
         </div>
-      ) : displayedBugs.length === 0 ? (
+      ) : displayedBugs.all.length === 0 ? (
         <div className="p-16 text-center border border-dashed border-slate-800 rounded-2xl bg-slate-900/20">
           <Bug className="w-8 h-8 text-slate-600 mx-auto mb-3" />
           <h3 className="text-sm font-semibold text-slate-300">No bugs match criteria</h3>
@@ -305,215 +534,59 @@ export default function BugsPage() {
               : "Capture technical defects along with logs and repro steps."}
           </p>
         </div>
-      ) : (
+      ) : statusFilter !== "all" ? (
         <div className="space-y-4">
-          {displayedBugs.map((bug) => {
-            const isExpanded = !!expandedBugs[bug.id];
-            const hasTechnicalDetails =
-              bug.stackTrace || bug.reproSteps || bug.suspectedCause;
-            const dateStatus = getBugDateStatus(bug.dueDate, bug.status);
+          {displayedBugs.all.map(renderBugCard)}
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {/* Active Defects Section */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between px-1">
+              <h2 className="text-xs uppercase font-bold tracking-wider text-slate-400 flex items-center gap-1.5">
+                <Bug className="w-3.5 h-3.5 text-amber-400" />
+                <span>Active Defects ({displayedBugs.active.length})</span>
+              </h2>
+            </div>
 
-            return (
-              <div
-                key={bug.id}
-                id={`bug-${bug.id}`}
-                className="p-5 rounded-2xl border border-slate-800 bg-slate-900/50 hover:border-slate-700/80 transition space-y-3"
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="space-y-1.5 flex-1 min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span
-                        className={`text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded border ${
-                          PRIORITY_CONFIG[bug.priority]?.badgeClass || PRIORITY_CONFIG.medium.badgeClass
-                        }`}
-                      >
-                        {bug.priority}
-                      </span>
-
-                      {bug.projectName && (
-                        <span
-                          className="text-[11px] font-medium px-2 py-0.5 rounded bg-slate-800 text-slate-300 cursor-pointer"
-                          onClick={() => setProjectFilter(bug.projectId)}
-                          title="Filter by this project"
-                        >
-                          {bug.projectName}
-                        </span>
-                      )}
-
-                      <span
-                        className={`text-xs font-medium uppercase tracking-wider px-2 py-0.5 rounded border ${
-                          BUG_STATUS_CONFIG[bug.status]?.badgeClass || "text-slate-400 border-slate-700"
-                        }`}
-                      >
-                        {BUG_STATUS_CONFIG[bug.status]?.label || bug.status.replace("_", " ")}
-                      </span>
-
-                      {/* Due Date / Resolution Deadline Indicator */}
-                      {dateStatus && (
-                        <span
-                          className={`text-[11px] px-2 py-0.5 rounded border flex items-center gap-1 ${dateStatus.badgeClass}`}
-                        >
-                          {dateStatus.type === "overdue" && (
-                            <AlertCircle className="w-3 h-3 text-red-400 shrink-0" />
-                          )}
-                          {(dateStatus.type === "due_soon" || dateStatus.type === "due_today") && (
-                            <Clock className="w-3 h-3 text-amber-400 shrink-0" />
-                          )}
-                          {dateStatus.type === "scheduled" && (
-                            <Calendar className="w-3 h-3 text-slate-400 shrink-0" />
-                          )}
-                          <span>{dateStatus.label}</span>
-                        </span>
-                      )}
-                    </div>
-
-                    <h3
-                      onClick={() => setEditingBug(bug)}
-                      className="text-base font-semibold text-white cursor-pointer hover:text-amber-400 transition"
-                    >
-                      {bug.title}
-                    </h3>
-
-                    {/* GitHub Link Badges */}
-                    {bug.githubLinks && bug.githubLinks.length > 0 && (
-                      <div className="flex flex-wrap gap-2 pt-0.5">
-                        {bug.githubLinks.map((link: any) => (
-                          <GitHubLinkBadge
-                            key={link.id}
-                            link={link}
-                            onRefresh={(updated) => {
-                              setBugs((prev) =>
-                                prev.map((b) =>
-                                  b.id === bug.id
-                                    ? {
-                                        ...b,
-                                        githubLinks: (b.githubLinks || []).map((l: any) =>
-                                          l.id === updated.id ? updated : l
-                                        ),
-                                      }
-                                    : b
-                                )
-                              );
-                            }}
-                            onDelete={(deletedId) => {
-                              setBugs((prev) =>
-                                prev.map((b) =>
-                                  b.id === bug.id
-                                    ? {
-                                        ...b,
-                                        githubLinks: (b.githubLinks || []).filter(
-                                          (l: any) => l.id !== deletedId
-                                        ),
-                                      }
-                                    : b
-                                )
-                              );
-                            }}
-                          />
-                        ))}
-                      </div>
-                    )}
-
-                    {bug.description && (
-                      <p className="text-xs text-slate-300 leading-relaxed whitespace-pre-line font-normal">
-                        {bug.description.replace(/\\n/g, "\n")}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Status Dropdown, Edit, Delete */}
-                  <div className="flex items-center gap-2 shrink-0">
-                    <select
-                      value={bug.status}
-                      onChange={(e) => updateStatus(bug.id, e.target.value)}
-                      className="px-2.5 py-1 rounded-lg border border-slate-800 bg-slate-950 text-xs text-slate-300 focus:outline-none focus:border-amber-500 cursor-pointer"
-                    >
-                      <option value="open">Open</option>
-                      <option value="confirmed">Confirmed</option>
-                      <option value="fixing">Fixing</option>
-                      <option value="resolved">Resolved</option>
-                      <option value="closed">Closed</option>
-                      <option value="wont_fix">Won't Fix</option>
-                    </select>
-
-                    <button
-                      type="button"
-                      onClick={() => setEditingBug(bug)}
-                      title="Edit bug"
-                      className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
-                    >
-                      <Pencil className="w-3.5 h-3.5" />
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => deleteBug(bug.id)}
-                      title="Delete bug"
-                      className="p-1.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-slate-800 transition cursor-pointer"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Technical Accordion Section */}
-                {hasTechnicalDetails && (
-                  <div className="pt-2 border-t border-slate-800/80">
-                    <button
-                      type="button"
-                      onClick={() => toggleExpand(bug.id)}
-                      className="text-xs font-medium text-slate-400 hover:text-slate-200 flex items-center gap-1.5 transition"
-                    >
-                      {isExpanded ? (
-                        <>
-                          <ChevronUp className="w-3.5 h-3.5" />
-                          <span>Hide Technical Details</span>
-                        </>
-                      ) : (
-                        <>
-                          <ChevronDown className="w-3.5 h-3.5" />
-                          <span>View Reproduction Steps & Logs</span>
-                        </>
-                      )}
-                    </button>
-
-                    {isExpanded && (
-                      <div className="mt-3 space-y-3 pl-2 border-l-2 border-slate-800 text-xs">
-                        {bug.suspectedCause && (
-                          <div>
-                            <span className="font-semibold text-slate-300 block mb-0.5">
-                              Suspected Cause:
-                            </span>
-                            <p className="text-slate-400">{bug.suspectedCause}</p>
-                          </div>
-                        )}
-
-                        {bug.reproSteps && (
-                          <div>
-                            <span className="font-semibold text-slate-300 block mb-0.5">
-                              Reproduction Steps:
-                            </span>
-                            <p className="text-slate-400 leading-relaxed">{bug.reproSteps}</p>
-                          </div>
-                        )}
-
-                        {bug.stackTrace && (
-                          <div>
-                            <span className="font-semibold text-slate-300 block mb-1">
-                              Stack Trace / Error Output:
-                            </span>
-                            <pre className="p-3 rounded-lg bg-black/60 border border-slate-800 font-mono text-[11px] text-amber-300/90 overflow-x-auto">
-                              {bug.stackTrace}
-                            </pre>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )}
+            {displayedBugs.active.length === 0 ? (
+              <div className="p-6 rounded-xl border border-dashed border-slate-800 text-center text-xs text-slate-500">
+                No active bugs. All defects are resolved or closed!
               </div>
-            );
-          })}
+            ) : (
+              displayedBugs.active.map(renderBugCard)
+            )}
+          </div>
+
+          {/* Resolved & Closed Section */}
+          {displayedBugs.completed.length > 0 && (
+            <div className="space-y-3 pt-4 border-t border-slate-800/80">
+              <button
+                type="button"
+                onClick={() => setShowCompleted((prev) => !prev)}
+                className="w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-xs uppercase font-bold tracking-wider text-slate-400 hover:text-slate-200 hover:bg-slate-900/50 transition cursor-pointer"
+              >
+                <span className="flex items-center gap-2">
+                  <CheckCheck className="w-4 h-4 text-emerald-400" />
+                  <span>Resolved & Closed ({displayedBugs.completed.length})</span>
+                </span>
+                <div className="flex items-center gap-1 text-[11px] font-normal text-slate-400 lowercase">
+                  <span>{showCompleted ? "hide" : "show"}</span>
+                  {showCompleted ? (
+                    <ChevronUp className="w-3.5 h-3.5" />
+                  ) : (
+                    <ChevronDown className="w-3.5 h-3.5" />
+                  )}
+                </div>
+              </button>
+
+              {showCompleted && (
+                <div className="space-y-4 opacity-85 hover:opacity-100 transition">
+                  {displayedBugs.completed.map(renderBugCard)}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 

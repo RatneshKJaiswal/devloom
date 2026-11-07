@@ -15,10 +15,12 @@ import {
   ArrowUpDown,
   ChevronDown,
   ChevronUp,
+  CheckCheck,
 } from "lucide-react";
 import { QuickCaptureModal } from "@/components/quick-capture-dialog";
 import { EditTaskModal } from "@/components/edit-task-modal";
 import { GitHubLinkBadge } from "@/components/github/github-link-badge";
+import { MarkdownPreview, stripMarkdown } from "@/components/ui/markdown-preview";
 import { PRIORITY_CONFIG, TASK_STATUS_CONFIG } from "@/lib/tokens";
 
 function getDateStatus(dueDateStr?: string | null, status?: string) {
@@ -72,6 +74,7 @@ export default function TasksPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<any | null>(null);
   const [expandedTasks, setExpandedTasks] = useState<Record<string, boolean>>({});
+  const [showCompleted, setShowCompleted] = useState(true);
 
   function toggleExpand(id: string) {
     setExpandedTasks((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -194,8 +197,187 @@ export default function TasksPage() {
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
 
-    return list;
+    const active = list.filter((t) => t.status !== "done" && t.status !== "cancelled");
+    const completed = list.filter((t) => t.status === "done" || t.status === "cancelled");
+
+    return {
+      all: list,
+      active,
+      completed,
+    };
   }, [tasks, dateFilter, sortBy]);
+
+  function renderTaskCard(task: any) {
+    const dateStatus = getDateStatus(task.dueDate, task.status);
+    const isExpanded = !!expandedTasks[task.id];
+
+    return (
+      <div
+        key={task.id}
+        id={`task-${task.id}`}
+        className="p-4 rounded-xl border border-slate-800 bg-slate-900/50 hover:border-slate-700/80 transition flex items-start justify-between gap-4 group"
+      >
+        <div className="space-y-1.5 flex-1 min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <span
+              className={`text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded border ${
+                PRIORITY_CONFIG[task.priority]?.badgeClass || PRIORITY_CONFIG.medium.badgeClass
+              }`}
+            >
+              {task.priority}
+            </span>
+
+            {task.projectName && (
+              <span
+                className="text-[11px] font-medium px-2 py-0.5 rounded bg-primary-subtle text-primary border border-primary/20 cursor-pointer"
+                onClick={() => setProjectFilter(task.projectId)}
+                title="Filter by this project"
+              >
+                {task.projectName}
+              </span>
+            )}
+
+            {/* Due Date & Overdue Indicators */}
+            {dateStatus && (
+              <span
+                className={`text-[11px] px-2 py-0.5 rounded border flex items-center gap-1 ${dateStatus.badgeClass}`}
+              >
+                {dateStatus.type === "overdue" && (
+                  <AlertCircle className="w-3 h-3 text-red-400 shrink-0" />
+                )}
+                {(dateStatus.type === "due_soon" || dateStatus.type === "due_today") && (
+                  <Clock className="w-3 h-3 text-amber-400 shrink-0" />
+                )}
+                {dateStatus.type === "scheduled" && (
+                  <Calendar className="w-3 h-3 text-slate-400 shrink-0" />
+                )}
+                <span>{dateStatus.label}</span>
+              </span>
+            )}
+          </div>
+
+          <div
+            onClick={() => setEditingTask(task)}
+            className={`text-sm font-medium cursor-pointer hover:text-primary transition ${
+              task.status === "done" ? "line-through text-slate-400" : "text-white"
+            }`}
+          >
+            {task.title}
+          </div>
+
+          {/* GitHub Link Badges */}
+          {task.githubLinks && task.githubLinks.length > 0 && (
+            <div className="flex flex-wrap gap-2 pt-0.5">
+              {task.githubLinks.map((link: any) => (
+                <GitHubLinkBadge
+                  key={link.id}
+                  link={link}
+                  onRefresh={(updated) => {
+                    setTasks((prev) =>
+                      prev.map((t) =>
+                        t.id === task.id
+                          ? {
+                              ...t,
+                              githubLinks: (t.githubLinks || []).map((l: any) =>
+                                l.id === updated.id ? updated : l
+                              ),
+                            }
+                          : t
+                      )
+                    );
+                  }}
+                  onDelete={(deletedId) => {
+                    setTasks((prev) =>
+                      prev.map((t) =>
+                        t.id === task.id
+                          ? {
+                              ...t,
+                              githubLinks: (t.githubLinks || []).filter(
+                                (l: any) => l.id !== deletedId
+                              ),
+                            }
+                          : t
+                      )
+                    );
+                  }}
+                />
+              ))}
+            </div>
+          )}
+
+          {task.description && (
+            <div className="pt-1">
+              {isExpanded ? (
+                <div className="pt-1 pb-1">
+                  <MarkdownPreview content={task.description} />
+                </div>
+              ) : (
+                <div className="text-xs text-slate-300 leading-relaxed font-normal line-clamp-2">
+                  {stripMarkdown(task.description)}
+                </div>
+              )}
+              {(task.description.length > 90 ||
+                task.description.includes("\n") ||
+                task.description.includes("\\n")) && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleExpand(task.id);
+                  }}
+                  className="mt-1 text-[11px] font-medium text-primary hover:underline cursor-pointer inline-flex items-center gap-1"
+                >
+                  {isExpanded ? (
+                    <>
+                      <ChevronUp className="w-3 h-3" />
+                      <span>Show less</span>
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown className="w-3 h-3" />
+                      <span>Show full description</span>
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Status Selector, Edit, Delete */}
+        <div className="flex items-center gap-2 shrink-0">
+          <select
+            value={task.status}
+            onChange={(e) => updateStatus(task.id, e.target.value)}
+            className="px-2.5 py-1 rounded-lg border border-slate-800 bg-slate-950 text-xs text-slate-300 focus:outline-none focus:border-primary cursor-pointer"
+          >
+            <option value="todo">To Do</option>
+            <option value="in_progress">In Progress</option>
+            <option value="done">Done</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+
+          <button
+            type="button"
+            onClick={() => setEditingTask(task)}
+            title="Edit task"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
+          >
+            <Pencil className="w-3.5 h-3.5" />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => deleteTask(task.id)}
+            title="Delete task"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-slate-800 transition cursor-pointer"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
@@ -292,7 +474,7 @@ export default function TasksPage() {
         <div className="p-16 flex items-center justify-center">
           <Loader2 className="w-6 h-6 text-primary animate-spin" />
         </div>
-      ) : displayedTasks.length === 0 ? (
+      ) : displayedTasks.all.length === 0 ? (
         <div className="p-16 text-center border border-dashed border-slate-800 rounded-2xl bg-slate-900/20">
           <CheckSquare className="w-8 h-8 text-slate-600 mx-auto mb-3" />
           <h3 className="text-sm font-semibold text-slate-300">No tasks match criteria</h3>
@@ -302,176 +484,59 @@ export default function TasksPage() {
               : "Capture your first task with the button above."}
           </p>
         </div>
-      ) : (
+      ) : statusFilter !== "all" ? (
         <div className="space-y-3">
-          {displayedTasks.map((task) => {
-            const dateStatus = getDateStatus(task.dueDate, task.status);
+          {displayedTasks.all.map(renderTaskCard)}
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {/* Active Tasks Section */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between px-1">
+              <h2 className="text-xs uppercase font-bold tracking-wider text-slate-400 flex items-center gap-1.5">
+                <CheckSquare className="w-3.5 h-3.5 text-primary" />
+                <span>Active Tasks ({displayedTasks.active.length})</span>
+              </h2>
+            </div>
 
-            return (
-              <div
-                key={task.id}
-                id={`task-${task.id}`}
-                className="p-4 rounded-xl border border-slate-800 bg-slate-900/50 hover:border-slate-700/80 transition flex items-start justify-between gap-4 group"
-              >
-                <div className="space-y-1.5 flex-1 min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span
-                      className={`text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded border ${
-                        PRIORITY_CONFIG[task.priority]?.badgeClass || PRIORITY_CONFIG.medium.badgeClass
-                      }`}
-                    >
-                      {task.priority}
-                    </span>
-
-                    {task.projectName && (
-                      <span
-                        className="text-[11px] font-medium px-2 py-0.5 rounded bg-primary-subtle text-primary border border-primary/20 cursor-pointer"
-                        onClick={() => setProjectFilter(task.projectId)}
-                        title="Filter by this project"
-                      >
-                        {task.projectName}
-                      </span>
-                    )}
-
-                    {/* Due Date & Overdue Indicators */}
-                    {dateStatus && (
-                      <span
-                        className={`text-[11px] px-2 py-0.5 rounded border flex items-center gap-1 ${dateStatus.badgeClass}`}
-                      >
-                        {dateStatus.type === "overdue" && (
-                          <AlertCircle className="w-3 h-3 text-red-400 shrink-0" />
-                        )}
-                        {(dateStatus.type === "due_soon" || dateStatus.type === "due_today") && (
-                          <Clock className="w-3 h-3 text-amber-400 shrink-0" />
-                        )}
-                        {dateStatus.type === "scheduled" && (
-                          <Calendar className="w-3 h-3 text-slate-400 shrink-0" />
-                        )}
-                        <span>{dateStatus.label}</span>
-                      </span>
-                    )}
-                  </div>
-
-                  <div
-                    onClick={() => setEditingTask(task)}
-                    className={`text-sm font-medium cursor-pointer hover:text-primary transition ${
-                      task.status === "done" ? "line-through text-slate-400" : "text-white"
-                    }`}
-                  >
-                    {task.title}
-                  </div>
-
-                  {/* GitHub Link Badges */}
-                  {task.githubLinks && task.githubLinks.length > 0 && (
-                    <div className="flex flex-wrap gap-2 pt-0.5">
-                      {task.githubLinks.map((link: any) => (
-                        <GitHubLinkBadge
-                          key={link.id}
-                          link={link}
-                          onRefresh={(updated) => {
-                            setTasks((prev) =>
-                              prev.map((t) =>
-                                t.id === task.id
-                                  ? {
-                                      ...t,
-                                      githubLinks: (t.githubLinks || []).map((l: any) =>
-                                        l.id === updated.id ? updated : l
-                                      ),
-                                    }
-                                  : t
-                              )
-                            );
-                          }}
-                          onDelete={(deletedId) => {
-                            setTasks((prev) =>
-                              prev.map((t) =>
-                                t.id === task.id
-                                  ? {
-                                      ...t,
-                                      githubLinks: (t.githubLinks || []).filter(
-                                        (l: any) => l.id !== deletedId
-                                      ),
-                                    }
-                                  : t
-                              )
-                            );
-                          }}
-                        />
-                      ))}
-                    </div>
-                  )}
-
-                  {task.description && (
-                    <div className="pt-1">
-                      <div
-                        className={`text-xs text-slate-300 leading-relaxed whitespace-pre-line font-normal ${
-                          expandedTasks[task.id] ? "" : "line-clamp-2"
-                        }`}
-                      >
-                        {task.description.replace(/\\n/g, "\n")}
-                      </div>
-                      {(task.description.length > 100 ||
-                        task.description.includes("\n") ||
-                        task.description.includes("\\n")) && (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleExpand(task.id);
-                          }}
-                          className="mt-1 text-[11px] font-medium text-primary hover:underline cursor-pointer inline-flex items-center gap-1"
-                        >
-                          {expandedTasks[task.id] ? (
-                            <>
-                              <ChevronUp className="w-3 h-3" />
-                              <span>Show less</span>
-                            </>
-                          ) : (
-                            <>
-                              <ChevronDown className="w-3 h-3" />
-                              <span>Show full description</span>
-                            </>
-                          )}
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                {/* Status Selector, Edit, Delete */}
-                <div className="flex items-center gap-2 shrink-0">
-                  <select
-                    value={task.status}
-                    onChange={(e) => updateStatus(task.id, e.target.value)}
-                    className="px-2.5 py-1 rounded-lg border border-slate-800 bg-slate-950 text-xs text-slate-300 focus:outline-none focus:border-primary cursor-pointer"
-                  >
-                    <option value="todo">To Do</option>
-                    <option value="in_progress">In Progress</option>
-                    <option value="done">Done</option>
-                    <option value="cancelled">Cancelled</option>
-                  </select>
-
-                  <button
-                    type="button"
-                    onClick={() => setEditingTask(task)}
-                    title="Edit task"
-                    className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
-                  >
-                    <Pencil className="w-3.5 h-3.5" />
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => deleteTask(task.id)}
-                    title="Delete task"
-                    className="p-1.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-slate-800 transition cursor-pointer"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
+            {displayedTasks.active.length === 0 ? (
+              <div className="p-6 rounded-xl border border-dashed border-slate-800 text-center text-xs text-slate-500">
+                No active tasks. Create a new task or review completed items below.
               </div>
-            );
-          })}
+            ) : (
+              displayedTasks.active.map(renderTaskCard)
+            )}
+          </div>
+
+          {/* Implemented / Completed / Rejected Section */}
+          {displayedTasks.completed.length > 0 && (
+            <div className="space-y-3 pt-4 border-t border-slate-800/80">
+              <button
+                type="button"
+                onClick={() => setShowCompleted((prev) => !prev)}
+                className="w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-xs uppercase font-bold tracking-wider text-slate-400 hover:text-slate-200 hover:bg-slate-900/50 transition cursor-pointer"
+              >
+                <span className="flex items-center gap-2">
+                  <CheckCheck className="w-4 h-4 text-emerald-400" />
+                  <span>Completed & Resolved ({displayedTasks.completed.length})</span>
+                </span>
+                <div className="flex items-center gap-1 text-[11px] font-normal text-slate-400 lowercase">
+                  <span>{showCompleted ? "hide" : "show"}</span>
+                  {showCompleted ? (
+                    <ChevronUp className="w-3.5 h-3.5" />
+                  ) : (
+                    <ChevronDown className="w-3.5 h-3.5" />
+                  )}
+                </div>
+              </button>
+
+              {showCompleted && (
+                <div className="space-y-3 opacity-85 hover:opacity-100 transition">
+                  {displayedTasks.completed.map(renderTaskCard)}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 
