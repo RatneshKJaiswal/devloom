@@ -243,7 +243,7 @@ export async function createBug(
       status: data.status || "open",
       priority: data.priority || "medium",
       projectId: data.projectId || null,
-      dueDate: data.dueDate ? new Date(data.dueDate) : null,
+      dueDate: data.dueDate && !isNaN(new Date(data.dueDate).getTime()) ? new Date(data.dueDate) : null,
     })
     .returning();
 
@@ -298,7 +298,12 @@ export async function updateBug(
   if (data.priority !== undefined) updateData.priority = data.priority;
   if (data.projectId !== undefined) updateData.projectId = data.projectId;
   if (data.dueDate !== undefined) {
-    updateData.dueDate = data.dueDate ? new Date(data.dueDate) : null;
+    if (!data.dueDate) {
+      updateData.dueDate = null;
+    } else {
+      const parsedDate = new Date(data.dueDate);
+      updateData.dueDate = isNaN(parsedDate.getTime()) ? null : parsedDate;
+    }
   }
 
   const [updated] = await db

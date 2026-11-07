@@ -103,6 +103,9 @@ export function EditTaskModal({
     setLoading(true);
     setError(null);
 
+    const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const cleanProjectId = projectId.trim();
+
     try {
       const res = await fetch(`/api/tasks/${task.id}`, {
         method: "PATCH",
@@ -112,7 +115,7 @@ export function EditTaskModal({
           description: description.trim() || null,
           priority,
           status,
-          projectId: projectId.trim() || null,
+          projectId: cleanProjectId && UUID_REGEX.test(cleanProjectId) ? cleanProjectId : null,
           startDate: startDate ? startDate : null,
           dueDate: dueDate ? dueDate : null,
           bugIds: selectedBugIds,

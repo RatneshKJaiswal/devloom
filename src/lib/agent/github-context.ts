@@ -50,12 +50,6 @@ export async function processGitHubContext({
     };
   }
 
-  // 3. Check quota
-  const quotaError = await checkUserQuota(userId);
-  if (quotaError) {
-    return { success: false, error: quotaError };
-  }
-
   // 3. Fetch GitHub issue/PR details using user's OAuth token
   const token = await getUserGitHubToken(userId);
   const metadata = await fetchGitHubMetadata(parsed, token);
@@ -71,22 +65,66 @@ export async function processGitHubContext({
     };
   }
 
-  // 4. Construct prompt with prompt injection containment
-  const promptConfig = buildGitHubContextPrompt(parsed, metadata);
+  // 4. Construct deterministic fallback candidate from GitHub metadata
+  const labelsStr = (metadata.labels || []).join(" ").toLowerCase();
+  const titleLower = (metadata.title || "").toLowerCase();
+  const isBug =
+    labelsStr.includes("bug") ||
+    labelsStr.includes("defect") ||
+    labelsStr.includes("crash") ||
+    labelsStr.includes("error") ||
+    titleLower.startsWith("fix:") ||
+    titleLower.startsWith("bug:");
+  const isLearning =
+    labelsStr.includes("learn") ||
+    labelsStr.includes("note") ||
+    labelsStr.includes("doc");
+  const fallbackEntityType: "task" | "bug" | "learning" = isBug ? "bug" : isLearning ? "learning" : "task";
 
-  // 5. Call Gemini
-  const agentResult = await agentClient.generate(promptConfig);
-  if (!agentResult.success) {
-    return { success: false, error: agentResult.error };
+  const isUrgent = labelsStr.includes("urgent") || labelsStr.includes("critical") || labelsStr.includes("blocker");
+  const isHigh = labelsStr.includes("high") || labelsStr.includes("p1") || labelsStr.includes("sev1");
+  const isLow = labelsStr.includes("low") || labelsStr.includes("minor");
+  const fallbackPriority: "low" | "medium" | "high" | "urgent" = isUrgent ? "urgent" : isHigh ? "high" : isLow ? "low" : "medium";
+
+  const fallbackCandidate: GitHubContextOutput = {
+    entityType: fallbackEntityType,
+    title: metadata.title || `GitHub ${parsed.linkType === "pull_request" ? "PR" : "Issue"} #${parsed.issueOrPrNumber}`,
+    description: metadata.body || "Imported from GitHub.",
+    priority: fallbackPriority,
+    suggestedProjectName: parsed.repoName,
+    tags: metadata.labels || [],
+    bugDetails: isBug
+      ? {
+          stackTrace: null,
+          reproSteps: null,
+          suspectedCause: null,
+        }
+      : null,
+  };
+
+  // 5. Check quota and attempt AI enrichment
+  let candidate = fallbackCandidate;
+  const quotaError = await checkUserQuota(userId);
+
+  if (!quotaError) {
+    try {
+      const promptConfig = buildGitHubContextPrompt(parsed, metadata);
+      const agentResult = await agentClient.generate(promptConfig);
+
+      if (agentResult.success) {
+        candidate = agentResult.data;
+        // Record usage metrics
+        await recordAgentUsage(userId, {
+          inputTokens: agentResult.usage.inputTokens,
+          outputTokens: agentResult.usage.outputTokens,
+        });
+      } else {
+        console.warn("AI generation failed for GitHub import; falling back to metadata:", agentResult.error);
+      }
+    } catch (aiErr) {
+      console.warn("AI error during GitHub import; using deterministic metadata fallback:", aiErr);
+    }
   }
-
-  const candidate = agentResult.data;
-
-  // 6. Record usage metrics
-  await recordAgentUsage(userId, {
-    inputTokens: agentResult.usage.inputTokens,
-    outputTokens: agentResult.usage.outputTokens,
-  });
 
   // 7. Format description & include GitHub context
   let formattedDescription = (candidate.description || "")

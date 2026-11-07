@@ -100,6 +100,10 @@ export function EditBugModal({
     setLoading(true);
     setError(null);
 
+    const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const cleanProjectId = projectId.trim();
+    const cleanTaskId = associatedTaskId.trim();
+
     try {
       const res = await fetch(`/api/bugs/${bug.id}`, {
         method: "PATCH",
@@ -109,13 +113,13 @@ export function EditBugModal({
           description: description.trim() || null,
           priority,
           status,
-          projectId: projectId.trim() || null,
+          projectId: cleanProjectId && UUID_REGEX.test(cleanProjectId) ? cleanProjectId : null,
           startDate: startDate ? startDate : null,
           dueDate: dueDate ? dueDate : null,
           stackTrace: stackTrace.trim() || null,
           reproSteps: reproSteps.trim() || null,
           suspectedCause: suspectedCause.trim() || null,
-          taskId: associatedTaskId ? associatedTaskId : null,
+          taskId: cleanTaskId && UUID_REGEX.test(cleanTaskId) ? cleanTaskId : null,
         }),
       });
 
