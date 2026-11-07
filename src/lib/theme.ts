@@ -33,6 +33,10 @@ export function applyTheme(mode: ThemeMode) {
   }
 
   const root = document.documentElement;
+
+  // Add synchronized transition class during manual switch
+  root.classList.add("theme-transition");
+
   if (isDark) {
     root.classList.remove("light");
     root.classList.add("dark");
@@ -48,6 +52,10 @@ export function applyTheme(mode: ThemeMode) {
       detail: { theme: mode, effectiveTheme: isDark ? "dark" : "light" },
     })
   );
+
+  setTimeout(() => {
+    root.classList.remove("theme-transition");
+  }, 250);
 }
 
 export function useTheme() {

@@ -10,6 +10,7 @@ interface AIPlannerModalProps {
   isOpen: boolean;
   onClose: () => void;
   defaultMode?: "daily_plan" | "weekly_standup";
+  onSuccess?: () => void;
 }
 
 interface SummaryResponse extends SummaryOutput {
@@ -20,6 +21,7 @@ export function AIPlannerModal({
   isOpen,
   onClose,
   defaultMode = "daily_plan",
+  onSuccess,
 }: AIPlannerModalProps) {
   const [mode, setMode] = useState<"daily_plan" | "weekly_standup">(defaultMode);
   const [loading, setLoading] = useState(false);
@@ -65,6 +67,8 @@ export function AIPlannerModal({
       }
 
       setResult(data);
+      onSuccess?.();
+      window.dispatchEvent(new CustomEvent("devloom-agent-usage"));
     } catch (err: any) {
       setError(err.message || "An error occurred while compiling workspace plan");
     } finally {

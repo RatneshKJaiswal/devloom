@@ -380,6 +380,7 @@ export async function generateWorkspaceSummary({
 
   if (!result.success) {
     console.warn("AI generation failed or rate-limited; utilizing precomputed plan fallback:", result.error);
+    await recordAgentUsage(userId, { inputTokens: 0, outputTokens: 0 }).catch(() => {});
     return {
       success: true,
       data: fallbackOutput,

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { CheckSquare, Bug, Brain, ArrowRight, Plus, FileText, Loader2 } from "lucide-react";
+import { CheckSquare, Bug, BookOpen, Cpu, ArrowRight, Plus, FileText, Loader2 } from "lucide-react";
 import { AIIcon } from "@/components/icons/ai";
 import Link from "next/link";
 import { QuickCaptureModal } from "@/components/quick-capture-dialog";
@@ -14,7 +14,7 @@ import type { DashboardAnalytics } from "@/lib/dal/analytics";
 
 export default function DashboardPage() {
   const [analytics, setAnalytics] = useState<DashboardAnalytics | null>(null);
-  const [dueLearnings, setDueLearnings] = useState(0);
+  const [totalLearnings, setTotalLearnings] = useState(0);
   const [fallbackBugCount, setFallbackBugCount] = useState(0);
   const [fallbackTaskCount, setFallbackTaskCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -25,9 +25,9 @@ export default function DashboardPage() {
   async function loadDashboard() {
     setLoading(true);
     try {
-      const [analyticsRes, dueRes, bugsRes, tasksRes] = await Promise.all([
+      const [analyticsRes, learningsRes, bugsRes, tasksRes] = await Promise.all([
         fetch("/api/dashboard/analytics"),
-        fetch("/api/learnings/review"),
+        fetch("/api/learnings"),
         fetch("/api/bugs"),
         fetch("/api/tasks"),
       ]);
@@ -37,9 +37,9 @@ export default function DashboardPage() {
         setAnalytics(data);
       }
 
-      if (dueRes.ok) {
-        const dueData = await dueRes.json();
-        setDueLearnings(Array.isArray(dueData) ? dueData.length : 0);
+      if (learningsRes.ok) {
+        const learningsData = await learningsRes.json();
+        setTotalLearnings(Array.isArray(learningsData) ? learningsData.length : 0);
       }
 
       if (bugsRes.ok) {
@@ -68,6 +68,15 @@ export default function DashboardPage() {
 
   useEffect(() => {
     loadDashboard();
+
+    const handleAgentUsage = () => {
+      loadDashboard();
+    };
+
+    window.addEventListener("devloom-agent-usage", handleAgentUsage);
+    return () => {
+      window.removeEventListener("devloom-agent-usage", handleAgentUsage);
+    };
   }, []);
 
   const totalActiveTasks =
@@ -83,7 +92,7 @@ export default function DashboardPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-white">Engineering Workspace</h1>
           <p className="mt-1 text-sm text-slate-400">
-            Overview of your active tasks, open bugs, and spaced-review knowledge queue.
+            Overview of your active tasks, open bugs, and engineering knowledge base.
           </p>
         </div>
 
@@ -144,17 +153,17 @@ export default function DashboardPage() {
 
         <Link
           href="/learnings"
-          className="p-5 rounded-2xl border border-slate-800 bg-slate-900/40 hover:bg-slate-900/70 hover:border-success/30 transition group"
+          className="p-5 rounded-2xl border border-slate-800 bg-slate-900/40 hover:bg-slate-900/70 hover:border-emerald-500/30 transition group"
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-400">Due for Review</span>
-            <Brain className="w-4 h-4 text-success" />
+            <span className="text-xs font-medium text-slate-400">Knowledge Base</span>
+            <BookOpen className="w-4 h-4 text-emerald-400" />
           </div>
-          <div className="mt-3 text-3xl font-bold text-success">
-            {dueLearnings}
+          <div className="mt-3 text-3xl font-bold text-white">
+            {totalLearnings}
           </div>
-          <div className="mt-2 text-[11px] text-slate-400 flex items-center gap-1 group-hover:text-success transition-colors">
-            <span>{dueLearnings > 0 ? "Start recall session" : "Review notes"}</span>
+          <div className="mt-2 text-[11px] text-slate-400 flex items-center gap-1 group-hover:text-emerald-400 transition-colors">
+            <span>Gotchas & snippets</span>
             <ArrowRight className="w-3 h-3" />
           </div>
         </Link>
@@ -162,7 +171,7 @@ export default function DashboardPage() {
         <div className="p-5 rounded-2xl border border-slate-800 bg-slate-900/40">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-slate-400">Agent Quota</span>
-            <AIIcon className="w-4 h-4 text-primary" />
+            <Cpu className="w-4 h-4 text-primary" />
           </div>
           <div className="mt-3 text-3xl font-bold text-white">
             {analytics?.agentQuota
@@ -176,26 +185,6 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
-
-      {/* Due for review highlight */}
-      {dueLearnings > 0 && (
-        <div className="p-6 rounded-2xl border border-success/30 bg-success-subtle flex items-center justify-between gap-4">
-          <div>
-            <h2 className="text-base font-semibold text-white">
-              Spaced Review Queue Ready
-            </h2>
-            <p className="mt-1 text-xs text-slate-300">
-              You have {dueLearnings} learning{dueLearnings > 1 ? "s" : ""} waiting for recall practice.
-            </p>
-          </div>
-          <Link
-            href="/learnings"
-            className="px-4 py-2 rounded-xl bg-success hover:bg-success-hover text-white text-xs font-medium shadow-md shadow-success/20 transition cursor-pointer shrink-0"
-          >
-            Launch Review
-          </Link>
-        </div>
-      )}
 
       {/* Interactive Asana-Inspired Charts Grid */}
       {loading ? (
@@ -234,6 +223,7 @@ export default function DashboardPage() {
         isOpen={isPlannerOpen}
         onClose={() => setIsPlannerOpen(false)}
         defaultMode={plannerMode}
+        onSuccess={loadDashboard}
       />
     </div>
   );

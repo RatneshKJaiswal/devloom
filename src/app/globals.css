@@ -192,53 +192,305 @@ html.light,
   --timeline-dep-blocked: #dc2626;
 }
 
-html.light body {
+html.light body,
+[data-theme="light"] body {
   background-color: var(--background) !important;
   color: var(--foreground) !important;
 }
 
-html.light .text-white:not(
-  button,
-  button *,
-  a[class*="bg-"],
-  a[class*="bg-"] *,
-  [class*="bg-primary"],
-  [class*="bg-primary"] *,
-  [class*="bg-emerald-"],
-  [class*="bg-emerald-"] *,
-  [class*="bg-amber-"],
-  [class*="bg-amber-"] *,
-  [class*="bg-red-"],
-  [class*="bg-red-"] *,
-  [class*="bg-blue-"],
-  [class*="bg-blue-"] *,
-  [class*="bg-purple-"],
-  [class*="bg-purple-"] *,
-  [class*="bg-indigo-"],
-  [class*="bg-indigo-"] *,
-  .badge-solid,
-  .btn-colored
-) {
+/* ==========================================================================
+   PRODUCTION LIGHT THEME OVERRIDES
+   Ensures zero white text on white backgrounds, crisp borders, and beautiful SaaS cards.
+   ========================================================================== */
+
+/* 1. All text-white converts to deep dark slate (#0f172a) in light mode */
+html.light .text-white,
+html[data-theme="light"] .text-white,
+[data-theme="light"] .text-white,
+html.light [class*="text-white"],
+html[data-theme="light"] [class*="text-white"],
+[data-theme="light"] [class*="text-white"] {
   color: #0f172a !important;
 }
 
+/* 2. Hover states for white text */
+html.light .hover\:text-white:hover,
+html[data-theme="light"] .hover\:text-white:hover,
+[data-theme="light"] .hover\:text-white:hover,
+html.light .group:hover .group-hover\:text-white,
+html[data-theme="light"] .group:hover .group-hover\:text-white,
+[data-theme="light"] .group:hover .group-hover\:text-white {
+  color: #0f172a !important;
+}
+
+/* 3. EXCEPTIONS: Preserve crisp white text ONLY on solid colored buttons, solid badges, and solid avatar pills */
+html.light button[class*="bg-primary"],
+html.light button[class*="bg-primary"] *,
+html.light a[class*="bg-primary"],
+html.light a[class*="bg-primary"] *,
+html.light [class*="bg-primary"].text-white,
+html.light [class*="bg-primary"] .text-white,
+html.light [class*="bg-primary-hover"]:hover,
+html.light [class*="bg-primary-hover"]:hover *,
+html.light button[class*="bg-emerald-600"],
+html.light button[class*="bg-emerald-600"] *,
+html.light a[class*="bg-emerald-600"],
+html.light a[class*="bg-emerald-600"] *,
+html.light button[class*="bg-success"],
+html.light button[class*="bg-success"] *,
+html.light a[class*="bg-success"],
+html.light a[class*="bg-success"] *,
+html.light [class*="bg-success"].text-white,
+html.light [class*="bg-success"] .text-white,
+html.light button[class*="bg-red-600"],
+html.light button[class*="bg-red-600"] *,
+html.light a[class*="bg-red-600"],
+html.light a[class*="bg-red-600"] *,
+html.light [class*="bg-danger"].text-white,
+html.light [class*="bg-danger"] .text-white,
+html.light button[class*="bg-amber-600"],
+html.light button[class*="bg-amber-600"] *,
+html.light a[class*="bg-amber-600"],
+html.light a[class*="bg-amber-600"] *,
+html.light button[class*="bg-blue-600"],
+html.light button[class*="bg-blue-600"] *,
+html.light a[class*="bg-blue-600"],
+html.light a[class*="bg-blue-600"] *,
+html.light button[class*="bg-indigo-600"],
+html.light button[class*="bg-indigo-600"] *,
+html.light button[class*="bg-purple-600"],
+html.light button[class*="bg-purple-600"] *,
+html.light .badge-solid,
+html.light .badge-solid *,
+[data-theme="light"] button[class*="bg-primary"],
+[data-theme="light"] button[class*="bg-primary"] *,
+[data-theme="light"] a[class*="bg-primary"],
+[data-theme="light"] a[class*="bg-primary"] *,
+[data-theme="light"] [class*="bg-primary"].text-white,
+[data-theme="light"] [class*="bg-primary"] .text-white,
+[data-theme="light"] button[class*="bg-emerald-600"],
+[data-theme="light"] button[class*="bg-emerald-600"] *,
+[data-theme="light"] button[class*="bg-red-600"],
+[data-theme="light"] button[class*="bg-red-600"] *,
+[data-theme="light"] button[class*="bg-blue-600"],
+[data-theme="light"] button[class*="bg-blue-600"] * {
+  color: #ffffff !important;
+}
+
+/* 4. Active tab buttons in light mode (e.g. bg-slate-800 active segment) */
+html.light button.bg-slate-800,
+html.light button.bg-slate-800 *,
+[data-theme="light"] button.bg-slate-800,
+[data-theme="light"] button.bg-slate-800 * {
+  background-color: #ffffff;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.08);
+}
+
+/* 5. Inputs, selects, and textareas in light mode */
 html.light input,
 html.light select,
-html.light textarea {
+html.light textarea,
+[data-theme="light"] input,
+[data-theme="light"] select,
+[data-theme="light"] textarea {
+  background-color: #ffffff !important;
   color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light input:focus,
+html.light select:focus,
+html.light textarea:focus,
+[data-theme="light"] input:focus,
+[data-theme="light"] select:focus,
+[data-theme="light"] textarea:focus {
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 1px #2563eb !important;
+  outline: none !important;
 }
 
 html.light input::placeholder,
-html.light textarea::placeholder {
+html.light textarea::placeholder,
+[data-theme="light"] input::placeholder,
+[data-theme="light"] textarea::placeholder {
   color: #94a3b8 !important;
 }
 
-html.light ::-webkit-scrollbar-thumb {
+/* 6. Header and sidebar clean elevated light surfaces */
+html.light header,
+[data-theme="light"] header {
+  background-color: rgba(255, 255, 255, 0.95) !important;
+  border-color: #e2e8f0 !important;
+}
+
+html.light aside,
+[data-theme="light"] aside {
+  background-color: rgba(255, 255, 255, 0.95) !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* 7. Card containers in light mode */
+html.light div[class*="bg-slate-900"],
+[data-theme="light"] div[class*="bg-slate-900"] {
+  background-color: #ffffff;
+  border-color: #e2e8f0;
+  box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.04), 0 1px 2px -1px rgba(15, 23, 42, 0.03);
+}
+
+html.light a[class*="bg-slate-900"],
+[data-theme="light"] a[class*="bg-slate-900"] {
+  background-color: #ffffff;
+  border-color: #e2e8f0;
+}
+
+html.light a[class*="bg-slate-900"]:hover,
+[data-theme="light"] a[class*="bg-slate-900"]:hover {
+  background-color: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+/* 8. Code blocks & black translucent boxes in light mode */
+html.light pre,
+html.light [class*="bg-black/"],
+[data-theme="light"] pre,
+[data-theme="light"] [class*="bg-black/"] {
+  background-color: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+html.light code:not([class*="bg-primary"]):not([class*="bg-emerald"]):not([class*="bg-red"]),
+[data-theme="light"] code:not([class*="bg-primary"]):not([class*="bg-emerald"]):not([class*="bg-red"]) {
+  background-color: #f1f5f9;
+  border-color: #e2e8f0;
+  color: #0f172a;
+}
+
+/* 9. Light mode high-contrast badge & priority text overrides */
+html.light .text-amber-300,
+html.light .text-amber-400,
+[data-theme="light"] .text-amber-300,
+[data-theme="light"] .text-amber-400 {
+  color: #b45309 !important;
+}
+
+html.light .text-red-300,
+html.light .text-red-400,
+[data-theme="light"] .text-red-300,
+[data-theme="light"] .text-red-400 {
+  color: #b91c1c !important;
+}
+
+html.light .text-emerald-300,
+html.light .text-emerald-400,
+[data-theme="light"] .text-emerald-300,
+[data-theme="light"] .text-emerald-400 {
+  color: #15803d !important;
+}
+
+html.light .text-purple-300,
+html.light .text-purple-400,
+[data-theme="light"] .text-purple-300,
+[data-theme="light"] .text-purple-400 {
+  color: #7e22ce !important;
+}
+
+html.light .text-sky-300,
+html.light .text-sky-400,
+[data-theme="light"] .text-sky-300,
+[data-theme="light"] .text-sky-400 {
+  color: #0369a1 !important;
+}
+
+html.light .text-pink-300,
+html.light .text-pink-400,
+[data-theme="light"] .text-pink-300,
+[data-theme="light"] .text-pink-400 {
+  color: #be185d !important;
+}
+
+html.light .text-blue-300,
+html.light .text-blue-400,
+[data-theme="light"] .text-blue-300,
+[data-theme="light"] .text-blue-400 {
+  color: #1d4ed8 !important;
+}
+
+/* Light mode badge backgrounds: convert harsh dark tints into soft pastel badges */
+html.light [class*="bg-amber-950"],
+[data-theme="light"] [class*="bg-amber-950"] {
+  background-color: rgba(251, 191, 36, 0.15) !important;
+  border-color: rgba(245, 158, 11, 0.3) !important;
+}
+
+html.light [class*="bg-purple-950"],
+[data-theme="light"] [class*="bg-purple-950"] {
+  background-color: rgba(168, 85, 247, 0.12) !important;
+  border-color: rgba(168, 85, 247, 0.25) !important;
+}
+
+html.light [class*="bg-pink-950"],
+[data-theme="light"] [class*="bg-pink-950"] {
+  background-color: rgba(236, 72, 153, 0.12) !important;
+  border-color: rgba(236, 72, 153, 0.25) !important;
+}
+
+html.light [class*="bg-emerald-950"],
+[data-theme="light"] [class*="bg-emerald-950"] {
+  background-color: rgba(16, 185, 129, 0.12) !important;
+  border-color: rgba(16, 185, 129, 0.25) !important;
+}
+
+html.light [class*="bg-rose-950"],
+[data-theme="light"] [class*="bg-rose-950"] {
+  background-color: rgba(244, 63, 94, 0.12) !important;
+  border-color: rgba(244, 63, 94, 0.25) !important;
+}
+
+/* 10. Gantt Timeline Bar High-Contrast Light Theme Styling */
+html.light div[role="slider"][class*="bg-gradient-to-r"],
+[data-theme="light"] div[role="slider"][class*="bg-gradient-to-r"] {
+  background: #eff6ff !important;
+  border-color: #93c5fd !important;
+  color: #1e3a8a !important;
+  box-shadow: 0 1px 2px 0 rgba(37, 99, 235, 0.08) !important;
+}
+
+html.light div[role="slider"][class*="bg-gradient-to-r"] span,
+[data-theme="light"] div[role="slider"][class*="bg-gradient-to-r"] span {
+  color: #1e3a8a !important;
+}
+
+html.light div[role="slider"][class*="bg-gradient-to-r"] span[class*="font-mono"],
+[data-theme="light"] div[role="slider"][class*="bg-gradient-to-r"] span[class*="font-mono"] {
+  background-color: #dbeafe !important;
+  color: #1d4ed8 !important;
+  border-color: #bfdbfe !important;
+}
+
+/* 11. Light mode scrollbar */
+html.light ::-webkit-scrollbar-thumb,
+[data-theme="light"] ::-webkit-scrollbar-thumb {
   background: #cbd5e1;
 }
 
-html.light ::-webkit-scrollbar-thumb:hover {
+html.light ::-webkit-scrollbar-thumb:hover,
+[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
+}
+
+/* 12. Synchronized smooth cross-fade during theme toggle (scoped to containers, prevents text unreadability) */
+html.theme-transition body,
+html.theme-transition header,
+html.theme-transition aside,
+html.theme-transition main,
+html.theme-transition nav,
+html.theme-transition section,
+html.theme-transition [class*="bg-slate-"],
+html.theme-transition [class*="border-slate-"] {
+  transition: background-color 150ms ease-out, border-color 150ms ease-out, box-shadow 150ms ease-out !important;
 }
 
 body {

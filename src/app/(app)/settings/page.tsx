@@ -219,14 +219,18 @@ export default function SettingsPage() {
                 <label className="block text-xs font-medium text-slate-300 mb-1.5">
                   Full Name
                 </label>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g. Alex Rivera"
-                  required
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-700 bg-slate-950 text-white placeholder:text-slate-500 focus:outline-none focus:border-primary text-xs"
-                />
+                <div className="relative">
+                  <User className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="e.g. Alex Rivera"
+                    required
+                    style={{ paddingLeft: "2.75rem" }}
+                    className="w-full pr-4 py-2.5 rounded-xl border border-slate-700 bg-slate-950 text-white placeholder:text-slate-500 focus:outline-none focus:border-primary text-xs"
+                  />
+                </div>
               </div>
 
               <div>
@@ -240,7 +244,8 @@ export default function SettingsPage() {
                     type="email"
                     value={email}
                     disabled
-                    className="w-full !pl-10 pr-4 py-2.5 rounded-xl border border-slate-800 bg-slate-950/60 text-slate-400 text-xs cursor-not-allowed"
+                    style={{ paddingLeft: "2.75rem" }}
+                    className="w-full pr-4 py-2.5 rounded-xl border border-slate-800 bg-slate-950/60 text-slate-400 text-xs cursor-not-allowed"
                   />
                 </div>
               </div>
@@ -256,7 +261,8 @@ export default function SettingsPage() {
                     value={organization}
                     onChange={(e) => setOrganization(e.target.value)}
                     placeholder="e.g. Stripe, OpenAI, Independent"
-                    className="w-full !pl-10 pr-4 py-2.5 rounded-xl border border-slate-700 bg-slate-950 text-white placeholder:text-slate-500 focus:outline-none focus:border-primary text-xs"
+                    style={{ paddingLeft: "2.75rem" }}
+                    className="w-full pr-4 py-2.5 rounded-xl border border-slate-700 bg-slate-950 text-white placeholder:text-slate-500 focus:outline-none focus:border-primary text-xs"
                   />
                 </div>
               </div>
@@ -272,7 +278,8 @@ export default function SettingsPage() {
                     value={role}
                     onChange={(e) => setRole(e.target.value)}
                     placeholder="e.g. Staff Software Engineer"
-                    className="w-full !pl-10 pr-4 py-2.5 rounded-xl border border-slate-700 bg-slate-950 text-white placeholder:text-slate-500 focus:outline-none focus:border-primary text-xs"
+                    style={{ paddingLeft: "2.75rem" }}
+                    className="w-full pr-4 py-2.5 rounded-xl border border-slate-700 bg-slate-950 text-white placeholder:text-slate-500 focus:outline-none focus:border-primary text-xs"
                   />
                 </div>
               </div>
