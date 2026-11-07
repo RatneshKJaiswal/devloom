@@ -28,6 +28,9 @@ export async function POST(req: Request) {
 
     if (!result.success) {
       const { code, message } = result.error;
+      if (code === "ALREADY_EXISTS") {
+        return jsonResponse({ error: message, code }, 409);
+      }
       if (code === "QUOTA_EXCEEDED" || code === "RATE_LIMITED" || code === "GLOBAL_BUDGET_EXCEEDED") {
         return jsonResponse({ error: message, code }, 429);
       }

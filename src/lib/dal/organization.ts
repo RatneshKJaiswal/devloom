@@ -161,6 +161,34 @@ export async function createProject(
   return created;
 }
 
+export async function findOrCreateProjectByName(
+  userId: string,
+  projectName: string,
+  description?: string
+) {
+  const trimmed = projectName.trim();
+  const [existing] = await db
+    .select()
+    .from(projects)
+    .where(
+      withUserScope(
+        projects,
+        userId,
+        sql`lower(${projects.name}) = ${trimmed.toLowerCase()}`
+      )
+    )
+    .limit(1);
+
+  if (existing) {
+    return existing;
+  }
+
+  return createProject(userId, {
+    name: trimmed,
+    description: description || `Project automatically created from GitHub repository: ${trimmed}`,
+  });
+}
+
 export async function updateProject(
   userId: string,
   id: string,

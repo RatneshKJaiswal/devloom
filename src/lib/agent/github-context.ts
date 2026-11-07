@@ -7,7 +7,8 @@ import { agentClient } from "./client";
 import { createTask } from "@/lib/dal/tasks";
 import { createBug } from "@/lib/dal/bugs";
 import { createLearning } from "@/lib/dal/learnings";
-import { linkItemToGitHub } from "@/lib/dal/links";
+import { linkItemToGitHub, findExistingGitHubLink } from "@/lib/dal/links";
+import { findOrCreateProjectByName } from "@/lib/dal/organization";
 
 export interface GitHubContextRequest {
   userId: string;
@@ -35,7 +36,21 @@ export async function processGitHubContext({
     };
   }
 
-  // 2. Check quota
+  // 2. Check for duplicate import (Already exists)
+  const existingLink = await findExistingGitHubLink(userId, parsed);
+  if (existingLink) {
+    const itemType = existingLink.entityType;
+    return {
+      success: false,
+      error: {
+        code: "ALREADY_EXISTS",
+        message: `Already exists: GitHub ${parsed.linkType === "pull_request" ? "PR" : "issue"} #${parsed.issueOrPrNumber} in ${parsed.repoName} is already imported as a ${itemType}.`,
+        retryable: false,
+      },
+    };
+  }
+
+  // 3. Check quota
   const quotaError = await checkUserQuota(userId);
   if (quotaError) {
     return { success: false, error: quotaError };
@@ -91,13 +106,21 @@ export async function processGitHubContext({
     formattedDescription = `${formattedDescription}${githubRefBlock}`.trim();
   }
 
-  // 8. Create item inside workspace
+  // 8. Find or import repository project
+  const project = await findOrCreateProjectByName(
+    userId,
+    parsed.repoName,
+    `Project imported from GitHub repository: ${parsed.repoOwner}/${parsed.repoName}`
+  );
+
+  // 9. Create item inside workspace
   let createdItem: any = null;
   if (candidate.entityType === "bug") {
     createdItem = await createBug(userId, {
       title: candidate.title,
       description: formattedDescription,
       priority: candidate.priority,
+      projectId: project.id,
       stackTrace: candidate.bugDetails?.stackTrace,
       reproSteps: candidate.bugDetails?.reproSteps,
       suspectedCause: candidate.bugDetails?.suspectedCause,
@@ -106,12 +129,14 @@ export async function processGitHubContext({
     createdItem = await createLearning(userId, {
       title: candidate.title,
       content: formattedDescription || candidate.title,
+      projectId: project.id,
     });
   } else {
     createdItem = await createTask(userId, {
       title: candidate.title,
       description: formattedDescription,
       priority: candidate.priority,
+      projectId: project.id,
     });
   }
 

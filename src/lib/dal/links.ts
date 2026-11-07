@@ -1,7 +1,7 @@
 import { db } from "@/lib/db";
 import { githubLinks } from "@/lib/db/schema";
 import { withUserScope } from "./base";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { parseGitHubUrl } from "@/lib/github/parser";
 import { fetchGitHubMetadata } from "@/lib/github/client";
 import { getUserGitHubToken } from "@/lib/security/tokens";
@@ -44,6 +44,30 @@ export async function linkItemToGitHub(
     .returning();
 
   return created;
+}
+
+export async function findExistingGitHubLink(
+  userId: string,
+  params: { repoOwner: string; repoName: string; issueOrPrNumber?: number | null; url: string }
+) {
+  const conditions = [
+    sql`lower(${githubLinks.repoOwner}) = ${params.repoOwner.toLowerCase()}`,
+    sql`lower(${githubLinks.repoName}) = ${params.repoName.toLowerCase()}`,
+  ];
+
+  if (params.issueOrPrNumber) {
+    conditions.push(eq(githubLinks.issueOrPrNumber, params.issueOrPrNumber));
+  } else {
+    conditions.push(eq(githubLinks.url, params.url));
+  }
+
+  const [existing] = await db
+    .select()
+    .from(githubLinks)
+    .where(withUserScope(githubLinks, userId, and(...conditions)))
+    .limit(1);
+
+  return existing || null;
 }
 
 export async function listGitHubLinks(
