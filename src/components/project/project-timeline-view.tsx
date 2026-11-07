@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import {
   Calendar,
   Flag,
@@ -8,10 +8,54 @@ import {
   Clock,
   Link2,
   Lock,
+  RotateCcw,
+  AlertCircle,
+  Check,
+  X,
+  GripVertical,
 } from "lucide-react";
 import { TASK_STATUS_CONFIG, PRIORITY_CONFIG } from "@/lib/tokens";
 import type { DependencyWithDetails } from "@/lib/dal/dependencies";
 import { ProjectDependenciesModal } from "./project-dependencies-modal";
+
+export function toDateStr(d: Date | string): string {
+  if (typeof d === "string") {
+    if (d.includes("T")) return d.split("T")[0];
+    return d.slice(0, 10);
+  }
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+export function parseDateOnly(dateStr: string): Date {
+  const [y, m, d] = dateStr.slice(0, 10).split("-").map(Number);
+  return new Date(y, m - 1, d);
+}
+
+export function addDaysToStr(dateStr: string, days: number): string {
+  const d = parseDateOnly(dateStr);
+  d.setDate(d.getDate() + days);
+  return toDateStr(d);
+}
+
+interface DragState {
+  taskId: string;
+  mode: "move" | "resize-start" | "resize-due";
+  startX: number;
+  initialStart: string;
+  initialDue: string;
+  currentDeltaDays: number;
+}
+
+interface UndoAction {
+  taskId: string;
+  title: string;
+  previousStart: string | null;
+  previousDue: string | null;
+  versionToUndo: number;
+}
 
 interface ProjectTimelineProps {
   project: {
@@ -28,6 +72,7 @@ interface ProjectTimelineProps {
     priority: string;
     dueDate?: string | null;
     startDate?: string | null;
+    version?: number;
   }>;
   milestones: Array<{
     id: string;
@@ -49,22 +94,112 @@ export function ProjectTimelineView({
   const [resolution, setResolution] = useState<"day" | "week">("day");
   const [isDepModalOpen, setIsDepModalOpen] = useState(false);
 
-  // Filter tasks into scheduled vs unscheduled
-  const { scheduledTasks, unscheduledTasks } = useMemo(() => {
-    const scheduled: typeof tasks = [];
-    const unscheduled: typeof tasks = [];
+  // Local optimistic task state
+  const [localTasks, setLocalTasks] = useState(tasks);
+  useEffect(() => {
+    setLocalTasks(tasks);
+  }, [tasks]);
 
-    for (const t of tasks) {
-      if (t.dueDate || t.startDate) {
+  // Active drag state
+  const [activeDrag, setActiveDrag] = useState<DragState | null>(null);
+
+  // Floating notifications
+  const [snapNotice, setSnapNotice] = useState<string | null>(null);
+  const [errorNotice, setErrorNotice] = useState<string | null>(null);
+  const [undoAction, setUndoAction] = useState<UndoAction | null>(null);
+  const [isRescheduling, setIsRescheduling] = useState(false);
+
+  // Auto-dismiss notices
+  useEffect(() => {
+    if (!snapNotice) return;
+    const t = setTimeout(() => setSnapNotice(null), 5000);
+    return () => clearTimeout(t);
+  }, [snapNotice]);
+
+  useEffect(() => {
+    if (!errorNotice) return;
+    const t = setTimeout(() => setErrorNotice(null), 6000);
+    return () => clearTimeout(t);
+  }, [errorNotice]);
+
+  // Predecessor constraints lookup
+  const getPredecessorConstraint = useCallback(
+    (taskId: string): { earliestValidStart: string | null; blockerTitle: string | null } => {
+      const predDeps = dependencies.filter((d) => d.successorId === taskId);
+      let maxPredDateStr: string | null = null;
+      let blocker: string | null = null;
+
+      for (const dep of predDeps) {
+        const predTask = localTasks.find((t) => t.id === dep.predecessorId);
+        if (predTask) {
+          const predEnd = predTask.dueDate || predTask.startDate;
+          if (predEnd) {
+            const predStr = toDateStr(predEnd);
+            if (!maxPredDateStr || predStr > maxPredDateStr) {
+              maxPredDateStr = predStr;
+              blocker = predTask.title;
+            }
+          }
+        }
+      }
+
+      return {
+        earliestValidStart: maxPredDateStr ? addDaysToStr(maxPredDateStr, 1) : null,
+        blockerTitle: blocker,
+      };
+    },
+    [dependencies, localTasks]
+  );
+
+  // Filter tasks into scheduled vs unscheduled, with live drag overrides
+  const { scheduledTasks, unscheduledTasks } = useMemo(() => {
+    const scheduled: typeof localTasks = [];
+    const unscheduled: typeof localTasks = [];
+
+    for (const t of localTasks) {
+      if (activeDrag && activeDrag.taskId === t.id && activeDrag.currentDeltaDays !== 0) {
+        const { mode, initialStart, initialDue, currentDeltaDays } = activeDrag;
+        let newStart = initialStart;
+        let newDue = initialDue;
+
+        if (mode === "move") {
+          newStart = addDaysToStr(initialStart, currentDeltaDays);
+          newDue = addDaysToStr(initialDue, currentDeltaDays);
+          const { earliestValidStart } = getPredecessorConstraint(t.id);
+          if (earliestValidStart && newStart < earliestValidStart) {
+            const diffDays = Math.round(
+              (parseDateOnly(initialDue).getTime() - parseDateOnly(initialStart).getTime()) / 86400000
+            );
+            newStart = earliestValidStart;
+            newDue = addDaysToStr(newStart, diffDays);
+          }
+        } else if (mode === "resize-start") {
+          newStart = addDaysToStr(initialStart, currentDeltaDays);
+          if (newStart > initialDue) newStart = initialDue;
+          const { earliestValidStart } = getPredecessorConstraint(t.id);
+          if (earliestValidStart && newStart < earliestValidStart) {
+            newStart = earliestValidStart;
+          }
+        } else if (mode === "resize-due") {
+          newDue = addDaysToStr(initialDue, currentDeltaDays);
+          if (newDue < initialStart) newDue = initialStart;
+        }
+
+        scheduled.push({
+          ...t,
+          startDate: newStart,
+          dueDate: newDue,
+        });
+      } else if (t.dueDate || t.startDate) {
         scheduled.push(t);
       } else {
         unscheduled.push(t);
       }
     }
     return { scheduledTasks: scheduled, unscheduledTasks: unscheduled };
-  }, [tasks]);
+  }, [localTasks, activeDrag, getPredecessorConstraint]);
 
-  // Compute blocked state map
+  // Blocked status map
   const blockedMap = useMemo(() => {
     const map = new Map<string, { isBlocked: boolean; blockers: string[] }>();
     for (const dep of dependencies) {
@@ -79,34 +214,33 @@ export function ProjectTimelineView({
   }, [dependencies]);
 
   // Compute timeline date envelope
-  const { startDate, endDate, totalDays, datesList } = useMemo(() => {
+  const { startDate, totalDays, datesList } = useMemo(() => {
     const allDateStamps: number[] = [];
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     allDateStamps.push(today.getTime());
 
     if (project.startDate) {
-      allDateStamps.push(new Date(project.startDate).getTime());
+      allDateStamps.push(parseDateOnly(project.startDate).getTime());
     }
     if (project.targetDate) {
-      allDateStamps.push(new Date(project.targetDate).getTime());
+      allDateStamps.push(parseDateOnly(project.targetDate).getTime());
     }
 
     for (const m of milestones) {
       if (m.targetDate) {
-        allDateStamps.push(new Date(m.targetDate).getTime());
+        allDateStamps.push(parseDateOnly(m.targetDate).getTime());
       }
     }
 
     for (const t of scheduledTasks) {
-      if (t.startDate) allDateStamps.push(new Date(t.startDate).getTime());
-      if (t.dueDate) allDateStamps.push(new Date(t.dueDate).getTime());
+      if (t.startDate) allDateStamps.push(parseDateOnly(toDateStr(t.startDate)).getTime());
+      if (t.dueDate) allDateStamps.push(parseDateOnly(toDateStr(t.dueDate)).getTime());
     }
 
     const minStamp = Math.min(...allDateStamps);
     const maxStamp = Math.max(...allDateStamps);
 
-    // Add padding days around bounds
     const padBefore = resolution === "day" ? 5 : 14;
     const padAfter = resolution === "day" ? 14 : 28;
 
@@ -134,19 +268,17 @@ export function ProjectTimelineView({
   const cellWidth = resolution === "day" ? 36 : 14;
   const timelineWidth = totalDays * cellWidth;
 
-  // Helper to convert date to pixel X offset
-  function dateToX(dateStr: string | Date): number {
-    const d = new Date(dateStr);
+  function dateToX(dateVal: string | Date): number {
+    const d = typeof dateVal === "string" ? parseDateOnly(toDateStr(dateVal)) : new Date(dateVal);
     d.setHours(0, 0, 0, 0);
-    const diffDays = (d.getTime() - startDate.getTime()) / 86400000;
+    const diffDays = Math.round((d.getTime() - startDate.getTime()) / 86400000);
     return Math.max(0, diffDays * cellWidth);
   }
 
   const todayX = dateToX(new Date());
 
-  // Task vertical indexing for connector lines
   const taskRowHeight = 36;
-  const tasksStartY = 110; // offset after Horizon and Milestones
+  const tasksStartY = 110;
 
   const taskIndexMap = useMemo(() => {
     const map = new Map<string, number>();
@@ -154,15 +286,223 @@ export function ProjectTimelineView({
     return map;
   }, [scheduledTasks]);
 
+  // Execute reschedule with optimistic locking & undo buffer
+  async function executeReschedule(
+    taskId: string,
+    newStart: string | null,
+    newDue: string | null,
+    expectedVersion: number
+  ) {
+    const existing = localTasks.find((t) => t.id === taskId);
+    if (!existing) return;
+
+    const prevStart = existing.startDate ? toDateStr(existing.startDate) : null;
+    const prevDue = existing.dueDate ? toDateStr(existing.dueDate) : null;
+
+    // Optimistic state update
+    setLocalTasks((prev) =>
+      prev.map((t) =>
+        t.id === taskId
+          ? { ...t, startDate: newStart, dueDate: newDue, version: expectedVersion + 1 }
+          : t
+      )
+    );
+
+    setIsRescheduling(true);
+    try {
+      const res = await fetch(`/api/tasks/${taskId}/reschedule`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          startDate: newStart,
+          dueDate: newDue,
+          expectedVersion,
+        }),
+      });
+
+      if (res.status === 409) {
+        // Optimistic concurrency collision
+        setLocalTasks(tasks);
+        setErrorNotice("Version conflict: Task was modified by another operation. Changes reverted.");
+        if (onRefresh) onRefresh();
+        return;
+      }
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setLocalTasks(tasks);
+        setErrorNotice(data.error || "Failed to reschedule task.");
+        return;
+      }
+
+      const updatedTask = await res.json();
+      setLocalTasks((prev) =>
+        prev.map((t) => (t.id === taskId ? { ...t, ...updatedTask } : t))
+      );
+
+      // Set single-click undo action
+      setUndoAction({
+        taskId,
+        title: existing.title,
+        previousStart: prevStart,
+        previousDue: prevDue,
+        versionToUndo: updatedTask.version,
+      });
+
+      if (onRefresh) onRefresh();
+    } catch (err: any) {
+      setLocalTasks(tasks);
+      setErrorNotice(err.message || "Network error while rescheduling.");
+    } finally {
+      setIsRescheduling(false);
+    }
+  }
+
+  // Handle single-click undo
+  async function handleUndo() {
+    if (!undoAction) return;
+    const action = undoAction;
+    setUndoAction(null);
+
+    await executeReschedule(
+      action.taskId,
+      action.previousStart,
+      action.previousDue,
+      action.versionToUndo
+    );
+  }
+
+  // Pointer event handlers for drag / resize
+  const handlePointerDown = (
+    e: React.PointerEvent,
+    task: (typeof scheduledTasks)[0],
+    mode: "move" | "resize-start" | "resize-due"
+  ) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    } catch {}
+
+    const taskStart = toDateStr(task.startDate || task.dueDate!);
+    const taskDue = toDateStr(task.dueDate || task.startDate!);
+
+    setActiveDrag({
+      taskId: task.id,
+      mode,
+      startX: e.clientX,
+      initialStart: taskStart,
+      initialDue: taskDue,
+      currentDeltaDays: 0,
+    });
+  };
+
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (!activeDrag) return;
+    const diffPx = e.clientX - activeDrag.startX;
+    const deltaDays = Math.round(diffPx / cellWidth);
+    if (deltaDays !== activeDrag.currentDeltaDays) {
+      setActiveDrag((prev) => (prev ? { ...prev, currentDeltaDays: deltaDays } : null));
+    }
+  };
+
+  const handlePointerUp = async (e: React.PointerEvent) => {
+    if (!activeDrag) return;
+    try {
+      (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+    } catch {}
+
+    const { taskId, mode, initialStart, initialDue, currentDeltaDays } = activeDrag;
+    setActiveDrag(null);
+
+    if (currentDeltaDays === 0) return;
+
+    let newStart = initialStart;
+    let newDue = initialDue;
+    let didSnap = false;
+
+    const { earliestValidStart, blockerTitle } = getPredecessorConstraint(taskId);
+
+    if (mode === "move") {
+      newStart = addDaysToStr(initialStart, currentDeltaDays);
+      newDue = addDaysToStr(initialDue, currentDeltaDays);
+
+      if (earliestValidStart && newStart < earliestValidStart) {
+        const diffDays = Math.round(
+          (parseDateOnly(initialDue).getTime() - parseDateOnly(initialStart).getTime()) / 86400000
+        );
+        newStart = earliestValidStart;
+        newDue = addDaysToStr(newStart, diffDays);
+        didSnap = true;
+      }
+    } else if (mode === "resize-start") {
+      newStart = addDaysToStr(initialStart, currentDeltaDays);
+      if (newStart > initialDue) newStart = initialDue;
+      if (earliestValidStart && newStart < earliestValidStart) {
+        newStart = earliestValidStart;
+        didSnap = true;
+      }
+    } else if (mode === "resize-due") {
+      newDue = addDaysToStr(initialDue, currentDeltaDays);
+      if (newDue < initialStart) newDue = initialStart;
+    }
+
+    if (didSnap && blockerTitle) {
+      setSnapNotice(`Snapped to earliest valid start date (blocked by "${blockerTitle}")`);
+    }
+
+    const currentTask = localTasks.find((t) => t.id === taskId);
+    if (!currentTask) return;
+
+    await executeReschedule(taskId, newStart, newDue, currentTask.version || 1);
+  };
+
+  // Keyboard navigation shortcuts (Alt + ArrowLeft/Right = 1d, Alt + Shift + Arrow = 7d)
+  const handleKeyDown = async (
+    e: React.KeyboardEvent,
+    task: (typeof scheduledTasks)[0]
+  ) => {
+    if (!e.altKey) return;
+    let delta = 0;
+    if (e.key === "ArrowLeft") delta = e.shiftKey ? -7 : -1;
+    else if (e.key === "ArrowRight") delta = e.shiftKey ? 7 : 1;
+    else return;
+
+    e.preventDefault();
+
+    const taskStart = toDateStr(task.startDate || task.dueDate!);
+    const taskDue = toDateStr(task.dueDate || task.startDate!);
+
+    let newStart = addDaysToStr(taskStart, delta);
+    let newDue = addDaysToStr(taskDue, delta);
+
+    const { earliestValidStart, blockerTitle } = getPredecessorConstraint(task.id);
+    if (earliestValidStart && newStart < earliestValidStart) {
+      const diffDays = Math.round(
+        (parseDateOnly(taskDue).getTime() - parseDateOnly(taskStart).getTime()) / 86400000
+      );
+      newStart = earliestValidStart;
+      newDue = addDaysToStr(newStart, diffDays);
+      if (blockerTitle) {
+        setSnapNotice(`Snapped to earliest valid start date (blocked by "${blockerTitle}")`);
+      }
+    }
+
+    await executeReschedule(task.id, newStart, newDue, task.version || 1);
+  };
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 relative">
       {/* Timeline Controls Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl border border-slate-800 bg-slate-950/80">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <Calendar className="w-4 h-4 text-primary" />
           <span className="text-xs font-semibold text-white">Project Timeline</span>
           <span className="text-[11px] text-slate-400">
             ({scheduledTasks.length} dated tasks, {milestones.length} milestones, {dependencies.length} dependencies)
+          </span>
+          <span className="text-[10px] text-slate-400 font-mono hidden md:inline ml-2 px-1.5 py-0.5 rounded border border-slate-800 bg-slate-900/60">
+            Alt+←/→: shift 1d • Drag bar or handles
           </span>
         </div>
 
@@ -215,8 +555,7 @@ export function ProjectTimelineView({
                 const isSunday = d.getDay() === 0;
                 const isMonday = d.getDay() === 1;
                 const isFirstOfMonth = d.getDate() === 1;
-                const isToday =
-                  d.toDateString() === new Date().toDateString();
+                const isToday = d.toDateString() === new Date().toDateString();
 
                 return (
                   <div
@@ -351,11 +690,12 @@ export function ProjectTimelineView({
                     <div className="text-[10px] uppercase font-bold tracking-wider text-slate-400 pl-1">
                       Project Horizon
                     </div>
-                    <div className="relative h-7 flex items-center">
+
+                    <div className="relative h-6 flex items-center">
                       {(() => {
                         const startX = dateToX(project.startDate);
                         const endX = dateToX(project.targetDate) + cellWidth;
-                        const width = Math.max(endX - startX, 24);
+                        const width = Math.max(endX - startX, cellWidth);
 
                         return (
                           <div
@@ -390,7 +730,6 @@ export function ProjectTimelineView({
                             className="absolute -translate-x-1/2 flex flex-col items-center group cursor-pointer"
                             title={`${m.title} (${m.targetDate}) - ${m.isCompleted ? "Completed" : "Pending"}`}
                           >
-                            {/* Diamond pin marker */}
                             <div
                               className={`w-3.5 h-3.5 rotate-45 border shadow-sm transition-transform group-hover:scale-125 ${
                                 m.isCompleted
@@ -408,11 +747,11 @@ export function ProjectTimelineView({
                   </div>
                 )}
 
-                {/* 3. Scheduled Tasks Bars */}
+                {/* 3. Scheduled Tasks Bars with Gantt Drag Handles */}
                 <div className="space-y-2 pt-2">
                   <div className="text-[10px] uppercase font-bold tracking-wider text-slate-400 pl-1 flex items-center gap-1">
                     <CheckSquare className="w-3 h-3 text-primary" />
-                    <span>Dated Tasks</span>
+                    <span>Dated Tasks (Interactive Gantt)</span>
                   </div>
 
                   {scheduledTasks.length === 0 ? (
@@ -421,38 +760,61 @@ export function ProjectTimelineView({
                     </div>
                   ) : (
                     scheduledTasks.map((t) => {
-                      const taskStart = t.startDate || t.dueDate!;
-                      const taskEnd = t.dueDate || t.startDate!;
+                      const taskStart = toDateStr(t.startDate || t.dueDate!);
+                      const taskEnd = toDateStr(t.dueDate || t.startDate!);
 
                       const startX = dateToX(taskStart);
                       const endX = dateToX(taskEnd) + cellWidth;
-                      const width = Math.max(endX - startX, 28);
+                      const width = Math.max(endX - startX, 32);
 
                       const isDone = t.status === "done";
                       const blockedInfo = blockedMap.get(t.id);
                       const isBlocked = !isDone && !!blockedInfo?.isBlocked;
+                      const isCurrentlyDragging = activeDrag?.taskId === t.id;
 
                       const priorityColor =
                         PRIORITY_CONFIG[t.priority]?.badgeClass || "border-slate-700 text-slate-300";
 
                       return (
                         <div key={t.id} className="relative h-7 flex items-center group">
+                          {/* Task Bar with Handles & Drag Handlers */}
                           <div
+                            tabIndex={0}
+                            role="slider"
+                            aria-label={`Task: ${t.title}. Start: ${taskStart}, Due: ${taskEnd}. Alt+Left/Right arrows to shift.`}
+                            aria-valuetext={`${taskStart} to ${taskEnd}`}
+                            onKeyDown={(e) => handleKeyDown(e, t)}
                             style={{ left: `${startX}px`, width: `${width}px` }}
-                            className={`absolute h-6 rounded-md border text-xs px-2 flex items-center justify-between gap-1 transition-all shadow-sm ${
-                              isDone
+                            className={`absolute h-6 rounded-md border text-xs flex items-center justify-between gap-1 shadow-sm select-none cursor-grab active:cursor-grabbing outline-none focus:ring-2 focus:ring-primary/80 ${
+                              isCurrentlyDragging
+                                ? "ring-2 ring-primary bg-primary/40 border-primary z-30"
+                                : isDone
                                 ? "bg-slate-900/80 border-slate-700 text-slate-500 line-through"
                                 : isBlocked
-                                ? "bg-danger-subtle border-danger/60 text-white"
+                                ? "bg-danger-subtle border-danger/60 text-white hover:border-danger"
                                 : "bg-primary/20 border-primary/50 text-white hover:border-primary hover:bg-primary/30"
                             }`}
-                            title={
-                              isBlocked
-                                ? `BLOCKED by: ${blockedInfo?.blockers.join(", ")}`
-                                : `${t.title} (${taskStart}${t.dueDate ? ` to ${t.dueDate}` : ""})`
-                            }
+                            onPointerDown={(e) => handlePointerDown(e, t, "move")}
+                            onPointerMove={handlePointerMove}
+                            onPointerUp={handlePointerUp}
+                            title={`${t.title} (${taskStart} to ${taskEnd})${
+                              isBlocked ? ` - BLOCKED by: ${blockedInfo?.blockers.join(", ")}` : ""
+                            } • Drag bar or resize edges`}
                           >
-                            <div className="flex items-center gap-1.5 truncate">
+                            {/* Left Handle: Resize Start Date */}
+                            <div
+                              role="button"
+                              aria-label="Resize start date"
+                              onPointerDown={(e) => handlePointerDown(e, t, "resize-start")}
+                              onPointerMove={handlePointerMove}
+                              onPointerUp={handlePointerUp}
+                              className="absolute left-0 top-0 bottom-0 w-2.5 cursor-ew-resize hover:bg-white/30 rounded-l flex items-center justify-center opacity-0 group-hover:opacity-100 transition z-20"
+                            >
+                              <div className="w-[2px] h-3 bg-white/70 rounded-full" />
+                            </div>
+
+                            {/* Center Content */}
+                            <div className="flex items-center gap-1.5 truncate px-2 pointer-events-none">
                               {isBlocked && (
                                 <Lock className="w-3 h-3 text-red-400 shrink-0 animate-pulse" />
                               )}
@@ -460,10 +822,22 @@ export function ProjectTimelineView({
                             </div>
 
                             <span
-                              className={`text-[8px] uppercase font-bold px-1 py-0.2 rounded border shrink-0 ${priorityColor}`}
+                              className={`text-[8px] uppercase font-bold px-1 py-0.2 rounded border shrink-0 mr-1.5 pointer-events-none ${priorityColor}`}
                             >
                               {t.priority}
                             </span>
+
+                            {/* Right Handle: Resize Due Date */}
+                            <div
+                              role="button"
+                              aria-label="Resize due date"
+                              onPointerDown={(e) => handlePointerDown(e, t, "resize-due")}
+                              onPointerMove={handlePointerMove}
+                              onPointerUp={handlePointerUp}
+                              className="absolute right-0 top-0 bottom-0 w-2.5 cursor-ew-resize hover:bg-white/30 rounded-r flex items-center justify-center opacity-0 group-hover:opacity-100 transition z-20"
+                            >
+                              <div className="w-[2px] h-3 bg-white/70 rounded-full" />
+                            </div>
                           </div>
                         </div>
                       );
@@ -475,6 +849,74 @@ export function ProjectTimelineView({
           </div>
         </div>
       </div>
+
+      {/* Floating Notification / Undo Toast Bar */}
+      {(snapNotice || errorNotice || undoAction) && (
+        <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-2 max-w-md animate-in fade-in slide-in-from-bottom-3 duration-200">
+          {/* Dependency Snap Alert */}
+          {snapNotice && (
+            <div className="p-3 rounded-xl border border-warning/50 bg-amber-950/90 text-amber-200 text-xs shadow-xl flex items-center justify-between gap-3 backdrop-blur-sm">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-warning shrink-0" />
+                <span>{snapNotice}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSnapNotice(null)}
+                className="text-amber-400 hover:text-white transition"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
+
+          {/* Error Notice */}
+          {errorNotice && (
+            <div className="p-3 rounded-xl border border-danger/50 bg-red-950/90 text-red-200 text-xs shadow-xl flex items-center justify-between gap-3 backdrop-blur-sm">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-danger shrink-0" />
+                <span>{errorNotice}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setErrorNotice(null)}
+                className="text-red-400 hover:text-white transition"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
+
+          {/* Undo Snackbar */}
+          {undoAction && (
+            <div className="p-3 rounded-xl border border-slate-700 bg-slate-900/95 text-white text-xs shadow-2xl flex items-center justify-between gap-3 backdrop-blur-sm">
+              <div className="flex items-center gap-2 truncate">
+                <Check className="w-4 h-4 text-success shrink-0" />
+                <span className="truncate">Rescheduled "{undoAction.title}"</span>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={handleUndo}
+                  disabled={isRescheduling}
+                  className="px-2.5 py-1 rounded bg-primary hover:bg-primary-hover text-white font-medium text-xs flex items-center gap-1 transition shadow-sm cursor-pointer disabled:opacity-50"
+                >
+                  <RotateCcw className="w-3 h-3" />
+                  <span>Undo</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setUndoAction(null)}
+                  className="text-slate-400 hover:text-slate-200 p-0.5"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Unscheduled Tasks Tray */}
       {unscheduledTasks.length > 0 && (
@@ -514,7 +956,7 @@ export function ProjectTimelineView({
         isOpen={isDepModalOpen}
         onClose={() => setIsDepModalOpen(false)}
         projectId={project.id}
-        tasks={tasks}
+        tasks={localTasks}
         dependencies={dependencies}
         onRefresh={() => {
           if (onRefresh) onRefresh();

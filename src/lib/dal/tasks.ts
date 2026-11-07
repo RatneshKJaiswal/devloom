@@ -1,7 +1,7 @@
 import { db } from "@/lib/db";
-import { tasks, taskTags, tags, projects } from "@/lib/db/schema";
+import { tasks, taskTags, tags, projects, taskDependencies } from "@/lib/db/schema";
 import { withUserScope } from "./base";
-import { eq, desc, and, inArray } from "drizzle-orm";
+import { eq, desc, and, inArray, sql } from "drizzle-orm";
 
 export interface TaskFilterOptions {
   status?: "todo" | "in_progress" | "done" | "cancelled";
@@ -37,7 +37,9 @@ export async function listTasks(userId: string, options: TaskFilterOptions = {})
       description: tasks.description,
       status: tasks.status,
       priority: tasks.priority,
+      startDate: tasks.startDate,
       dueDate: tasks.dueDate,
+      version: tasks.version,
       createdAt: tasks.createdAt,
       updatedAt: tasks.updatedAt,
     })
@@ -89,7 +91,9 @@ export async function getTaskById(userId: string, id: string) {
       description: tasks.description,
       status: tasks.status,
       priority: tasks.priority,
+      startDate: tasks.startDate,
       dueDate: tasks.dueDate,
+      version: tasks.version,
       createdAt: tasks.createdAt,
       updatedAt: tasks.updatedAt,
     })
@@ -125,6 +129,7 @@ export async function createTask(
     status?: "todo" | "in_progress" | "done" | "cancelled";
     priority?: "low" | "medium" | "high" | "urgent";
     projectId?: string | null;
+    startDate?: string | null;
     dueDate?: string | null;
   },
   tagIds?: string[]
@@ -138,6 +143,7 @@ export async function createTask(
       status: data.status || "todo",
       priority: data.priority || "medium",
       projectId: data.projectId || null,
+      startDate: data.startDate ? new Date(data.startDate) : null,
       dueDate: data.dueDate ? new Date(data.dueDate) : null,
     })
     .returning();
@@ -163,12 +169,14 @@ export async function updateTask(
     status: "todo" | "in_progress" | "done" | "cancelled";
     priority: "low" | "medium" | "high" | "urgent";
     projectId?: string | null;
+    startDate?: string | null;
     dueDate?: string | null;
   }>,
   tagIds?: string[]
 ) {
   const updateData: Record<string, unknown> = {
     updatedAt: new Date(),
+    version: sql`${tasks.version} + 1`,
   };
 
   if (data.title !== undefined) updateData.title = data.title;
@@ -176,6 +184,9 @@ export async function updateTask(
   if (data.status !== undefined) updateData.status = data.status;
   if (data.priority !== undefined) updateData.priority = data.priority;
   if (data.projectId !== undefined) updateData.projectId = data.projectId;
+  if (data.startDate !== undefined) {
+    updateData.startDate = data.startDate ? new Date(data.startDate) : null;
+  }
   if (data.dueDate !== undefined) {
     updateData.dueDate = data.dueDate ? new Date(data.dueDate) : null;
   }
@@ -201,6 +212,107 @@ export async function updateTask(
   }
 
   return getTaskById(userId, id);
+}
+
+export type RescheduleResult =
+  | { success: true; task: NonNullable<Awaited<ReturnType<typeof getTaskById>>> }
+  | { error: "not_found" }
+  | { error: "version_conflict"; currentVersion: number; task: Awaited<ReturnType<typeof getTaskById>> }
+  | { error: "invalid_dates"; message: string }
+  | { error: "predecessor_conflict"; message: string };
+
+export async function rescheduleTask(
+  userId: string,
+  taskId: string,
+  params: {
+    startDate?: string | null;
+    dueDate?: string | null;
+    expectedVersion: number;
+  }
+): Promise<RescheduleResult> {
+  const task = await getTaskById(userId, taskId);
+  if (!task) return { error: "not_found" };
+
+  if (task.version !== params.expectedVersion) {
+    return {
+      error: "version_conflict",
+      currentVersion: task.version,
+      task,
+    };
+  }
+
+  const parsedStart = params.startDate ? new Date(params.startDate) : null;
+  const parsedDue = params.dueDate ? new Date(params.dueDate) : null;
+
+  if (parsedStart && isNaN(parsedStart.getTime())) {
+    return { error: "invalid_dates", message: "Invalid start date format" };
+  }
+  if (parsedDue && isNaN(parsedDue.getTime())) {
+    return { error: "invalid_dates", message: "Invalid due date format" };
+  }
+  if (parsedStart && parsedDue && parsedStart.getTime() > parsedDue.getTime()) {
+    return { error: "invalid_dates", message: "Start date cannot be after due date" };
+  }
+
+  // Dependency constraint validation: check predecessor completion dates
+  if (parsedStart) {
+    const deps = await db
+      .select({
+        predId: taskDependencies.predecessorId,
+        predTitle: tasks.title,
+        predDueDate: tasks.dueDate,
+        predStatus: tasks.status,
+      })
+      .from(taskDependencies)
+      .innerJoin(tasks, eq(taskDependencies.predecessorId, tasks.id))
+      .where(
+        and(
+          eq(taskDependencies.userId, userId),
+          eq(taskDependencies.successorId, taskId)
+        )
+      );
+
+    for (const dep of deps) {
+      if (dep.predDueDate) {
+        const predDate = new Date(dep.predDueDate);
+        if (parsedStart.getTime() < predDate.getTime()) {
+          const dateStr = predDate.toISOString().slice(0, 10);
+          return {
+            error: "predecessor_conflict",
+            message: `Cannot start before predecessor "${dep.predTitle}" finishes on ${dateStr}`,
+          };
+        }
+      }
+    }
+  }
+
+  const [updated] = await db
+    .update(tasks)
+    .set({
+      startDate: parsedStart,
+      dueDate: parsedDue,
+      version: task.version + 1,
+      updatedAt: new Date(),
+    })
+    .where(
+      and(
+        withUserScope(tasks, userId, eq(tasks.id, taskId)),
+        eq(tasks.version, params.expectedVersion)
+      )
+    )
+    .returning();
+
+  if (!updated) {
+    const fresh = await getTaskById(userId, taskId);
+    return {
+      error: "version_conflict",
+      currentVersion: fresh?.version ?? 0,
+      task: fresh,
+    };
+  }
+
+  const refreshed = await getTaskById(userId, taskId);
+  return { success: true, task: refreshed! };
 }
 
 export async function deleteTask(userId: string, id: string) {

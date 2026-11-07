@@ -22,11 +22,18 @@ export const createTaskSchema = z.object({
   priority: priorityEnum.default("medium"),
   phase: sdlcPhaseEnum.optional().nullable(),
   projectId: z.string().uuid().optional().nullable(),
-  dueDate: z.string().datetime().optional().nullable(),
+  startDate: z.string().optional().nullable(),
+  dueDate: z.string().optional().nullable(),
   tagIds: z.array(z.string().uuid()).optional(),
 });
 
 export const updateTaskSchema = createTaskSchema.partial();
+
+export const rescheduleTaskSchema = z.object({
+  startDate: z.string().optional().nullable(),
+  dueDate: z.string().optional().nullable(),
+  expectedVersion: z.number().int().min(1, "expectedVersion must be a positive integer"),
+});
 
 export const createBugSchema = z.object({
   title: z.string().min(1, "Title is required").max(255),
