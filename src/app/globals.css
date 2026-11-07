@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Mukta:wght@300;400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
 @theme {
@@ -35,17 +36,26 @@
   --color-timeline-bar-milestone: var(--timeline-bar-milestone);
   --color-timeline-dep-line: var(--timeline-dep-line);
   --color-timeline-dep-blocked: var(--timeline-dep-blocked);
+
+  /* Dark grey color palette overrides */
+  --color-slate-950: #121316;
+  --color-slate-900: #1a1b1f;
+  --color-slate-850: #222328;
+  --color-slate-800: #2a2c33;
+  --color-slate-700: #3b3d45;
+  --color-slate-600: #525560;
 }
 
 :root {
-  --background: #090d16;
-  --foreground: #f1f5f9;
-  --card: #0f172a;
+  /* Dark grey base styling */
+  --background: #121316;
+  --foreground: #f4f4f6;
+  --card: #1a1b1f;
   --card-foreground: #f8fafc;
-  --border: #1e293b;
-  --border-subtle: #334155;
-  --muted: #1e293b;
-  --muted-foreground: #94a3b8;
+  --border: #2a2c33;
+  --border-subtle: #3b3d45;
+  --muted: #222328;
+  --muted-foreground: #a1a1aa;
   --accent: #4285F4;
   --accent-foreground: #ffffff;
 
@@ -80,7 +90,7 @@
   --phase-maintenance: #64748B;
 
   /* Gantt & Timeline Tokens */
-  --timeline-grid: #1e293b;
+  --timeline-grid: #2a2c33;
   --timeline-today: #4285F4;
   --timeline-bar-task: #4285F4;
   --timeline-bar-milestone: #FBBC04;
@@ -91,7 +101,7 @@
 body {
   background-color: var(--background);
   color: var(--foreground);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: 'Mukta', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -100,6 +110,27 @@ body {
 ::selection {
   background-color: rgba(66, 133, 244, 0.35);
   color: #ffffff;
+}
+
+/* Comfortable padding for form inputs, selectors, and text areas */
+input[type="text"],
+input[type="date"],
+input[type="search"],
+input[type="password"],
+input[type="email"],
+select {
+  padding-top: 0.625rem;
+  padding-bottom: 0.625rem;
+  padding-left: 0.875rem;
+  padding-right: 0.875rem;
+}
+
+textarea {
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+  padding-left: 0.875rem;
+  padding-right: 0.875rem;
+  line-height: 1.5;
 }
 
 /* Custom sleek dark scrollbar */
@@ -113,10 +144,10 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: #2a2c33;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+  background: #3b3d45;
 }

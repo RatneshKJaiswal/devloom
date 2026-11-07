@@ -40,7 +40,7 @@ export async function Header() {
   );
 
   return (
-    <header className="h-16 px-4 sm:px-6 border-b border-slate-800 bg-[#090d16]/90 backdrop-blur sticky top-0 z-40 flex items-center">
+    <header className="h-16 px-4 sm:px-6 border-b border-slate-800 bg-[#121316]/90 backdrop-blur sticky top-0 z-40 flex items-center">
       <HeaderActions userProfile={userProfile} />
     </header>
   );

@@ -90,7 +90,7 @@ export function HeaderActions({ userProfile }: HeaderActionsProps) {
           className="relative w-full text-left"
         >
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-          <div className="w-full pl-9 pr-3 py-1.5 rounded-xl border border-slate-800 bg-slate-900/60 text-xs text-slate-400 hover:border-slate-700 transition flex items-center justify-between cursor-pointer">
+          <div className="w-full pl-9 pr-3.5 py-2 rounded-xl border border-slate-800 bg-slate-900/60 text-xs text-slate-400 hover:border-slate-700 transition flex items-center justify-between cursor-pointer">
             <span className="truncate">Search tasks, bugs, learnings...</span>
             <kbd className="hidden sm:inline-block px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-[10px] text-slate-400 shrink-0">
               ⌘K
@@ -105,7 +105,7 @@ export function HeaderActions({ userProfile }: HeaderActionsProps) {
         <button
           type="button"
           onClick={() => setIsSmartCaptureOpen(true)}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary hover:bg-primary-hover text-white text-xs font-medium shadow-sm shadow-primary/20 transition cursor-pointer"
+          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-primary hover:bg-primary-hover text-white text-xs font-medium shadow-sm shadow-primary/20 transition cursor-pointer"
         >
           <AIIcon className="w-3.5 h-3.5 text-white" />
           <span className="hidden sm:inline">Smart Capture</span>
@@ -115,10 +115,10 @@ export function HeaderActions({ userProfile }: HeaderActionsProps) {
         <button
           type="button"
           onClick={() => setIsQuickCaptureOpen(true)}
-          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-slate-800 bg-slate-900/80 hover:bg-slate-800 text-slate-300 text-xs font-medium transition cursor-pointer"
+          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-800 bg-slate-900/80 hover:bg-slate-800 text-slate-300 text-xs font-medium transition cursor-pointer"
         >
           <Plus className="w-3.5 h-3.5" />
-          <span className="hidden md:inline">{pathname?.startsWith("/bugs") ? "Add Bug" : "Add"}</span>
+          <span className="hidden md:inline">{pathname?.startsWith("/bugs") ? "Add Bug" : pathname?.startsWith("/tasks") ? "Add Task" : pathname?.startsWith("/learnings") ? "Add Note" : "Add"}</span>
         </button>
 
         {userProfile}

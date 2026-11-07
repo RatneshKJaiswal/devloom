@@ -217,30 +217,6 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Standup helper banner */}
-      <div className="p-6 rounded-2xl border border-slate-800 bg-slate-900/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="space-y-1">
-          <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-            <FileText className="w-4 h-4 text-primary" />
-            <span>Need to report your accomplishments?</span>
-          </h3>
-          <p className="text-xs text-slate-400">
-            Generate an engineering standup summary of all bugs fixed and tasks completed this week with one click.
-          </p>
-        </div>
-
-        <button
-          type="button"
-          onClick={() => {
-            setPlannerMode("weekly_standup");
-            setIsPlannerOpen(true);
-          }}
-          className="px-4 py-2 rounded-xl border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium transition cursor-pointer shrink-0"
-        >
-          Generate Standup
-        </button>
-      </div>
-
       <QuickCaptureModal
         isOpen={isQuickCaptureOpen}
         onClose={() => setIsQuickCaptureOpen(false)}
