@@ -69,7 +69,7 @@ export class GeminiAgentClient implements AgentClient {
         success: false,
         error: {
           code: "SERVICE_UNAVAILABLE",
-          message: "Gemini API key is not configured. Please set GEMINI_API_KEY in .env.local",
+          message: "AI service API key is not configured. Please set GEMINI_API_KEY in .env.local",
           retryable: false,
         },
       };
@@ -119,7 +119,7 @@ export class GeminiAgentClient implements AgentClient {
               success: false,
               error: {
                 code: "RATE_LIMITED",
-                message: "Gemini API rate limit reached. Please wait a moment before trying again.",
+                message: "AI service rate limit reached. Please wait a moment before trying again.",
                 retryable: true,
               },
             };
@@ -131,7 +131,7 @@ export class GeminiAgentClient implements AgentClient {
             success: false,
             error: {
               code: "API_ERROR",
-              message: `Gemini API returned error HTTP ${res.status}: ${errBody.slice(0, 200)}`,
+              message: `AI service returned error HTTP ${res.status}: ${errBody.slice(0, 200)}`,
               retryable: false,
             },
           };
@@ -147,7 +147,7 @@ export class GeminiAgentClient implements AgentClient {
             success: false,
             error: {
               code: "VALIDATION_FAILED",
-              message: "Gemini returned an empty response candidate.",
+              message: "AI service returned an empty response candidate.",
               retryable: true,
             },
           };
@@ -215,7 +215,7 @@ export class GeminiAgentClient implements AgentClient {
             success: false,
             error: {
               code: "API_ERROR",
-              message: err.message || "Network error contacting Gemini API",
+              message: err.message || "Network error contacting AI service",
               retryable: true,
             },
           };

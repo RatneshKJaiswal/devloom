@@ -71,7 +71,7 @@ export default function SettingsPage() {
           <h2 className="text-base font-semibold text-white">AI Agent & LLM Privacy</h2>
         </div>
         <p className="text-sm text-slate-400 leading-relaxed">
-          DevLoom connects to Google Gemini strictly to assist you with quick capture, code context, and recall questions.
+          DevLoom connects to AI models strictly to assist you with quick capture, code context, and recall questions.
           Only content you explicitly submit is sent to the LLM. Your data is isolated strictly to your account
           and never used to train public models.
         </p>

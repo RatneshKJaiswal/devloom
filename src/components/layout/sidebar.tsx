@@ -9,8 +9,8 @@ import {
   Brain,
   FolderKanban,
   Settings,
-  Sparkles,
 } from "lucide-react";
+import { AIIcon } from "@/components/icons/ai";
 import clsx from "clsx";
 
 const navItems = [
@@ -65,8 +65,8 @@ export function Sidebar() {
       {/* AI Quick Status / Quota Indicator */}
       <div className="p-4 m-3 rounded-2xl border border-slate-800 bg-slate-900/50">
         <div className="flex items-center gap-2 text-xs font-medium text-slate-300">
-          <Sparkles className="w-3.5 h-3.5 text-primary" />
-          <span>Gemini Agent</span>
+          <AIIcon className="w-3.5 h-3.5 text-primary" />
+          <span>AI Assistant</span>
         </div>
         <p className="mt-1 text-[11px] text-slate-400">
           Capture stack traces or notes with smart auto-tagging.

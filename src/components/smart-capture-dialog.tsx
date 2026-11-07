@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { Sparkles, X, Loader2, Check, AlertCircle, Bug, CheckSquare, Brain, Link2 } from "lucide-react";
+import { X, Loader2, Check, AlertCircle, Bug, CheckSquare, Brain, Link2 } from "lucide-react";
+import { AIIcon } from "@/components/icons/ai";
 import { GithubIcon } from "@/components/icons/github";
 import { SmartCaptureOutput } from "@/lib/agent/prompts/capture";
 
@@ -165,10 +166,10 @@ export function SmartCaptureModal({ isOpen, onClose, onSuccess }: SmartCaptureMo
         {/* Header */}
         <div className="flex items-center gap-2 mb-4">
           <div className="w-8 h-8 rounded-xl bg-primary-subtle border border-primary/20 flex items-center justify-center text-primary">
-            <Sparkles className="w-4 h-4" />
+            <AIIcon className="w-4 h-4 text-primary" />
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-white">Smart Capture (Gemini AI)</h2>
+            <h2 className="text-lg font-semibold text-white">Smart Capture</h2>
             <p className="text-xs text-slate-400">
               Paste stack traces, rough notes, or link a GitHub issue/PR to automatically structure it.
             </p>
@@ -401,11 +402,11 @@ TypeError: Cannot read properties of undefined (reading 'userId')
               {analyzing ? (
                 <>
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  <span>{mode === "github" ? "Fetching & Summarizing..." : "Gemini Analyzing..."}</span>
+                  <span>{mode === "github" ? "Fetching & Summarizing..." : "AI Analyzing..."}</span>
                 </>
               ) : (
                 <>
-                  <Sparkles className="w-3.5 h-3.5" />
+                  <AIIcon className="w-3.5 h-3.5" />
                   <span>{mode === "github" ? "Import from GitHub" : "Analyze & Structure"}</span>
                 </>
               )}

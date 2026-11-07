@@ -22,7 +22,7 @@ Modern web desktop/mobile viewports, dark-mode IDE & terminal environments, GitH
 - Unified Tasks, Bugs, and Learnings tracking with start dates, deadlines, and overdue detection.
 - Visual Gantt timeline with dependency cycle detection and drag-to-reschedule support.
 - Leitner 5-box spaced repetition review system with AI recall quizzes.
-- Gemini 3.5 AI agent for multi-entity smart capture, duplicate detection, and standup summaries.
+- Intelligent AI agent for multi-entity smart capture, duplicate detection, and standup summaries.
 - Polymorphic GitHub link integration (issues, PRs, commits).
 - Multi-tenant data isolation with RLS and AES-256-GCM encrypted tokens.
 

@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { Sparkles, X, Loader2, Copy, Check, Calendar, CheckCircle2, AlertCircle } from "lucide-react";
+import { X, Loader2, Copy, Check, Calendar, CheckCircle2, AlertCircle } from "lucide-react";
+import { AIIcon } from "@/components/icons/ai";
 import { SummaryOutput } from "@/lib/agent/prompts/summary";
 
 interface AIPlannerModalProps {
@@ -91,12 +92,12 @@ export function AIPlannerModal({
         {/* Header */}
         <div className="flex items-center gap-2 mb-4">
           <div className="w-8 h-8 rounded-xl bg-primary-subtle border border-primary/20 flex items-center justify-center text-primary">
-            <Sparkles className="w-4 h-4" />
+            <AIIcon className="w-4 h-4 text-primary" />
           </div>
           <div>
             <h2 className="text-lg font-semibold text-white">Engineering Planner & Standup</h2>
             <p className="text-xs text-slate-400">
-              Gemini synthesizes plans and standups from your personal tasks, bugs, and learnings.
+              AI synthesizes plans and standups from your personal tasks, bugs, and learnings.
             </p>
           </div>
         </div>
@@ -145,7 +146,7 @@ export function AIPlannerModal({
           {loading ? (
             <div className="p-16 flex flex-col items-center justify-center gap-3 text-slate-400">
               <Loader2 className="w-8 h-8 text-primary animate-spin" />
-              <p className="text-xs">Analyzing your workspace records with Gemini...</p>
+              <p className="text-xs">Analyzing your workspace records with AI...</p>
             </div>
           ) : !result ? (
             <div className="p-12 text-center border border-dashed border-slate-800 rounded-2xl bg-slate-950/40">
@@ -159,7 +160,7 @@ export function AIPlannerModal({
                 onClick={() => handleGenerate(mode)}
                 className="px-4 py-2 rounded-xl bg-primary hover:bg-primary-hover text-white text-xs font-medium shadow-md shadow-primary/20 transition cursor-pointer"
               >
-                Generate with Gemini
+                Generate with AI
               </button>
             </div>
           ) : (
