@@ -501,8 +501,8 @@ export default function TasksPage() {
               className="bg-transparent focus:outline-none cursor-pointer pr-4 appearance-none text-xs font-medium"
             >
               <option value="all" className="bg-slate-950 text-slate-200">All Deadlines</option>
-              <option value="overdue" className="bg-slate-950 text-slate-200">🔴 Overdue Only</option>
-              <option value="due_soon" className="bg-slate-950 text-slate-200">🟡 Due Soon (Next 7d)</option>
+              <option value="overdue" className="bg-slate-950 text-slate-200">Overdue Only</option>
+              <option value="due_soon" className="bg-slate-950 text-slate-200">Due Soon (Next 7d)</option>
               <option value="scheduled" className="bg-slate-950 text-slate-200">Scheduled</option>
               <option value="unscheduled" className="bg-slate-950 text-slate-200">Unscheduled</option>
             </select>
