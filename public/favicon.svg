@@ -1,59 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
   <defs>
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#1c212c" />
-      <stop offset="50%" stop-color="#13151b" />
-      <stop offset="100%" stop-color="#0c0d11" />
-    </linearGradient>
-    <linearGradient id="borderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#4285F4" stop-opacity="0.8" />
-      <stop offset="100%" stop-color="#34A853" stop-opacity="0.3" />
-    </linearGradient>
-    <linearGradient id="dl-blue" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#4285F4" />
-      <stop offset="50%" stop-color="#3B82F6" />
-      <stop offset="100%" stop-color="#38BDF8" />
-    </linearGradient>
-    <linearGradient id="dl-accent" x1="0%" y1="100%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#34A853" />
-      <stop offset="100%" stop-color="#10B981" />
-    </linearGradient>
-    <linearGradient id="dl-violet" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#818CF8" />
-      <stop offset="100%" stop-color="#6366F1" />
+      <stop offset="0%" stop-color="#181a20" />
+      <stop offset="50%" stop-color="#101216" />
+      <stop offset="100%" stop-color="#08090b" />
     </linearGradient>
   </defs>
 
-  <!-- Container badge -->
-  <rect width="64" height="64" rx="16" fill="url(#bg)" />
-  <rect width="62" height="62" x="1" y="1" rx="15" fill="none" stroke="url(#borderGrad)" stroke-width="1.5" />
+  <!-- Container rounded squircle badge -->
+  <rect width="64" height="64" rx="14" fill="url(#bg)" />
+  <rect width="62" height="62" x="1" y="1" rx="13" fill="none" stroke="#ffffff" stroke-opacity="0.12" stroke-width="1.2" />
 
-  <!-- Loom warp threads (vertical) -->
-  <line x1="18" y1="14" x2="18" y2="50" stroke="url(#dl-blue)" stroke-width="4.5" stroke-linecap="round" />
-  <line x1="27" y1="14" x2="27" y2="50" stroke="url(#dl-violet)" stroke-width="3.5" stroke-linecap="round" opacity="0.85" />
-
-  <!-- Loom weft loops forming the "D" curve -->
-  <path
-    d="M 18 16.5 C 18 16.5, 35 12.5, 43.5 20.5 C 50.5 27, 50.5 37, 43.5 43.5 C 35 51.5, 18 47.5, 18 47.5"
-    stroke="url(#dl-blue)"
-    stroke-width="4.5"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-    fill="none"
-  />
-
-  <!-- Inner weaving cross-thread -->
-  <path
-    d="M 13 32 H 41 C 45 32, 46.5 28, 44.5 25 C 42 22, 35.5 23.5, 31.5 26.5"
-    stroke="url(#dl-accent)"
-    stroke-width="3.2"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-    fill="none"
-  />
-
-  <!-- Weaving nexus points -->
-  <circle cx="18" cy="32" r="3.2" fill="#60A5FA" />
-  <circle cx="27" cy="32" r="2.6" fill="#34A853" />
-  <circle cx="41" cy="32" r="2.8" fill="#38BDF8" />
+  <!-- DevLoom Mark -->
+  <path d="M 10.0 15.12 L 46.46 15.12 L 54.0 28.32 L 51.85 31.98 L 43.9 18.96 L 12.19 18.96 Z" fill="#ffffff" />
+  <path d="M 14.11 22.61 L 42.07 22.61 L 49.61 35.73 L 42.26 48.89 L 37.87 48.89 L 45.18 35.73 L 39.88 26.45 L 16.31 26.45 Z" fill="#ffffff" />
+  <path d="M 38.97 32.16 L 40.98 35.73 L 33.12 48.89 L 29.01 48.89 L 25.44 42.58 L 27.64 38.83 L 31.47 44.68 Z" fill="#ffffff" />
 </svg>
