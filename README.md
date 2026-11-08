@@ -110,12 +110,12 @@ DevLoom includes a zero-dependency, native Node.js CLI executable (`bin/devloom`
 
 **macOS & Linux:**
 ```bash
-curl -fsSL https://devloom.app/install.sh | bash
+curl -fsSL https://dev-loom.vercel.app/install.sh | bash
 ```
 
 **Windows (PowerShell):**
 ```powershell
-irm https://devloom.app/install.ps1 | iex
+irm https://dev-loom.vercel.app/install.ps1 | iex
 ```
 
 **Local Repository Contributors:**
@@ -138,7 +138,7 @@ devloom whoami
 
 You can also configure credentials via environment variables in `~/.zshrc` or CI/CD pipelines:
 ```bash
-export DEVLOOM_API_URL="https://your-app.vercel.app" # Defaults to http://localhost:3000
+export DEVLOOM_API_URL="https://dev-loom.vercel.app" # Defaults to https://dev-loom.vercel.app
 export DEVLOOM_TOKEN="devloom_pat_xxxxxxxx..."
 ```
 

@@ -1,5 +1,5 @@
-# DevLoom CLI Windows PowerShell Installer
-# Usage: irm https://devloom.app/install.ps1 | iex
+﻿# DevLoom CLI Windows PowerShell Installer
+# Usage: irm https://dev-loom.vercel.app/install.ps1 | iex
 
 $ErrorActionPreference = "Stop"
 
@@ -23,7 +23,7 @@ if (-not (Test-Path -Path $installDir)) {
     New-Item -ItemType Directory -Path $installDir -Force | Out-Null
 }
 
-$origin = if ($env:DEVLOOM_URL) { $env:DEVLOOM_URL } else { "https://devloom.app" }
+$origin = if ($env:DEVLOOM_URL) { $env:DEVLOOM_URL } else { "https://dev-loom.vercel.app" }
 
 # 3. Download CLI executable
 Write-Host "⬇️  Downloading DevLoom executable from $origin..." -ForegroundColor White

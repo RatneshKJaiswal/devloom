@@ -36,7 +36,7 @@ export function Sidebar() {
   const handleCopyInstall = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    const installCmd = `curl -fsSL ${typeof window !== "undefined" ? window.location.origin : "https://devloom.app"}/install.sh | bash`;
+    const installCmd = `curl -fsSL ${typeof window !== "undefined" ? window.location.origin : "https://dev-loom.vercel.app"}/install.sh | bash`;
     navigator.clipboard.writeText(installCmd);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);

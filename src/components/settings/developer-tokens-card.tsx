@@ -317,7 +317,7 @@ export function DeveloperTokensCard() {
             type="button"
             onClick={() =>
               copyToClipboard(
-                `npm link\ndevloom login\nsource <(curl -s http://localhost:3000/devloom.sh)`,
+                `npm link\ndevloom login\nsource <(curl -s ${origin || "https://dev-loom.vercel.app"}/devloom.sh)`,
                 setCopiedSnippet
               )
             }

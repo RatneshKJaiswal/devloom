@@ -343,7 +343,7 @@ export default function DocsPage() {
                     Open your terminal and run the 1-line curl script. It downloads the binary to <code className="text-primary font-mono text-xs bg-primary-subtle px-1.5 py-0.5 rounded border border-primary/20">~/.devloom/bin</code> and adds it to your <code className="text-primary font-mono text-xs bg-primary-subtle px-1.5 py-0.5 rounded border border-primary/20">~/.zshrc</code>:
                   </p>
                   <CodeBlock
-                    code="curl -fsSL https://devloom.app/install.sh | bash"
+                    code="curl -fsSL https://dev-loom.vercel.app/install.sh | bash"
                     caption="macOS (zsh / bash)"
                     platform="macOS"
                   />
@@ -362,7 +362,7 @@ export default function DocsPage() {
                     Works on Ubuntu, Debian, Fedora, Arch, and all major Linux distributions:
                   </p>
                   <CodeBlock
-                    code="curl -fsSL https://devloom.app/install.sh | bash"
+                    code="curl -fsSL https://dev-loom.vercel.app/install.sh | bash"
                     caption="Linux Terminal (bash / zsh)"
                     platform="Linux"
                   />
@@ -381,7 +381,7 @@ export default function DocsPage() {
                     Open <strong>PowerShell</strong> or <strong>Windows Terminal</strong> and run:
                   </p>
                   <CodeBlock
-                    code="irm https://devloom.app/install.ps1 | iex"
+                    code="irm https://dev-loom.vercel.app/install.ps1 | iex"
                     caption="Windows PowerShell / Terminal"
                     platform="Windows"
                   />
@@ -421,7 +421,7 @@ export default function DocsPage() {
                 <div className="p-4 rounded-xl border border-slate-800 bg-slate-950/70 space-y-1.5">
                   <span className="font-bold text-white block">Step B: Generate Token</span>
                   <p className="text-slate-400 leading-relaxed">
-                    Under <strong>Personal Access Tokens</strong>, click "Generate Token" and copy the token starting with <code className="text-primary font-mono text-[11px]">dvl_live_</code>.
+                    Under <strong>Personal Access Tokens</strong>, click "Generate Token" and copy the token starting with <code className="text-primary font-mono text-[11px]">devloom_pat_</code>.
                   </p>
                 </div>
                 <div className="p-4 rounded-xl border border-slate-800 bg-slate-950/70 space-y-1.5">
@@ -434,8 +434,8 @@ export default function DocsPage() {
 
               <CodeBlock
                 code={`$ devloom login
-DevLoom Host [https://devloom.app]: <press enter for default>
-Personal Access Token (dvl_live_...): dvl_live_9f81a7b...
+DevLoom Host [https://dev-loom.vercel.app]: <press enter for default>
+Personal Access Token (devloom_pat_...): devloom_pat_9f81a7b...
 Authenticated as developer (dev@example.com)`}
                 caption="Interactive Login"
               />
@@ -1021,8 +1021,8 @@ devloom status`}
             {platform === "windows" ? (
               <CodeBlock
                 code={`# PowerShell / Windows CI pipeline:
-$env:DEVLOOM_TOKEN = "dvl_live_xxxxxxxxxxxxxxxxxxxxxxxx"
-$env:DEVLOOM_HOST = "https://devloom.app"
+$env:DEVLOOM_TOKEN = "devloom_pat_xxxxxxxxxxxxxxxxxxxxxxxx"
+$env:DEVLOOM_HOST = "https://dev-loom.vercel.app"
 
 # Run any command headlessly:
 devloom task "Verify Windows build #\${env:GITHUB_RUN_ID}" -p high -t deploy,ci`}
@@ -1032,8 +1032,8 @@ devloom task "Verify Windows build #\${env:GITHUB_RUN_ID}" -p high -t deploy,ci`
             ) : (
               <CodeBlock
                 code={`# Bash / macOS / Linux CI pipeline:
-export DEVLOOM_TOKEN="dvl_live_xxxxxxxxxxxxxxxxxxxxxxxx"
-export DEVLOOM_HOST="https://devloom.app"
+export DEVLOOM_TOKEN="devloom_pat_xxxxxxxxxxxxxxxxxxxxxxxx"
+export DEVLOOM_HOST="https://dev-loom.vercel.app"
 
 # Run any command headlessly:
 devloom task "Verify deployment #\${{ github.sha }}" -p high -t deploy,ci`}

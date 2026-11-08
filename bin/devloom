@@ -52,7 +52,7 @@ function loadConfig() {
 
   if (envToken) {
     return {
-      apiUrl: envUrl || "http://localhost:3000",
+      apiUrl: envUrl || "https://dev-loom.vercel.app",
       token: envToken,
     };
   }
@@ -267,7 +267,7 @@ async function cmdLogin() {
   print(`${colors.bold}${colors.cyan}◆ DevLoom CLI Setup & Authentication${colors.reset}\n`);
 
   const currentConfig = loadConfig() || {};
-  const defaultUrl = currentConfig.apiUrl || "http://localhost:3000";
+  const defaultUrl = currentConfig.apiUrl || "https://dev-loom.vercel.app";
 
   const apiUrl = (await prompt(`Enter DevLoom App URL [${defaultUrl}]: `)) || defaultUrl;
   const token = await prompt(`Enter Personal Access Token (devloom_pat_...): `);

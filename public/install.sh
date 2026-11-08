@@ -5,7 +5,7 @@ INSTALL_DIR="$HOME/.devloom/bin"
 mkdir -p "$INSTALL_DIR"
 
 # Allow custom origin via DEVLOOM_URL, default to current origin or prompt
-ORIGIN="${DEVLOOM_URL:-http://localhost:3000}"
+ORIGIN="${DEVLOOM_URL:-https://dev-loom.vercel.app}"
 
 echo "⬇️  Downloading DevLoom CLI executable..."
 curl -fsSL "$ORIGIN/devloom" -o "$INSTALL_DIR/devloom"
