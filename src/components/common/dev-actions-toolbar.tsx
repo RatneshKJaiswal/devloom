@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { GitCommit, Sparkles, Check, Copy } from "lucide-react";
+import { GitCommit, Check, Copy } from "lucide-react";
+import { AIIcon } from "@/components/icons/ai";
 
 interface DevActionsToolbarProps {
   type: "task" | "bug";
@@ -111,7 +112,7 @@ ${reproSteps}
           {copiedAction === "ai-prompt" ? (
             <Check className="w-3.5 h-3.5 text-emerald-400" />
           ) : (
-            <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+            <AIIcon className="w-3.5 h-3.5 text-purple-400" />
           )}
           <span>{copiedAction === "ai-prompt" ? "Copied AI Fix Prompt" : "Copy AI Fix Prompt"}</span>
         </button>

@@ -18,7 +18,6 @@ import {
   CalendarPlus,
   Plus,
   FolderKanban,
-  Sparkles,
   Maximize2,
   Minimize2,
   ZoomIn,

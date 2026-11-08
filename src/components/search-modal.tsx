@@ -11,13 +11,13 @@ import {
   BookOpen,
   FolderKanban,
   Settings,
-  Sparkles,
   Plus,
   ArrowRight,
   Loader2,
   Calendar,
   Layers,
 } from "lucide-react";
+import { AIIcon } from "@/components/icons/ai";
 import clsx from "clsx";
 
 interface SearchModalProps {
@@ -122,7 +122,7 @@ export function SearchModal({
       subtitle: "Parse unstructured text or GitHub issue URLs into tasks & bugs",
       badge: "AI",
       badgeColor: "bg-purple-950/80 text-purple-300 border-purple-800",
-      icon: Sparkles,
+      icon: AIIcon,
       action: () => {
         onClose();
         if (onOpenSmartCapture) onOpenSmartCapture();

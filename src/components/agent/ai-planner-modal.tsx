@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { X, Loader2, Copy, Check, Calendar, CheckCircle2, AlertCircle, Sparkles } from "lucide-react";
+import { X, Loader2, Copy, Check, Calendar, CheckCircle2, AlertCircle } from "lucide-react";
 import { AIIcon } from "@/components/icons/ai";
 import { SummaryOutput } from "@/lib/agent/prompts/summary";
 

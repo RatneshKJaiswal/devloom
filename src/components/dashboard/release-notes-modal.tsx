@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { Sparkles, X, Copy, Check, Download, Loader2, FileText, RefreshCw } from "lucide-react";
+import { X, Copy, Check, Download, Loader2, FileText, RefreshCw } from "lucide-react";
 
 interface ReleaseNotesModalProps {
   isOpen: boolean;
