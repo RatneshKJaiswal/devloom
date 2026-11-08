@@ -40,9 +40,10 @@ interface CodeBlockProps {
   language?: string;
   caption?: string;
   platform?: string;
+  showPrompt?: boolean;
 }
 
-function CodeBlock({ code, language = "bash", caption, platform }: CodeBlockProps) {
+function CodeBlock({ code, language = "bash", caption, platform, showPrompt = true }: CodeBlockProps) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
@@ -51,51 +52,74 @@ function CodeBlock({ code, language = "bash", caption, platform }: CodeBlockProp
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const isShell = language === "bash" || language === "sh" || language === "shell" || language === "zsh" || language === "powershell";
+  const isMultiLine = code.includes("\n");
+  const isPowerShell = language === "powershell" || code.startsWith("irm ") || (platform && platform.toLowerCase().includes("win")) || (caption && caption.toLowerCase().includes("powershell"));
+
+  const isDuplicatePlatform = Boolean(platform && caption && caption.toLowerCase().includes(platform.toLowerCase()));
+
   return (
-    <div className="relative group my-3.5 rounded-xl border border-slate-800 bg-slate-950/90 overflow-hidden shadow-inner">
+    <div className="relative group my-3.5 rounded-xl border border-slate-800 bg-[#0d0e12] overflow-hidden shadow-lg shadow-black/40">
       {/* Terminal Header Bar */}
-      <div className="px-4 py-2 border-b border-slate-800/80 bg-slate-900/70 flex items-center justify-between text-xs text-slate-400 font-mono">
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-slate-700/80 inline-block" />
-            <span className="w-2.5 h-2.5 rounded-full bg-slate-700/80 inline-block" />
-            <span className="w-2.5 h-2.5 rounded-full bg-slate-700/80 inline-block" />
+      <div className="px-3.5 py-2.5 border-b border-slate-800/90 bg-[#14151a] flex items-center justify-between text-xs font-mono">
+        {/* Left: macOS Window Traffic Lights + Caption */}
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="flex items-center gap-1.5 shrink-0" aria-hidden="true">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#ff5f56] inline-block shadow-sm" />
+            <span className="w-2.5 h-2.5 rounded-full bg-[#ffbd2e] inline-block shadow-sm" />
+            <span className="w-2.5 h-2.5 rounded-full bg-[#27c93f] inline-block shadow-sm" />
           </div>
-          {caption && <span className="ml-2 font-medium text-slate-300">{caption}</span>}
+          {caption && (
+            <span className="font-medium text-slate-300 truncate text-[11px] sm:text-xs">
+              {caption}
+            </span>
+          )}
         </div>
-        <div className="flex items-center gap-2">
-          {platform && (
+
+        {/* Right: Platform tag (if distinct) + Copy Button */}
+        <div className="flex items-center gap-2 shrink-0">
+          {platform && !isDuplicatePlatform && (
             <span className="px-2 py-0.5 rounded text-[10px] font-semibold uppercase bg-primary-subtle text-primary border border-primary/20">
               {platform}
             </span>
           )}
-          <span className="text-[10px] uppercase text-slate-500 font-medium">{language}</span>
+          <button
+            type="button"
+            onClick={handleCopy}
+            title="Copy command to clipboard"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-slate-700/80 bg-slate-800/70 hover:bg-slate-700 hover:border-slate-600 text-slate-300 hover:text-white transition cursor-pointer text-xs font-sans font-medium"
+          >
+            {copied ? (
+              <>
+                <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                <span className="text-[11px] font-mono text-emerald-400 font-medium">Copied</span>
+              </>
+            ) : (
+              <>
+                <Copy className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-300 shrink-0" />
+                <span className="text-[11px] font-mono text-slate-300">Copy</span>
+              </>
+            )}
+          </button>
         </div>
       </div>
 
-      {/* Code Content */}
-      <div className="relative p-4 flex items-start justify-between gap-4">
-        <pre className="font-mono text-xs sm:text-sm text-slate-200 overflow-x-auto leading-relaxed scrollbar-thin flex-1">
-          <code>{code}</code>
-        </pre>
-        <button
-          type="button"
-          onClick={handleCopy}
-          title="Copy code"
-          className="shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-800 bg-slate-900/90 hover:bg-slate-800 hover:border-slate-700 text-slate-300 hover:text-white transition cursor-pointer text-xs"
-        >
-          {copied ? (
-            <>
-              <Check className="w-3.5 h-3.5 text-emerald-400" />
-              <span className="text-[11px] font-mono text-emerald-400 font-medium">Copied</span>
-            </>
-          ) : (
-            <>
-              <Copy className="w-3.5 h-3.5 text-slate-400" />
-              <span className="text-[11px] font-mono text-slate-300">Copy</span>
-            </>
-          )}
-        </button>
+      {/* Code Content Container: Guaranteed overflow-x-auto, min-w-0 */}
+      <div className="p-4 overflow-x-auto min-w-0 w-full scrollbar-thin">
+        {isMultiLine ? (
+          <pre className="font-mono text-xs sm:text-sm text-slate-200 leading-relaxed">
+            <code>{code}</code>
+          </pre>
+        ) : (
+          <pre className="font-mono text-xs sm:text-sm text-slate-200 leading-relaxed flex items-center">
+            {showPrompt && isShell && (
+              <span className="text-primary font-bold mr-2 select-none shrink-0 font-mono">
+                {isPowerShell ? "PS >" : "$"}
+              </span>
+            )}
+            <code className="whitespace-pre">{code}</code>
+          </pre>
+        )}
       </div>
     </div>
   );

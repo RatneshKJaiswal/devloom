@@ -33,9 +33,11 @@ export function Sidebar() {
   const pathname = usePathname();
   const [copied, setCopied] = useState(false);
 
-  const handleCopyInstall = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleCopyInstall = (e?: React.MouseEvent | React.KeyboardEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     const installCmd = `curl -fsSL ${typeof window !== "undefined" ? window.location.origin : "https://dev-loom.vercel.app"}/install.sh | bash`;
     navigator.clipboard.writeText(installCmd);
     setCopied(true);
@@ -79,7 +81,7 @@ export function Sidebar() {
 
       {/* Try DevLoom CLI Banner (Website Themed) */}
       <div className="p-3 border-t border-slate-800/80 shrink-0">
-        <div className="relative rounded-2xl border border-primary/25 bg-gradient-to-b from-slate-900/90 to-slate-950 p-3.5 shadow-lg shadow-black/40 overflow-hidden group hover:border-primary/45 transition">
+        <div className="relative rounded-2xl border border-primary/25 bg-gradient-to-b from-slate-900/90 to-slate-950 p-3 shadow-lg shadow-black/40 overflow-hidden group hover:border-primary/45 transition">
           {/* Subtle ambient primary light */}
           <div className="absolute -top-12 -right-12 w-28 h-28 rounded-full bg-primary/10 blur-2xl pointer-events-none group-hover:bg-primary/20 transition-all duration-500" />
 
@@ -95,25 +97,32 @@ export function Sidebar() {
             </span>
           </div>
 
-          <p className="text-[11px] text-slate-400 leading-relaxed mb-3">
+          <p className="text-[11px] text-slate-400 leading-relaxed mb-2.5">
             Auto-detects git repos and syncs tasks & gotchas right from your shell.
           </p>
 
-          {/* Quick install copy snippet */}
-          <div className="flex items-center justify-between gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-950/80 border border-slate-800 text-[11px] font-mono text-slate-300 mb-2.5">
-            <span className="truncate text-slate-400">$ curl -fsSL ... | bash</span>
-            <button
-              type="button"
-              onClick={handleCopyInstall}
-              title="Copy 1-line install command"
-              className="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-white transition shrink-0 cursor-pointer"
-            >
+          {/* Quick install copy snippet - Click anywhere to copy, perfectly formatted */}
+          <div
+            onClick={() => handleCopyInstall()}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") handleCopyInstall(); }}
+            title="Click to copy install command"
+            className="group/cmd flex items-center justify-between gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-950 border border-slate-800 hover:border-primary/50 text-slate-300 mb-2.5 cursor-pointer transition select-none"
+          >
+            <div className="flex items-center gap-1.5 min-w-0 flex-1">
+              <span className="text-primary font-bold font-mono text-[11px] select-none shrink-0">$</span>
+              <span className="font-mono text-[10.5px] tracking-tight text-slate-300 group-hover/cmd:text-white transition whitespace-nowrap overflow-hidden">
+                curl -fsSL ... | bash
+              </span>
+            </div>
+            <div className="p-1 rounded bg-slate-900 border border-slate-800 group-hover/cmd:border-primary/40 text-slate-400 group-hover/cmd:text-white transition shrink-0">
               {copied ? (
                 <Check className="w-3.5 h-3.5 text-primary" />
               ) : (
                 <Copy className="w-3.5 h-3.5" />
               )}
-            </button>
+            </div>
           </div>
 
           {/* Link to CLI Docs */}
