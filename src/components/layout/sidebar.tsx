@@ -50,8 +50,11 @@ export function Sidebar() {
       <div className="h-16 px-6 flex items-center gap-3 border-b border-slate-800 shrink-0">
         <DevLoomLogo className="h-8 w-8" />
         <span className="font-semibold text-base tracking-tight text-white">DevLoom</span>
-        <span className="ml-auto text-[10px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-md bg-primary-subtle text-primary border border-primary/20 leading-none">
-          Beta
+        <span
+          title="Version 1.0 (Production Release)"
+          className="ml-auto text-[10px] font-mono font-bold tracking-wider uppercase px-2 py-0.5 rounded-md bg-primary-subtle text-primary border border-primary/20 leading-none"
+        >
+          v1.0
         </span>
       </div>
 

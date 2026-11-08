@@ -153,9 +153,15 @@ export function HeaderActions({ userProfile }: HeaderActionsProps) {
           <div className="relative w-72 max-w-[85vw] bg-slate-950 border-r border-slate-800 flex flex-col h-screen h-dvh z-10 shadow-2xl">
             {/* Header */}
             <div className="h-16 px-5 flex items-center justify-between border-b border-slate-800 shrink-0">
-              <div className="flex items-center gap-2.5">
+              <div className="flex items-center gap-2">
                 <DevLoomLogo className="h-8 w-8" />
                 <span className="font-semibold text-base text-white">DevLoom</span>
+                <span
+                  title="Version 1.0 (Production Release)"
+                  className="text-[10px] font-mono font-bold tracking-wider uppercase px-2 py-0.5 rounded-md bg-primary-subtle text-primary border border-primary/20 leading-none"
+                >
+                  v1.0
+                </span>
               </div>
               <button
                 type="button"

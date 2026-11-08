@@ -115,7 +115,7 @@ export function ProjectMilestonesCard({
             <input
               type="text"
               required
-              placeholder="Milestone title (e.g. 'Beta Testing Completed')"
+              placeholder="Milestone title (e.g. 'Version 1.0 Production Launch')"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               className="flex-1 px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-950 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-primary"

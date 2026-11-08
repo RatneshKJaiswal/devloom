@@ -644,7 +644,7 @@ async function cmdList(args) {
 
 function showHelp() {
   print(`
-${colors.bold}${colors.cyan}DevLoom CLI${colors.reset} — Personal Developer Command Center
+${colors.bold}${colors.cyan}DevLoom CLI v1.0.0${colors.reset} — Developer Command Center & Terminal Suite
 
 ${colors.bold}USAGE:${colors.reset}
   devloom <command> [options]
@@ -658,6 +658,7 @@ ${colors.bold}COMMANDS:${colors.reset}
   ${colors.bold}capture${colors.reset} <text|url>                    Smart-capture unstructured note or issue
   ${colors.bold}standup${colors.reset}                               Fetch daily AI planner summary & standup
   ${colors.bold}list${colors.reset} [tasks|bugs|gotchas]             View recent items in terminal
+  ${colors.bold}version${colors.reset}                               Display CLI version (v1.0.0)
   ${colors.bold}help${colors.reset}                                  Show this help message
 
   ${colors.dim}* Auto-detects local Git repo and links (or auto-provisions) Project in DevLoom.${colors.reset}
@@ -674,6 +675,11 @@ ${colors.bold}EXAMPLES:${colors.reset}
 // Main CLI router
 async function main() {
   const [,, cmd, ...args] = process.argv;
+
+  if (cmd === "--version" || cmd === "-v" || cmd === "version") {
+    print("devloom v1.0.0");
+    return;
+  }
 
   if (!cmd || cmd === "help" || cmd === "--help" || cmd === "-h") {
     showHelp();
