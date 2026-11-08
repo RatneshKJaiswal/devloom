@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import {
   Key,
-  Terminal,
   Plus,
   Trash2,
   Copy,
@@ -36,7 +35,6 @@ export function DeveloperTokensCard() {
   // Newly created token
   const [newlyCreatedToken, setNewlyCreatedToken] = useState<string | null>(null);
   const [copiedToken, setCopiedToken] = useState(false);
-  const [copiedSnippet, setCopiedSnippet] = useState(false);
   const [copiedOneLiner, setCopiedOneLiner] = useState(false);
   const [origin, setOrigin] = useState("http://localhost:3000");
 
@@ -304,49 +302,6 @@ export function DeveloperTokensCard() {
             ))}
           </div>
         )}
-      </div>
-
-      {/* DevLoom CLI Terminal Quickstart */}
-      <div className="pt-2 border-t border-slate-800/80 space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="text-xs font-semibold text-white flex items-center gap-2">
-            <Terminal className="w-4 h-4 text-emerald-400" />
-            <span>DevLoom Terminal CLI Setup</span>
-          </div>
-          <button
-            type="button"
-            onClick={() =>
-              copyToClipboard(
-                `npm link\ndevloom login\nsource <(curl -s ${origin || "https://dev-loom.vercel.app"}/devloom.sh)`,
-                setCopiedSnippet
-              )
-            }
-            className="text-[11px] text-slate-400 hover:text-white flex items-center gap-1 transition cursor-pointer"
-          >
-            {copiedSnippet ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-            <span>{copiedSnippet ? "Copied" : "Copy Setup"}</span>
-          </button>
-        </div>
-
-        <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 font-mono text-[11px] text-slate-300 space-y-2">
-          <div className="text-slate-500"># 1. Install CLI directly (No git repository clone required)</div>
-          <div className="text-emerald-400">curl -fsSL &quot;{origin}/install.sh&quot; | bash</div>
-
-          <div className="text-slate-500 pt-1"># (Or if developing locally from repository source)</div>
-          <div className="text-slate-400">npm link</div>
-
-          <div className="text-slate-500 pt-1"># 2. Authenticate CLI</div>
-          <div className="text-emerald-400">devloom login</div>
-
-          <div className="text-slate-500 pt-1"># 3. Use in any project or terminal window</div>
-          <div className="text-slate-300">
-            devloom task <span className="text-amber-300">&quot;Fix database connection pool&quot;</span> -p high
-          </div>
-          <div className="text-slate-300">
-            devloom gotcha <span className="text-amber-300">&quot;Postgres connection timeout&quot;</span> -s <span className="text-amber-300">&quot;Set idle_timeout: 20&quot;</span>
-          </div>
-          <div className="text-slate-300">devloom standup</div>
-        </div>
       </div>
     </div>
   );
