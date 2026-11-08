@@ -57,11 +57,12 @@ export const authConfig: NextAuthConfig = {
         return true;
       }
 
-      // 3. Public landing and auth pages
+      // 3. Public landing, auth, and docs pages
       const isPublicRoute =
         pathname === "/" ||
         pathname === "/login" ||
-        pathname === "/privacy";
+        pathname === "/privacy" ||
+        pathname.startsWith("/docs");
 
       if (!isLoggedIn && !isPublicRoute) {
         return false;

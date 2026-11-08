@@ -6,14 +6,14 @@ import { HeaderActions } from "./header-actions";
 export async function Header() {
   const session = await auth();
 
-  const userProfile = (
+  const userProfile = session?.user ? (
     <div className="flex items-center gap-2.5 pl-2 sm:pl-3 border-l border-slate-800">
       <Link
         href="/settings"
         title="View Profile & Settings"
         className="flex items-center gap-2 hover:opacity-85 transition group cursor-pointer"
       >
-        {session?.user?.image ? (
+        {session.user.image ? (
           <img
             src={session.user.image}
             alt={session.user.name || "User"}
@@ -21,11 +21,11 @@ export async function Header() {
           />
         ) : (
           <div className="w-7 h-7 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-xs font-medium text-slate-300 group-hover:border-primary transition">
-            {session?.user?.name?.[0] || "U"}
+            {session.user.name?.[0] || "U"}
           </div>
         )}
         <span className="text-xs font-medium text-slate-300 hidden md:inline-block max-w-[120px] truncate group-hover:text-white transition">
-          {session?.user?.name || "Developer"}
+          {session.user.name || "Developer"}
         </span>
       </Link>
 
@@ -43,6 +43,15 @@ export async function Header() {
           <LogOut className="w-4 h-4" />
         </button>
       </form>
+    </div>
+  ) : (
+    <div className="flex items-center gap-2 pl-2 sm:pl-3 border-l border-slate-800">
+      <Link
+        href="/login"
+        className="px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-medium transition cursor-pointer shadow-sm shadow-primary/20"
+      >
+        Sign In
+      </Link>
     </div>
   );
 

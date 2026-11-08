@@ -41,6 +41,9 @@ export default function HomePage() {
           <a href="#security" className="hover:text-white transition">
             Architecture & Privacy
           </a>
+          <Link href="/docs" className="hover:text-white transition text-slate-300 font-semibold">
+            Documentation
+          </Link>
         </nav>
 
         <div className="flex items-center gap-3">
@@ -261,6 +264,10 @@ export default function HomePage() {
       {/* Footer */}
       <footer className="px-6 py-6 border-t border-slate-800/90 text-center text-xs text-slate-500 bg-[#121316]">
         DevLoom &bull; Personal Engineering Workspace &bull;{" "}
+        <Link href="/docs" className="hover:underline text-slate-400">
+          Documentation & CLI
+        </Link>{" "}
+        &bull;{" "}
         <Link href="/privacy" className="hover:underline text-slate-400">
           Privacy Policy
         </Link>

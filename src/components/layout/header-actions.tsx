@@ -15,6 +15,8 @@ import {
   Code2,
   FolderKanban,
   Settings,
+  BookText,
+  Terminal,
 } from "lucide-react";
 import { AIIcon } from "@/components/icons/ai";
 import { DevLoomLogo } from "@/components/icons/devloom-logo";
@@ -29,6 +31,7 @@ const mobileNavItems = [
   { name: "Bugs", href: "/bugs", icon: Bug },
   { name: "Knowledge Base", href: "/learnings", icon: Code2 },
   { name: "Projects", href: "/projects", icon: FolderKanban },
+  { name: "Documentation", href: "/docs", icon: BookText },
   { name: "Settings", href: "/settings", icon: Settings },
 ];
 
@@ -100,8 +103,23 @@ export function HeaderActions({ userProfile }: HeaderActionsProps) {
         </button>
       </div>
 
-      {/* Right Cluster: AI Smart Capture + Quick Add + User Profile */}
+      {/* Right Cluster: Docs + AI Smart Capture + Quick Add + User Profile */}
       <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+        {/* Documentation Link */}
+        <Link
+          href="/docs"
+          className={clsx(
+            "inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition cursor-pointer border",
+            pathname?.startsWith("/docs")
+              ? "bg-primary-subtle text-primary border-primary/30"
+              : "border-slate-800 bg-slate-900/60 hover:bg-slate-800 hover:text-white text-slate-300"
+          )}
+          title="DevLoom Documentation & CLI Guide"
+        >
+          <BookText className="w-3.5 h-3.5" />
+          <span className="hidden sm:inline">Docs</span>
+        </Link>
+
         {/* Smart AI Capture Button */}
         <button
           type="button"
@@ -172,6 +190,26 @@ export function HeaderActions({ userProfile }: HeaderActionsProps) {
                 );
               })}
             </nav>
+
+            {/* Try DevLoom CLI Mobile Callout */}
+            <div className="p-3 border-t border-slate-800">
+              <Link
+                href="/docs#cli"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center gap-3 p-3 rounded-xl bg-slate-900/90 border border-emerald-500/20 hover:border-emerald-500/40 transition group"
+              >
+                <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400 group-hover:bg-emerald-500/20 transition">
+                  <Terminal className="w-4 h-4" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-xs font-semibold text-white group-hover:text-emerald-400 transition flex items-center gap-1.5">
+                    <span>Try DevLoom CLI</span>
+                    <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">New</span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 truncate">Terminal capture & git context</p>
+                </div>
+              </Link>
+            </div>
           </div>
         </div>,
         document.body

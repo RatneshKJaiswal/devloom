@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { DevLoomLogo } from "@/components/icons/devloom-logo";
@@ -10,6 +11,11 @@ import {
   Code2,
   FolderKanban,
   Settings,
+  BookText,
+  Terminal,
+  Copy,
+  Check,
+  ChevronRight,
 } from "lucide-react";
 import clsx from "clsx";
 
@@ -19,11 +25,22 @@ const navItems = [
   { name: "Bugs", href: "/bugs", icon: Bug },
   { name: "Knowledge Base", href: "/learnings", icon: Code2 },
   { name: "Projects", href: "/projects", icon: FolderKanban },
+  { name: "Documentation", href: "/docs", icon: BookText },
   { name: "Settings", href: "/settings", icon: Settings },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyInstall = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const installCmd = `curl -fsSL ${typeof window !== "undefined" ? window.location.origin : "https://devloom.app"}/install.sh | bash`;
+    navigator.clipboard.writeText(installCmd);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   return (
     <aside className="hidden md:flex w-64 border-r border-slate-800 bg-slate-950/80 backdrop-blur flex-col shrink-0 sticky top-0 h-screen max-h-screen overflow-y-auto">
@@ -40,7 +57,7 @@ export function Sidebar() {
       <nav className="flex-1 px-3 py-4 space-y-1">
         {navItems.map((item) => {
           const Icon = item.icon;
-          const isActive = pathname === item.href || pathname?.startsWith(item.href + "/");
+          const isActive = pathname === item.href || (item.href !== "/" && pathname?.startsWith(item.href));
 
           return (
             <Link
@@ -59,6 +76,56 @@ export function Sidebar() {
           );
         })}
       </nav>
+
+      {/* Try DevLoom CLI Banner */}
+      <div className="p-3 border-t border-slate-800/80 shrink-0">
+        <div className="relative rounded-2xl border border-emerald-500/25 bg-gradient-to-b from-slate-900/90 to-slate-950 p-3.5 shadow-lg shadow-black/40 overflow-hidden group">
+          {/* Subtle ambient light */}
+          <div className="absolute -top-12 -right-12 w-28 h-28 rounded-full bg-emerald-500/10 blur-2xl pointer-events-none group-hover:bg-emerald-500/20 transition-all duration-500" />
+
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">
+                <Terminal className="w-4 h-4" />
+              </div>
+              <span className="text-xs font-semibold text-white tracking-tight">Try DevLoom CLI</span>
+            </div>
+            <span className="text-[9px] font-mono font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              v1.0
+            </span>
+          </div>
+
+          <p className="text-[11px] text-slate-400 leading-relaxed mb-3">
+            Auto-detects git repos and syncs tasks & gotchas right from your shell.
+          </p>
+
+          {/* Quick install copy snippet */}
+          <div className="flex items-center justify-between gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-950/80 border border-slate-800 text-[11px] font-mono text-slate-300 mb-2.5">
+            <span className="truncate text-slate-400">$ curl -fsSL ... | bash</span>
+            <button
+              type="button"
+              onClick={handleCopyInstall}
+              title="Copy 1-line install command"
+              className="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-white transition shrink-0 cursor-pointer"
+            >
+              {copied ? (
+                <Check className="w-3.5 h-3.5 text-emerald-400" />
+              ) : (
+                <Copy className="w-3.5 h-3.5" />
+              )}
+            </button>
+          </div>
+
+          {/* Link to CLI Docs */}
+          <Link
+            href="/docs#cli"
+            className="flex items-center justify-between w-full text-[11px] font-medium text-emerald-400 hover:text-emerald-300 transition group/link"
+          >
+            <span>View CLI Setup & Commands</span>
+            <ChevronRight className="w-3.5 h-3.5 group-hover/link:translate-x-0.5 transition-transform" />
+          </Link>
+        </div>
+      </div>
     </aside>
   );
 }
