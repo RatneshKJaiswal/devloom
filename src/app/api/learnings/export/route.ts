@@ -30,8 +30,6 @@ export async function GET(req: Request) {
         "---",
         `title: "${item.title.replace(/"/g, '\\"')}"`,
         `category: "${category}"`,
-        `box: ${item.reviewBox || 1}`,
-        `review_status: "${item.reviewStatus}"`,
         `tags: [${tagList}]`,
         item.projectName ? `project: "${item.projectName}"` : null,
         `created_at: "${dateStr}"`,

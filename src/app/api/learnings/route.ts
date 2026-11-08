@@ -14,13 +14,11 @@ export async function GET(req: Request) {
     if (!user) return unauthorizedResponse();
 
     const { searchParams } = new URL(req.url);
-    const status = searchParams.get("status") as any;
     const projectId = searchParams.get("projectId") || undefined;
     const limit = searchParams.get("limit") ? parseInt(searchParams.get("limit")!, 10) : undefined;
     const offset = searchParams.get("offset") ? parseInt(searchParams.get("offset")!, 10) : undefined;
 
     const data = await listLearnings(user.id, {
-      status,
       projectId,
       limit,
       offset,

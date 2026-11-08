@@ -42,7 +42,7 @@ const STATIC_NAVIGATION = [
   { title: "Dashboard & Standup", href: "/dashboard", icon: Calendar, category: "Navigation" as const },
   { title: "Tasks (List, Kanban & Gantt)", href: "/tasks", icon: CheckSquare, category: "Navigation" as const },
   { title: "Bug Tracker & Defect Log", href: "/bugs", icon: Bug, category: "Navigation" as const },
-  { title: "Knowledge Base (Leitner Gotchas)", href: "/learnings", icon: Code2, category: "Navigation" as const },
+  { title: "Knowledge Base (Gotchas & Snippets)", href: "/learnings", icon: Code2, category: "Navigation" as const },
   { title: "Projects & SDLC Timeline", href: "/projects", icon: FolderKanban, category: "Navigation" as const },
   { title: "Developer Settings & CLI Tokens", href: "/settings", icon: Settings, category: "Navigation" as const },
 ];

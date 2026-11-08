@@ -1,30 +1,17 @@
 import { db } from "@/lib/db";
 import { learnings, learningTags, tags, projects, githubLinks } from "@/lib/db/schema";
 import { withUserScope } from "./base";
-import { eq, desc, and, inArray, lte } from "drizzle-orm";
+import { eq, desc, and, inArray } from "drizzle-orm";
 
 export interface LearningFilterOptions {
-  status?: "new" | "learning" | "learned" | "mastered";
   projectId?: string;
   limit?: number;
   offset?: number;
 }
 
-// Leitner box intervals in milliseconds
-const LEITNER_INTERVALS_MS: Record<number, number> = {
-  1: 1 * 24 * 60 * 60 * 1000,  // 1 day
-  2: 3 * 24 * 60 * 60 * 1000,  // 3 days
-  3: 7 * 24 * 60 * 60 * 1000,  // 7 days
-  4: 14 * 24 * 60 * 60 * 1000, // 14 days
-  5: 30 * 24 * 60 * 60 * 1000, // 30 days
-};
-
 export async function listLearnings(userId: string, options: LearningFilterOptions = {}) {
   const conditions = [];
 
-  if (options.status) {
-    conditions.push(eq(learnings.reviewStatus, options.status));
-  }
   if (options.projectId) {
     conditions.push(eq(learnings.projectId, options.projectId));
   }
@@ -40,10 +27,6 @@ export async function listLearnings(userId: string, options: LearningFilterOptio
       projectColor: projects.color,
       title: learnings.title,
       content: learnings.content,
-      reviewBox: learnings.reviewBox,
-      reviewStatus: learnings.reviewStatus,
-      nextReviewAt: learnings.nextReviewAt,
-      lastReviewedAt: learnings.lastReviewedAt,
       createdAt: learnings.createdAt,
       updatedAt: learnings.updatedAt,
     })
@@ -91,10 +74,6 @@ export async function getLearningById(userId: string, id: string) {
       projectColor: projects.color,
       title: learnings.title,
       content: learnings.content,
-      reviewBox: learnings.reviewBox,
-      reviewStatus: learnings.reviewStatus,
-      nextReviewAt: learnings.nextReviewAt,
-      lastReviewedAt: learnings.lastReviewedAt,
       createdAt: learnings.createdAt,
       updatedAt: learnings.updatedAt,
     })
@@ -131,9 +110,6 @@ export async function createLearning(
   },
   tagIds?: string[]
 ) {
-  // New learnings start in Box 1 and are due in 1 day
-  const nextReviewAt = new Date(Date.now() + LEITNER_INTERVALS_MS[1]);
-
   const [created] = await db
     .insert(learnings)
     .values({
@@ -141,9 +117,6 @@ export async function createLearning(
       title: data.title,
       content: data.content,
       projectId: data.projectId || null,
-      reviewBox: 1,
-      reviewStatus: "new",
-      nextReviewAt,
     })
     .returning();
 
@@ -166,9 +139,6 @@ export async function updateLearning(
     title: string;
     content: string;
     projectId?: string | null;
-    reviewBox?: number;
-    reviewStatus?: "new" | "learning" | "learned" | "mastered";
-    nextReviewAt?: string | null;
   }>,
   tagIds?: string[]
 ) {
@@ -179,18 +149,6 @@ export async function updateLearning(
   if (data.title !== undefined) updateData.title = data.title;
   if (data.content !== undefined) updateData.content = data.content;
   if (data.projectId !== undefined) updateData.projectId = data.projectId;
-  if (data.reviewBox !== undefined) {
-    const box = Math.max(1, Math.min(5, Math.floor(data.reviewBox)));
-    updateData.reviewBox = box;
-    if (data.nextReviewAt === undefined) {
-      const intervalMs = LEITNER_INTERVALS_MS[box] || LEITNER_INTERVALS_MS[1];
-      updateData.nextReviewAt = new Date(Date.now() + intervalMs);
-    }
-  }
-  if (data.reviewStatus !== undefined) updateData.reviewStatus = data.reviewStatus;
-  if (data.nextReviewAt !== undefined) {
-    updateData.nextReviewAt = data.nextReviewAt ? new Date(data.nextReviewAt) : new Date();
-  }
 
   const [updated] = await db
     .update(learnings)
@@ -233,77 +191,4 @@ export async function deleteLearning(userId: string, id: string) {
     .returning();
 
   return deleted || null;
-}
-
-/**
- * Retrieves learnings that are currently due for spaced review (nextReviewAt <= NOW()).
- */
-export async function getDueLearnings(userId: string, limit = 20) {
-  const now = new Date();
-
-  return db
-    .select({
-      id: learnings.id,
-      title: learnings.title,
-      content: learnings.content,
-      reviewBox: learnings.reviewBox,
-      reviewStatus: learnings.reviewStatus,
-      nextReviewAt: learnings.nextReviewAt,
-      lastReviewedAt: learnings.lastReviewedAt,
-      projectName: projects.name,
-      projectColor: projects.color,
-    })
-    .from(learnings)
-    .leftJoin(projects, eq(learnings.projectId, projects.id))
-    .where(withUserScope(learnings, userId, lte(learnings.nextReviewAt, now)))
-    .orderBy(learnings.nextReviewAt)
-    .limit(limit);
-}
-
-/**
- * Evaluates a learning review response using the Leitner 5-box algorithm.
- */
-export async function recordLearningReview(
-  userId: string,
-  id: string,
-  passed: boolean
-) {
-  const current = await getLearningById(userId, id);
-  if (!current) return null;
-
-  const now = new Date();
-  let nextBox: number;
-  let nextStatus: "learning" | "learned" | "mastered";
-
-  if (passed) {
-    nextBox = Math.min(current.reviewBox + 1, 5);
-    if (nextBox >= 5) {
-      nextStatus = "mastered";
-    } else if (nextBox >= 4) {
-      nextStatus = "learned";
-    } else {
-      nextStatus = "learning";
-    }
-  } else {
-    // Reset to Box 1 on recall failure
-    nextBox = 1;
-    nextStatus = "learning";
-  }
-
-  const intervalMs = LEITNER_INTERVALS_MS[nextBox] || LEITNER_INTERVALS_MS[1];
-  const nextReviewAt = new Date(now.getTime() + intervalMs);
-
-  const [updated] = await db
-    .update(learnings)
-    .set({
-      reviewBox: nextBox,
-      reviewStatus: nextStatus,
-      nextReviewAt,
-      lastReviewedAt: now,
-      updatedAt: now,
-    })
-    .where(withUserScope(learnings, userId, eq(learnings.id, id)))
-    .returning();
-
-  return updated || null;
 }

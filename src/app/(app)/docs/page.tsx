@@ -948,27 +948,27 @@ devloom status`}
               </div>
             )}
 
-            {/* Feature 2: Spaced Repetition Reviews */}
-            {matchesSearch("spaced repetition leitner ebbinghaus review memory learning gotcha") && (
+            {/* Feature 2: Engineering Knowledge Base */}
+            {matchesSearch("knowledge base gotchas patterns snippets markdown export") && (
               <div className="p-6 rounded-2xl border border-slate-800 bg-slate-900/50 space-y-3 flex flex-col justify-between">
                 <div className="space-y-3">
                   <div className="flex items-center gap-2.5 text-white font-bold text-sm">
                     <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                       <Code2 className="w-4 h-4" />
                     </div>
-                    <span>Leitner Spaced Repetition (Never Forget)</span>
+                    <span>Engineering Knowledge Base (Gotchas & Snippets)</span>
                   </div>
                   <p className="text-xs text-slate-400 leading-relaxed">
-                    Fights the developer forgetting curve with the proven Leitner 5-box spaced repetition algorithm (1d, 3d, 7d, 14d, 30d).
+                    Centralized repository for technical gotchas, architectural design patterns, and CLI snippets.
                   </p>
                   <div className="text-xs text-slate-400 space-y-1.5 pt-1">
                     <p className="flex items-center gap-2">
                       <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                      <span>Recall the fix before revealing the answer.</span>
+                      <span>Full Markdown solution viewer with 1-click clipboard copy.</span>
                     </p>
                     <p className="flex items-center gap-2">
                       <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                      <span>Promotes card on success; resets on failure.</span>
+                      <span>1-click export to an Obsidian & Markdown knowledge vault.</span>
                     </p>
                   </div>
                 </div>

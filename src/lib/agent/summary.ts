@@ -1,6 +1,6 @@
 import { listTasks } from "@/lib/dal/tasks";
 import { listBugs } from "@/lib/dal/bugs";
-import { listLearnings, getDueLearnings } from "@/lib/dal/learnings";
+import { listLearnings } from "@/lib/dal/learnings";
 import { checkUserQuota, recordAgentUsage } from "./quota";
 import { buildSummaryPrompt, SummaryOutput } from "./prompts/summary";
 import { agentClient } from "./client";
@@ -329,14 +329,14 @@ export async function generateWorkspaceSummary({
     let learnings: SummaryLearningInput[] = [];
 
     if (mode === "daily_plan") {
-      const [allTasks, allBugs, dueLearnings] = await Promise.all([
+      const [allTasks, allBugs, allLearnings] = await Promise.all([
         listTasks(userId, { limit: 25 }).catch(() => []),
         listBugs(userId, { limit: 25 }).catch(() => []),
-        getDueLearnings(userId, 10).catch(() => []),
+        listLearnings(userId, { limit: 10 }).catch(() => []),
       ]);
       tasks = allTasks;
       bugs = allBugs;
-      learnings = dueLearnings;
+      learnings = allLearnings;
     } else {
       const [allTasks, allBugs, allLearnings] = await Promise.all([
         listTasks(userId, { limit: 50 }).catch(() => []),

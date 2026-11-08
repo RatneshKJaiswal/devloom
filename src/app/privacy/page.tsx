@@ -34,8 +34,8 @@ export default function PrivacyPage() {
         <section className="space-y-3">
           <h2 className="text-xl font-semibold text-white">2. What Data is Sent to the LLM Provider</h2>
           <p className="text-sm text-slate-300 leading-relaxed">
-            DevLoom uses AI models to power smart features (Smart Capture, GitHub link analysis, duplicate detection, and learning review quizzes).
-            Only the specific text you submit for smart capture or the context of the specific learning being reviewed is sent to the AI processing service.
+            DevLoom uses AI models to power smart features (Smart Capture, GitHub link analysis, duplicate detection, and daily standup generation).
+            Only the specific text you submit for smart capture or workspace summary generation is sent to the AI processing service.
             We do not share your full workspace or cross-user records.
           </p>
         </section>

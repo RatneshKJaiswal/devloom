@@ -10,7 +10,7 @@
 [![Drizzle ORM](https://img.shields.io/badge/Drizzle_ORM-0.45.4-C5F74F?style=for-the-badge&logo=drizzle&logoColor=black)](https://orm.drizzle.team/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
 [![Google Gemini](https://img.shields.io/badge/Google_Gemini-API-8E75C4?style=for-the-badge&logo=google-gemini&logoColor=white)](https://ai.google.dev/)
-[![Tests](https://img.shields.io/badge/Vitest-95%20Passed-34A853?style=for-the-badge&logo=vitest&logoColor=white)](https://vitest.dev/)
+[![Tests](https://img.shields.io/badge/Vitest-88%20Passed-34A853?style=for-the-badge&logo=vitest&logoColor=white)](https://vitest.dev/)
 [![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
 
 **Live Production Workspace:** [https://dev-loom.vercel.app](https://dev-loom.vercel.app) • **Documentation & Guides:** [https://dev-loom.vercel.app/docs](https://dev-loom.vercel.app/docs)
@@ -31,7 +31,7 @@ Modern software engineering workflows are fragmented across disconnected tools:
 **DevLoom** resolves this friction by providing a **personal engineering command center**. It combines:
 1. **Engineering Task Tracking** with interactive Gantt timelines, SDLC phases, and optimistic reschedule conflict detection.
 2. **Defect Triage System** with root-cause tracking, stack trace inspection, and direct task association.
-3. **5-Box Leitner Spaced-Repetition Knowledge Base** that resurfaces technical gotchas before they recur.
+3. **Engineering Knowledge Base** for organizing technical gotchas, design patterns, and CLI snippets with markdown and Obsidian export.
 4. **AI Engineering Engine** powered by Google Gemini for smart unstructured note capture, automated daily standups, duplicate detection, and changelog drafting.
 5. **Zero-Dependency Native CLI (`devloom`)** with cross-platform support for macOS, Linux, and Windows PowerShell that auto-detects Git repos and provisions projects on the fly.
 
@@ -55,7 +55,7 @@ DevLoom is engineered with a strict **security-first, zero-friction developer ar
 |  WEB WORKSPACE (https://dev-loom.vercel.app)     |  TERMINAL CLI (devloom)        |
 |  - Tasks & Interactive Gantt Timeline            |  - Zero-Dependency Native Node |
 |  - Bug Triage & Root Cause Linking               |  - macOS, Linux & Windows      |
-|  - 5-Box Leitner Spaced-Repetition KB            |  - Auto-Detects Git Remotes    |
+|  - Knowledge Base (Gotchas & Snippets)           |  - Auto-Detects Git Remotes    |
 |  - AI Daily Standup & Activity Heatmaps          |  - Auto-Provisions Projects    |
 |  - Personal Access Tokens & Account Export       |  - Fast Terminal Capture       |
 +-----------------------------------------------------------------------------------+
@@ -78,16 +78,15 @@ DevLoom is engineered with a strict **security-first, zero-friction developer ar
 - **Task Association:** Bidirectionally link bugs directly to the engineering tasks that address or caused them.
 - **Layout:** Responsive 3-column layout with quick status toggles (`Open`, `In Progress`, `Resolved`, `Closed`).
 
-### 3. Leitner Spaced-Repetition Engineering Knowledge Base (Learnings)
-- **5-Box Leitner Memory Engine:** Scientifically proven spaced-repetition intervals ensure critical bugs and gotchas are permanently retained:
-  - **Box 1:** 1 day
-  - **Box 2:** 3 days
-  - **Box 3:** 7 days
-  - **Box 4:** 14 days
-  - **Box 5:** 30 days
-- **AI-Powered Review Quizzes:** Generates interactive multiple-choice retention questions based on your technical notes. Correct answers promote the card to the next box; incorrect answers reset it to Box 1.
-- **Markdown Solution Viewer:** Full GitHub-flavored markdown rendering for code snippets, config files, and reproduction steps.
-- **Layout:** Responsive 3-column layout with due-for-review filters.
+### 3. Engineering Knowledge Base (Gotchas, Patterns & Snippets)
+- **Categorized Engineering Wisdom:** Organize knowledge entries across 3 core disciplines:
+  - **Technical Gotchas:** Tricky runtime bugs, framework caveats, and edge-case fixes.
+  - **Design Patterns:** Architectural structures, clean code idioms, and API design.
+  - **CLI Snippets:** Terminal commands, shell scripts, and devops one-liners.
+- **Markdown Solution Viewer:** Full GitHub-flavored markdown rendering for code snippets, config files, and reproduction steps with instant clipboard copy.
+- **Obsidian & Markdown Vault Export:** 1-click export of your entire knowledge base into a standardized Markdown vault for local backup or Obsidian integration.
+- **12-Week Activity Heatmap:** GitHub-style activity contribution calendar tracking continuous knowledge capture and engineering momentum.
+- **Layout:** Responsive 3-column grid layout with instant search across titles, content, tags, and projects.
 
 ### 4. Scoped Projects & SDLC Milestones
 - **Scoped Organization:** Group tasks, defects, and learnings by project.
@@ -169,7 +168,7 @@ Whenever you run `devloom` commands inside **any local Git repository**:
 | :--- | :--- | :--- |
 | `devloom task <title>` | Create a task with priority, tags, estimate, and project | `devloom task "Migrate to Auth.js v5" -p high -e 4h -P "core-api"` |
 | `devloom bug <title>` | Log a defect report with severity and suspected cause | `devloom bug "PgBouncer pool exhausted" -p urgent -s "Idle timeout too high"` |
-| `devloom gotcha <title>` | Record an engineering gotcha into Leitner Box 1 | `devloom gotcha "Drizzle PgBouncer mode" -s "Set prepare: false in client config"` |
+| `devloom gotcha <title>` | Record an engineering gotcha into Knowledge Base | `devloom gotcha "Drizzle PgBouncer mode" -s "Set prepare: false in client config"` |
 | `devloom capture <text>` | AI smart-capture unstructured notes or logs | `devloom capture "Investigate memory spike on large PDF exports"` |
 | `devloom standup` | Generate daily AI standup summary & focus items | `devloom standup` |
 | `devloom list [sub]` | View recent tasks, bugs, or gotchas in terminal | `devloom list tasks` / `devloom list bugs` / `devloom list gotchas` |
@@ -192,7 +191,7 @@ Whenever you run `devloom` commands inside **any local Git repository**:
 | **Authentication** | [Auth.js (NextAuth v5)](https://authjs.dev/) | GitHub OAuth login + SHA-256 hashed Personal Access Tokens |
 | **AI Engine** | [Google Gemini API](https://ai.google.dev/) | `gemini-2.5-flash` with structured JSON schema extraction |
 | **Security** | Node.js `crypto` | AES-256-GCM token encryption at rest, scrypt / SHA-256 PAT hashing |
-| **Testing** | [Vitest 5.1.0](https://vitest.dev/) | 95 unit tests covering isolation, crypto, Leitner, and scheduling |
+| **Testing** | [Vitest 5.1.0](https://vitest.dev/) | 88 unit tests covering isolation, crypto, timeline, and scheduling |
 
 ---
 
@@ -214,7 +213,7 @@ devloom/
 │   │   │   ├── dashboard/          # Metrics, activity heatmaps, daily standup
 │   │   │   ├── tasks/              # Task board, interactive Gantt timeline, SDLC phases
 │   │   │   ├── bugs/               # Defect triage matrix, stack traces, task linking
-│   │   │   ├── learnings/          # 5-box Leitner spaced-repetition knowledge base
+│   │   │   ├── learnings/          # Knowledge Base for gotchas, design patterns & snippets
 │   │   │   ├── projects/           # Scoped project organization & milestones
 │   │   │   ├── docs/               # Multi-platform interactive documentation
 │   │   │   └── settings/           # Personal Access Tokens, data export, account deletion
@@ -223,7 +222,7 @@ devloom/
 │   │   │   ├── agent/              # Smart capture, duplicate detection, standup, changelog
 │   │   │   ├── bugs/               # Bug CRUD & task association
 │   │   │   ├── cli/                # CLI 1-line token installer endpoint
-│   │   │   ├── learnings/          # Learning CRUD & Leitner review promotion/demotion
+│   │   │   ├── learnings/          # Learning CRUD & Obsidian vault export
 │   │   │   ├── projects/           # Project CRUD, milestones, dependencies, critical path
 │   │   │   ├── tasks/              # Task CRUD & optimistic concurrency reschedule
 │   │   │   └── search/             # Global cross-entity search (⌘K)
@@ -244,7 +243,7 @@ devloom/
 │       ├── security/               # AES-256-GCM token encryption & PAT hashing
 │       └── validators/             # Zod validation schemas
 ├── tests/
-│   └── unit/                       # 22 Vitest test suites (95 tests passing)
+│   └── unit/                       # 20 Vitest test suites (88 tests passing)
 ├── drizzle.config.ts               # Drizzle ORM migration configuration
 └── package.json                    # Project dependencies & scripts (v1.0.0)
 ```
@@ -328,16 +327,15 @@ npx tsc --noEmit
 npm run build
 ```
 
-### Test Suite Breakdown (95 Tests / 22 Suites)
+### Test Suite Breakdown (88 Tests / 20 Suites)
 
 | Category | Test Suite | What Is Verified |
 | :--- | :--- | :--- |
 | **Security & Isolation** | `cross-user-isolation.test.ts`<br>`dal-isolation.test.ts` | Proves User A cannot read, query, mutate, or delete User B's records across all DAL entities. |
 | **Cryptography** | `crypto.test.ts`<br>`tokens.test.ts`<br>`api-tokens.test.ts` | AES-256-GCM encryption/decryption at rest, scrypt key derivation, SHA-256 token hashing, prefix validation (`devloom_pat_`). |
-| **Leitner Engine** | `leitner.test.ts` | Verifies spaced repetition review intervals (1d, 3d, 7d, 14d, 30d), promotions on correct answers, and demotions to Box 1. |
 | **Timeline Scheduling** | `gantt-reschedule.test.ts`<br>`project-timeline.test.ts`<br>`dependencies.test.ts`<br>`critical-path.test.ts` | Date delta shifts, dependency boundary validation, topological sorting, critical path duration calculations, and optimistic `version` conflict detection. |
 | **Defect Association** | `task-bug-association.test.ts` | Relational integrity between bugs and resolving tasks, status synchronization. |
-| **AI Agent Engine** | `agent-prompt.test.ts`<br>`agent-duplicates.test.ts`<br>`agent-quiz.test.ts`<br>`agent-quota.test.ts`<br>`agent-summary.test.ts` | XML prompt injection containment, structured JSON mode parsing, duplicate similarity matching, token rate-limiting. |
+| **AI Agent Engine** | `agent-prompt.test.ts`<br>`agent-duplicates.test.ts`<br>`agent-quota.test.ts`<br>`agent-summary.test.ts` | XML prompt injection containment, structured JSON mode parsing, duplicate similarity matching, token rate-limiting. |
 | **Analytics & Parsing** | `heatmap.test.ts`<br>`analytics.test.ts`<br>`github-parser.test.ts`<br>`validators.test.ts` | Activity contribution matrix calculations, GitHub remote URL parsing (`git@github.com:...` vs `https://...`), Zod input schema enforcement. |
 
 ---

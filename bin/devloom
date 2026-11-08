@@ -654,7 +654,7 @@ ${colors.bold}COMMANDS:${colors.reset}
   ${colors.bold}whoami${colors.reset}                                Display current session and active tokens
   ${colors.bold}task${colors.reset} <title> [-p prio] [-P project]   Quickly create an engineering task
   ${colors.bold}bug${colors.reset} <title> [-p prio] [-P project]    Log a defect or bug report
-  ${colors.bold}gotcha${colors.reset} <title> [-s notes] [-P proj]   Record a technical gotcha / Leitner entry
+  ${colors.bold}gotcha${colors.reset} <title> [-s notes] [-P proj]   Record a technical gotcha or engineering snippet
   ${colors.bold}capture${colors.reset} <text|url>                    Smart-capture unstructured note or issue
   ${colors.bold}standup${colors.reset}                               Fetch daily AI planner summary & standup
   ${colors.bold}list${colors.reset} [tasks|bugs|gotchas]             View recent items in terminal
