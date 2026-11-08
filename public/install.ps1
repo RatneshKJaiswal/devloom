@@ -1,4 +1,4 @@
-﻿# DevLoom CLI Windows PowerShell Installer
+# DevLoom CLI Windows PowerShell Installer
 # Usage: irm https://devloom.app/install.ps1 | iex
 
 $ErrorActionPreference = "Stop"

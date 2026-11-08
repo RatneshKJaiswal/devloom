@@ -52,47 +52,47 @@ function CodeBlock({ code, language = "bash", caption, platform }: CodeBlockProp
   };
 
   return (
-    <div className="relative group my-3.5 rounded-xl border border-[#30363d] bg-[#0d1117] overflow-hidden shadow-sm">
-      {/* GitHub-style Terminal Header Bar */}
-      <div className="px-4 py-2.5 border-b border-[#30363d] bg-[#161b22] flex items-center justify-between text-xs text-[#8b949e] font-mono">
+    <div className="relative group my-3.5 rounded-xl border border-slate-800 bg-slate-950/90 overflow-hidden shadow-inner">
+      {/* Terminal Header Bar */}
+      <div className="px-4 py-2 border-b border-slate-800/80 bg-slate-900/70 flex items-center justify-between text-xs text-slate-400 font-mono">
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#30363d] inline-block" />
-            <span className="w-2.5 h-2.5 rounded-full bg-[#30363d] inline-block" />
-            <span className="w-2.5 h-2.5 rounded-full bg-[#30363d] inline-block" />
+            <span className="w-2.5 h-2.5 rounded-full bg-slate-700/80 inline-block" />
+            <span className="w-2.5 h-2.5 rounded-full bg-slate-700/80 inline-block" />
+            <span className="w-2.5 h-2.5 rounded-full bg-slate-700/80 inline-block" />
           </div>
-          {caption && <span className="ml-2 font-medium text-[#c9d1d9]">{caption}</span>}
+          {caption && <span className="ml-2 font-medium text-slate-300">{caption}</span>}
         </div>
         <div className="flex items-center gap-2">
           {platform && (
-            <span className="px-2 py-0.5 rounded text-[10px] font-semibold uppercase bg-[#21262d] text-[#c9d1d9] border border-[#30363d]">
+            <span className="px-2 py-0.5 rounded text-[10px] font-semibold uppercase bg-primary-subtle text-primary border border-primary/20">
               {platform}
             </span>
           )}
-          <span className="text-[10px] uppercase text-[#8b949e]">{language}</span>
+          <span className="text-[10px] uppercase text-slate-500 font-medium">{language}</span>
         </div>
       </div>
 
-      {/* Code Area */}
+      {/* Code Content */}
       <div className="relative p-4 flex items-start justify-between gap-4">
-        <pre className="font-mono text-xs sm:text-sm text-[#e6edf3] overflow-x-auto leading-relaxed scrollbar-thin flex-1">
+        <pre className="font-mono text-xs sm:text-sm text-slate-200 overflow-x-auto leading-relaxed scrollbar-thin flex-1">
           <code>{code}</code>
         </pre>
         <button
           type="button"
           onClick={handleCopy}
           title="Copy code"
-          className="shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#30363d] bg-[#21262d] hover:bg-[#30363d] hover:border-[#8b949e] text-[#c9d1d9] hover:text-white transition cursor-pointer text-xs"
+          className="shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-800 bg-slate-900/90 hover:bg-slate-800 hover:border-slate-700 text-slate-300 hover:text-white transition cursor-pointer text-xs"
         >
           {copied ? (
             <>
-              <Check className="w-3.5 h-3.5 text-white" />
-              <span className="text-[11px] font-mono text-white font-medium">Copied</span>
+              <Check className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="text-[11px] font-mono text-emerald-400 font-medium">Copied</span>
             </>
           ) : (
             <>
-              <Copy className="w-3.5 h-3.5" />
-              <span className="text-[11px] font-mono">Copy</span>
+              <Copy className="w-3.5 h-3.5 text-slate-400" />
+              <span className="text-[11px] font-mono text-slate-300">Copy</span>
             </>
           )}
         </button>
@@ -112,60 +112,63 @@ export default function DocsPage() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 pb-20 text-[#c9d1d9]">
-      {/* Top Banner / Hero (GitHub Black & White Theme) */}
-      <div className="p-6 sm:p-8 rounded-2xl border border-[#30363d] bg-[#161b22] space-y-6 shadow-md">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+    <div className="max-w-6xl mx-auto space-y-8 pb-20 text-slate-300">
+      {/* Top Banner / Hero (Website Themed with Minimal Primary Glow) */}
+      <div className="relative p-6 sm:p-8 rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900/90 via-[#13151b] to-slate-950 space-y-6 shadow-xl overflow-hidden">
+        {/* Subtle ambient primary light */}
+        <div className="absolute top-0 right-0 -mt-12 -mr-12 w-72 h-72 rounded-full bg-primary/10 blur-3xl pointer-events-none" />
+
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-3 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#21262d] border border-[#30363d] text-[#f0f6fc] text-xs font-medium">
-              <Terminal className="w-3.5 h-3.5 text-white" />
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary-subtle border border-primary/25 text-primary text-xs font-semibold">
+              <Terminal className="w-3.5 h-3.5 text-primary" />
               <span>DevLoom Documentation & Reference</span>
             </div>
             <h1 className="text-2xl sm:text-4xl font-bold tracking-tight text-white">
               DevLoom Documentation
             </h1>
-            <p className="text-sm sm:text-base text-[#8b949e] leading-relaxed">
+            <p className="text-sm sm:text-base text-slate-400 leading-relaxed">
               Complete guide for the DevLoom Web Workspace and Command-Line Interface. Cross-platform support for <strong className="text-white">macOS</strong>, <strong className="text-white">Linux</strong>, and <strong className="text-white">Windows</strong> with zero-configuration Git context.
             </p>
           </div>
 
           {/* Quick Action Navigation CTAs */}
-          <div className="flex flex-col sm:flex-row md:flex-col gap-2.5 shrink-0">
+          <div className="relative z-10 flex flex-col sm:flex-row md:flex-col gap-2.5 shrink-0">
             <a
               href="#cli"
-              className="px-4 py-2.5 rounded-xl bg-[#f0f6fc] hover:bg-white text-[#0d1117] font-semibold text-xs transition flex items-center justify-center gap-2 shadow-sm"
+              className="px-4 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-white font-semibold text-xs transition flex items-center justify-center gap-2 shadow-sm shadow-primary/25 cursor-pointer"
             >
-              <Terminal className="w-4 h-4" />
+              <Terminal className="w-4 h-4 text-white" />
               <span>CLI Setup Guide</span>
             </a>
             <a
               href="#web"
-              className="px-4 py-2.5 rounded-xl border border-[#30363d] bg-[#21262d] hover:bg-[#30363d] text-[#f0f6fc] text-xs font-medium transition flex items-center justify-center gap-2"
+              className="px-4 py-2.5 rounded-xl border border-slate-800 bg-slate-900/80 hover:bg-slate-800 text-slate-200 text-xs font-medium transition flex items-center justify-center gap-2 cursor-pointer"
             >
-              <LayoutDashboard className="w-4 h-4" />
+              <LayoutDashboard className="w-4 h-4 text-primary" />
               <span>Web Workspace Guide</span>
             </a>
           </div>
         </div>
 
         {/* Global Platform Selector + Search + Navigation Tabs */}
-        <div className="pt-6 border-t border-[#30363d] space-y-4">
+        <div className="relative z-10 pt-6 border-t border-slate-800/80 space-y-4">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             {/* Search Input */}
             <div className="relative flex-1 max-w-md">
-              <Search className="w-4 h-4 text-[#8b949e] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search documentation, commands, flags..."
-                className="w-full pl-10 pr-4 py-2 rounded-xl border border-[#30363d] bg-[#0d1117] text-xs text-white placeholder-[#8b949e] focus:outline-none focus:border-white transition"
+                className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-800 bg-slate-950/90 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-primary transition"
               />
               {searchQuery && (
                 <button
                   type="button"
                   onClick={() => setSearchQuery("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[#8b949e] hover:text-white"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-white"
                 >
                   Clear
                 </button>
@@ -174,16 +177,16 @@ export default function DocsPage() {
 
             {/* Platform Selector (macOS / Linux / Windows) */}
             <div className="flex items-center gap-2">
-              <span className="text-xs text-[#8b949e] font-medium hidden sm:inline">Platform:</span>
-              <div className="inline-flex rounded-xl border border-[#30363d] bg-[#0d1117] p-1 gap-1">
+              <span className="text-xs text-slate-400 font-medium hidden sm:inline">Platform:</span>
+              <div className="inline-flex rounded-xl border border-slate-800 bg-slate-950/80 p-1 gap-1">
                 <button
                   type="button"
                   onClick={() => setPlatform("mac")}
                   className={clsx(
                     "px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1.5 cursor-pointer",
                     platform === "mac"
-                      ? "bg-[#21262d] text-white border border-[#30363d] font-semibold"
-                      : "text-[#8b949e] hover:text-white"
+                      ? "bg-primary-subtle text-primary border border-primary/30 font-semibold shadow-sm"
+                      : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/60"
                   )}
                 >
                   <Apple className="w-3.5 h-3.5" />
@@ -195,8 +198,8 @@ export default function DocsPage() {
                   className={clsx(
                     "px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1.5 cursor-pointer",
                     platform === "linux"
-                      ? "bg-[#21262d] text-white border border-[#30363d] font-semibold"
-                      : "text-[#8b949e] hover:text-white"
+                      ? "bg-primary-subtle text-primary border border-primary/30 font-semibold shadow-sm"
+                      : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/60"
                   )}
                 >
                   <Terminal className="w-3.5 h-3.5" />
@@ -208,8 +211,8 @@ export default function DocsPage() {
                   className={clsx(
                     "px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1.5 cursor-pointer",
                     platform === "windows"
-                      ? "bg-[#21262d] text-white border border-[#30363d] font-semibold"
-                      : "text-[#8b949e] hover:text-white"
+                      ? "bg-primary-subtle text-primary border border-primary/30 font-semibold shadow-sm"
+                      : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/60"
                   )}
                 >
                   <Monitor className="w-3.5 h-3.5" />
@@ -235,8 +238,8 @@ export default function DocsPage() {
                 className={clsx(
                   "px-3 py-1.5 rounded-lg text-xs font-medium transition whitespace-nowrap cursor-pointer",
                   activeTab === tab.id
-                    ? "bg-[#f0f6fc] text-[#0d1117] font-semibold"
-                    : "text-[#8b949e] hover:text-white hover:bg-[#21262d]"
+                    ? "bg-primary-subtle text-primary border border-primary/30 font-semibold shadow-sm"
+                    : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/60"
                 )}
               >
                 {tab.label}
@@ -248,42 +251,42 @@ export default function DocsPage() {
 
       {/* SECTION: ARCHITECTURE OVERVIEW */}
       {(activeTab === "all" || activeTab === "git") && matchesSearch("architecture sync terminal web database") && (
-        <div className="p-6 sm:p-7 rounded-2xl border border-[#30363d] bg-[#161b22] space-y-4">
+        <div className="p-6 sm:p-7 rounded-2xl border border-slate-800 bg-slate-900/40 space-y-4">
           <div className="flex items-center gap-2 text-white">
-            <Zap className="w-5 h-5 text-white" />
+            <Zap className="w-5 h-5 text-primary" />
             <h2 className="text-base font-bold text-white">How DevLoom Works</h2>
           </div>
-          <p className="text-xs sm:text-sm text-[#8b949e] leading-relaxed">
+          <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
             DevLoom synchronizes your command line and browser into a unified engineering workspace. When you log tasks, track defects, or record gotchas, items synchronize instantly to PostgreSQL with multi-tenant row-level isolation.
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
-            <div className="p-5 rounded-xl border border-[#30363d] bg-[#0d1117] space-y-2">
-              <div className="flex items-center gap-2 text-white text-xs font-bold">
-                <Terminal className="w-4 h-4" />
+            <div className="p-5 rounded-xl border border-slate-800/90 bg-slate-950/60 space-y-2">
+              <div className="flex items-center gap-2 text-primary text-xs font-bold">
+                <Terminal className="w-4 h-4 text-primary" />
                 <span>1. Terminal CLI (Cross-Platform)</span>
               </div>
-              <p className="text-xs text-[#8b949e] leading-relaxed">
+              <p className="text-xs text-slate-400 leading-relaxed">
                 Log tasks, bugs, and gotchas right from your shell. Auto-detects local Git repos on macOS, Linux, and Windows.
               </p>
             </div>
 
-            <div className="p-5 rounded-xl border border-[#30363d] bg-[#0d1117] space-y-2">
-              <div className="flex items-center gap-2 text-white text-xs font-bold">
-                <ShieldCheck className="w-4 h-4" />
+            <div className="p-5 rounded-xl border border-slate-800/90 bg-slate-950/60 space-y-2">
+              <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold">
+                <ShieldCheck className="w-4 h-4 text-emerald-400" />
                 <span>2. Multi-Tenant Cloud</span>
               </div>
-              <p className="text-xs text-[#8b949e] leading-relaxed">
+              <p className="text-xs text-slate-400 leading-relaxed">
                 Secured by PostgreSQL Row-Level Security (RLS) and encrypted Personal Access Tokens (PATs).
               </p>
             </div>
 
-            <div className="p-5 rounded-xl border border-[#30363d] bg-[#0d1117] space-y-2">
-              <div className="flex items-center gap-2 text-white text-xs font-bold">
-                <LayoutDashboard className="w-4 h-4" />
+            <div className="p-5 rounded-xl border border-slate-800/90 bg-slate-950/60 space-y-2">
+              <div className="flex items-center gap-2 text-amber-400 text-xs font-bold">
+                <LayoutDashboard className="w-4 h-4 text-amber-400" />
                 <span>3. Web Workspace</span>
               </div>
-              <p className="text-xs text-[#8b949e] leading-relaxed">
+              <p className="text-xs text-slate-400 leading-relaxed">
                 52-week activity heatmap, Kanban & Gantt dual views, AI fix prompts, and Obsidian Markdown vault export.
               </p>
             </div>
@@ -294,30 +297,30 @@ export default function DocsPage() {
       {/* SECTION: TERMINAL CLI GUIDE */}
       {(activeTab === "all" || activeTab === "cli" || activeTab === "git" || activeTab === "gotchas") && (
         <section id="cli" className="space-y-6 pt-2">
-          <div className="flex items-center justify-between border-b border-[#30363d] pb-4">
+          <div className="flex items-center justify-between border-b border-slate-800 pb-4">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-[#21262d] border border-[#30363d] text-white">
+              <div className="p-2.5 rounded-xl bg-primary-subtle border border-primary/20 text-primary">
                 <Terminal className="w-5 h-5" />
               </div>
               <div>
                 <h2 className="text-xl font-bold text-white">DevLoom Terminal CLI Guide</h2>
-                <p className="text-xs text-[#8b949e]">The developer-first command-line suite for macOS, Linux, and Windows</p>
+                <p className="text-xs text-slate-400">The developer-first command-line suite for macOS, Linux, and Windows</p>
               </div>
             </div>
-            <span className="text-xs font-mono text-[#f0f6fc] bg-[#21262d] border border-[#30363d] px-2.5 py-1 rounded-md font-semibold">
+            <span className="text-xs font-mono text-primary bg-primary-subtle border border-primary/20 px-2.5 py-1 rounded-md font-semibold">
               v1.0.0
             </span>
           </div>
 
           {/* 1. Platform-Specific Installation */}
           {(activeTab === "all" || activeTab === "cli") && matchesSearch("install installer curl bash setup path windows mac linux powershell") && (
-            <div className="p-6 sm:p-7 rounded-2xl border border-[#30363d] bg-[#161b22] space-y-5">
+            <div className="p-6 sm:p-7 rounded-2xl border border-slate-800 bg-slate-900/50 space-y-5">
               <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-2.5 text-white font-bold text-sm">
-                  <span className="w-6 h-6 rounded-full bg-[#21262d] text-white border border-[#30363d] flex items-center justify-center text-xs font-bold">1</span>
+                  <span className="w-6 h-6 rounded-full bg-primary-subtle text-primary border border-primary/30 flex items-center justify-center text-xs font-bold">1</span>
                   <span>1-Line Installation ({platform === "mac" ? "macOS" : platform === "linux" ? "Linux" : "Windows"})</span>
                 </div>
-                <div className="inline-flex rounded-lg border border-[#30363d] bg-[#0d1117] p-0.5">
+                <div className="inline-flex rounded-lg border border-slate-800 bg-slate-950 p-0.5">
                   {(["mac", "linux", "windows"] as Platform[]).map((p) => (
                     <button
                       key={p}
@@ -325,7 +328,7 @@ export default function DocsPage() {
                       onClick={() => setPlatform(p)}
                       className={clsx(
                         "px-2.5 py-1 rounded-md text-[11px] font-medium transition cursor-pointer capitalize",
-                        platform === p ? "bg-[#21262d] text-white font-semibold" : "text-[#8b949e] hover:text-white"
+                        platform === p ? "bg-primary-subtle text-primary font-semibold border border-primary/25" : "text-slate-400 hover:text-white"
                       )}
                     >
                       {p === "mac" ? "macOS" : p}
@@ -336,18 +339,18 @@ export default function DocsPage() {
 
               {platform === "mac" && (
                 <div className="space-y-3">
-                  <p className="text-xs sm:text-sm text-[#c9d1d9] leading-relaxed">
-                    Open your terminal and run the 1-line curl script. It downloads the binary to <code className="text-white font-mono text-xs bg-[#21262d] px-1.5 py-0.5 rounded border border-[#30363d]">~/.devloom/bin</code> and adds it to your <code className="text-white font-mono text-xs bg-[#21262d] px-1.5 py-0.5 rounded border border-[#30363d]">~/.zshrc</code>:
+                  <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                    Open your terminal and run the 1-line curl script. It downloads the binary to <code className="text-primary font-mono text-xs bg-primary-subtle px-1.5 py-0.5 rounded border border-primary/20">~/.devloom/bin</code> and adds it to your <code className="text-primary font-mono text-xs bg-primary-subtle px-1.5 py-0.5 rounded border border-primary/20">~/.zshrc</code>:
                   </p>
                   <CodeBlock
                     code="curl -fsSL https://devloom.app/install.sh | bash"
                     caption="macOS (zsh / bash)"
                     platform="macOS"
                   />
-                  <div className="text-xs text-[#8b949e] space-y-1.5 pt-1">
+                  <div className="text-xs text-slate-400 space-y-1.5 pt-1">
                     <p className="flex items-center gap-2">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-white shrink-0" />
-                      <span>Reload shell after install: <code className="text-[#f0f6fc] font-mono">source ~/.zshrc</code></span>
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                      <span>Reload shell after install: <code className="text-slate-200 font-mono">source ~/.zshrc</code></span>
                     </p>
                   </div>
                 </div>
@@ -355,7 +358,7 @@ export default function DocsPage() {
 
               {platform === "linux" && (
                 <div className="space-y-3">
-                  <p className="text-xs sm:text-sm text-[#c9d1d9] leading-relaxed">
+                  <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
                     Works on Ubuntu, Debian, Fedora, Arch, and all major Linux distributions:
                   </p>
                   <CodeBlock
@@ -363,10 +366,10 @@ export default function DocsPage() {
                     caption="Linux Terminal (bash / zsh)"
                     platform="Linux"
                   />
-                  <div className="text-xs text-[#8b949e] space-y-1.5 pt-1">
+                  <div className="text-xs text-slate-400 space-y-1.5 pt-1">
                     <p className="flex items-center gap-2">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-white shrink-0" />
-                      <span>Reload shell after install: <code className="text-[#f0f6fc] font-mono">source ~/.bashrc</code> (or <code className="text-[#f0f6fc] font-mono">source ~/.zshrc</code>)</span>
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                      <span>Reload shell after install: <code className="text-slate-200 font-mono">source ~/.bashrc</code> (or <code className="text-slate-200 font-mono">source ~/.zshrc</code>)</span>
                     </p>
                   </div>
                 </div>
@@ -374,7 +377,7 @@ export default function DocsPage() {
 
               {platform === "windows" && (
                 <div className="space-y-3">
-                  <p className="text-xs sm:text-sm text-[#c9d1d9] leading-relaxed">
+                  <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
                     Open <strong>PowerShell</strong> or <strong>Windows Terminal</strong> and run:
                   </p>
                   <CodeBlock
@@ -382,14 +385,14 @@ export default function DocsPage() {
                     caption="Windows PowerShell / Terminal"
                     platform="Windows"
                   />
-                  <div className="text-xs text-[#8b949e] space-y-1.5 pt-1">
+                  <div className="text-xs text-slate-400 space-y-1.5 pt-1">
                     <p className="flex items-center gap-2">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-white shrink-0" />
-                      <span>Creates <code className="text-[#f0f6fc] font-mono">devloom.cmd</code> and <code className="text-[#f0f6fc] font-mono">devloom.ps1</code> in <code className="text-[#f0f6fc] font-mono">%USERPROFILE%\.devloom\bin</code>.</span>
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                      <span>Creates <code className="text-primary font-mono">devloom.cmd</code> and <code className="text-primary font-mono">devloom.ps1</code> in <code className="text-primary font-mono">%USERPROFILE%\.devloom\bin</code>.</span>
                     </p>
                     <p className="flex items-center gap-2">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-white shrink-0" />
-                      <span>Automatically adds the folder to your User <code className="text-[#f0f6fc] font-mono">Path</code>. Works seamlessly in PowerShell, Command Prompt (CMD), and Git Bash.</span>
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                      <span>Automatically adds the folder to your User <code className="text-slate-200 font-mono">Path</code>. Works seamlessly in PowerShell, Command Prompt (CMD), and Git Bash.</span>
                     </p>
                   </div>
                 </div>
@@ -399,32 +402,32 @@ export default function DocsPage() {
 
           {/* 2. Authentication & Login */}
           {(activeTab === "all" || activeTab === "cli") && matchesSearch("auth login token personal access pat whoami") && (
-            <div className="p-6 sm:p-7 rounded-2xl border border-[#30363d] bg-[#161b22] space-y-5">
+            <div className="p-6 sm:p-7 rounded-2xl border border-slate-800 bg-slate-900/50 space-y-5">
               <div className="flex items-center gap-2.5 text-white font-bold text-sm">
-                <span className="w-6 h-6 rounded-full bg-[#21262d] text-white border border-[#30363d] flex items-center justify-center text-xs font-bold">2</span>
+                <span className="w-6 h-6 rounded-full bg-primary-subtle text-primary border border-primary/30 flex items-center justify-center text-xs font-bold">2</span>
                 <span>Authenticate with Personal Access Token (PAT)</span>
               </div>
-              <p className="text-xs sm:text-sm text-[#8b949e] leading-relaxed">
+              <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
                 DevLoom authenticates terminal requests securely using Personal Access Tokens. Follow these 3 steps:
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 text-xs">
-                <div className="p-4 rounded-xl border border-[#30363d] bg-[#0d1117] space-y-1.5">
+                <div className="p-4 rounded-xl border border-slate-800 bg-slate-950/70 space-y-1.5">
                   <span className="font-bold text-white block">Step A: Open Settings</span>
-                  <p className="text-[#8b949e] leading-relaxed">
-                    Navigate to <Link href="/settings" className="text-white underline hover:text-[#8b949e]">Settings</Link> in the DevLoom sidebar.
+                  <p className="text-slate-400 leading-relaxed">
+                    Navigate to <Link href="/settings" className="text-primary hover:underline">Settings</Link> in the DevLoom sidebar.
                   </p>
                 </div>
-                <div className="p-4 rounded-xl border border-[#30363d] bg-[#0d1117] space-y-1.5">
+                <div className="p-4 rounded-xl border border-slate-800 bg-slate-950/70 space-y-1.5">
                   <span className="font-bold text-white block">Step B: Generate Token</span>
-                  <p className="text-[#8b949e] leading-relaxed">
-                    Under <strong>Personal Access Tokens</strong>, click "Generate Token" and copy the token starting with <code className="text-white font-mono text-[11px]">dvl_live_</code>.
+                  <p className="text-slate-400 leading-relaxed">
+                    Under <strong>Personal Access Tokens</strong>, click "Generate Token" and copy the token starting with <code className="text-primary font-mono text-[11px]">dvl_live_</code>.
                   </p>
                 </div>
-                <div className="p-4 rounded-xl border border-[#30363d] bg-[#0d1117] space-y-1.5">
+                <div className="p-4 rounded-xl border border-slate-800 bg-slate-950/70 space-y-1.5">
                   <span className="font-bold text-white block">Step C: Run devloom login</span>
-                  <p className="text-[#8b949e] leading-relaxed">
-                    Run <code className="text-white font-mono text-[11px]">devloom login</code> in your shell and paste your token.
+                  <p className="text-slate-400 leading-relaxed">
+                    Run <code className="text-primary font-mono text-[11px]">devloom login</code> in your shell and paste your token.
                   </p>
                 </div>
               </div>
@@ -437,7 +440,7 @@ Authenticated as developer (dev@example.com)`}
                 caption="Interactive Login"
               />
 
-              <p className="text-xs text-[#8b949e]">
+              <p className="text-xs text-slate-400">
                 Verify your connection and active credentials at any time:
               </p>
               <CodeBlock code="devloom whoami" caption="Verify Active Credentials" />
@@ -446,37 +449,37 @@ Authenticated as developer (dev@example.com)`}
 
           {/* 3. Automatic Git Context & Auto-Provisioning */}
           {(activeTab === "all" || activeTab === "git" || activeTab === "cli") && matchesSearch("git repository repo auto-provision zero-setup branch remote") && (
-            <div id="git-auto-provision" className="p-6 sm:p-7 rounded-2xl border border-[#30363d] bg-[#161b22] space-y-5">
+            <div id="git-auto-provision" className="p-6 sm:p-7 rounded-2xl border border-slate-800 bg-slate-900/50 space-y-5">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2.5 text-white font-bold text-sm">
-                  <GitBranch className="w-5 h-5 text-white" />
+                  <GitBranch className="w-5 h-5 text-purple-400" />
                   <span>Automatic Git Context & Project Auto-Provisioning</span>
                 </div>
-                <span className="text-[10px] font-mono px-2.5 py-1 rounded bg-[#21262d] text-white border border-[#30363d] font-semibold">
+                <span className="text-[10px] font-mono px-2.5 py-1 rounded bg-purple-500/10 text-purple-400 border border-purple-500/25 font-semibold">
                   Zero Setup
                 </span>
               </div>
 
-              <p className="text-xs sm:text-sm text-[#8b949e] leading-relaxed">
-                When you run any <code className="text-white font-mono text-xs bg-[#21262d] px-1.5 py-0.5 rounded border border-[#30363d]">devloom</code> command inside any Git repository on macOS, Linux, or Windows:
+              <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
+                When you run any <code className="text-primary font-mono text-xs bg-primary-subtle px-1.5 py-0.5 rounded border border-primary/20">devloom</code> command inside any Git repository on macOS, Linux, or Windows:
               </p>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 text-xs text-[#c9d1d9]">
-                <div className="p-4 rounded-xl border border-[#30363d] bg-[#0d1117] space-y-1.5">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 text-xs text-slate-300">
+                <div className="p-4 rounded-xl border border-slate-800 bg-slate-950/70 space-y-1.5">
                   <span className="font-bold text-white block">1. Auto-Detects Git Remote</span>
-                  <p className="text-[#8b949e] leading-relaxed">
-                    Inspects your repository's <code className="text-white font-mono">git remote get-url origin</code> across all operating systems.
+                  <p className="text-slate-400 leading-relaxed">
+                    Inspects your repository's <code className="text-primary font-mono">git remote get-url origin</code> across all operating systems.
                   </p>
                 </div>
-                <div className="p-4 rounded-xl border border-[#30363d] bg-[#0d1117] space-y-1.5">
+                <div className="p-4 rounded-xl border border-slate-800 bg-slate-950/70 space-y-1.5">
                   <span className="font-bold text-white block">2. Finds or Auto-Provisions</span>
-                  <p className="text-[#8b949e] leading-relaxed">
+                  <p className="text-slate-400 leading-relaxed">
                     If the project exists in your DevLoom account, it links immediately. If not, DevLoom automatically creates the project on the fly.
                   </p>
                 </div>
-                <div className="p-4 rounded-xl border border-[#30363d] bg-[#0d1117] space-y-1.5">
+                <div className="p-4 rounded-xl border border-slate-800 bg-slate-950/70 space-y-1.5">
                   <span className="font-bold text-white block">3. Zero Context Switching</span>
-                  <p className="text-[#8b949e] leading-relaxed">
+                  <p className="text-slate-400 leading-relaxed">
                     You never need to open your browser to manually register projects before using the CLI.
                   </p>
                 </div>
@@ -494,9 +497,9 @@ Created Task #42: Implement Stripe idempotent webhooks [high]`}
                 caption="Git Context in Action"
               />
 
-              <div className="p-3.5 rounded-xl bg-[#0d1117] border border-[#30363d] text-xs text-[#8b949e] flex items-center gap-2">
+              <div className="p-3.5 rounded-xl bg-slate-950/80 border border-slate-800 text-xs text-slate-400 flex items-center gap-2">
                 <span className="font-bold text-white">Manual Override:</span>
-                <span>Override the project at any time using <code className="text-white font-mono">-P &lt;slug&gt;</code> or <code className="text-white font-mono">--project &lt;slug&gt;</code>.</span>
+                <span>Override the project at any time using <code className="text-primary font-mono">-P &lt;slug&gt;</code> or <code className="text-primary font-mono">--project &lt;slug&gt;</code>.</span>
               </div>
             </div>
           )}
@@ -505,56 +508,56 @@ Created Task #42: Implement Stripe idempotent webhooks [high]`}
           {matchesSearch("commands task bug gotcha learning capture standup list status") && (
             <div className="space-y-5">
               <div className="flex items-center gap-2 text-white">
-                <Command className="w-5 h-5 text-white" />
+                <Command className="w-5 h-5 text-primary" />
                 <h3 className="text-lg font-bold text-white">CLI Command Reference & Examples</h3>
               </div>
 
               {/* Task Command */}
               {matchesSearch("task priority tags desc") && (
-                <div className="p-6 rounded-2xl border border-[#30363d] bg-[#161b22] space-y-4">
+                <div className="p-6 rounded-2xl border border-slate-800 bg-slate-900/50 space-y-4">
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2 text-white font-bold text-sm">
-                      <CheckSquare className="w-4 h-4 text-white" />
-                      <code className="text-white font-mono text-xs sm:text-sm bg-[#0d1117] px-2 py-0.5 rounded border border-[#30363d]">
+                      <CheckSquare className="w-4 h-4 text-primary" />
+                      <code className="text-primary font-mono text-xs sm:text-sm bg-primary-subtle px-2 py-0.5 rounded border border-primary/25">
                         devloom task &quot;&lt;title&gt;&quot; [options]
                       </code>
                     </div>
-                    <span className="text-xs text-[#8b949e]">Log engineering to-do</span>
+                    <span className="text-xs text-slate-400">Log engineering to-do</span>
                   </div>
 
-                  <p className="text-xs sm:text-sm text-[#8b949e] leading-relaxed">
-                    Creates an actionable task in your workspace. Priority defaults to <code className="text-white font-mono text-xs">medium</code>.
+                  <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
+                    Creates an actionable task in your workspace. Priority defaults to <code className="text-primary font-mono text-xs">medium</code>.
                   </p>
 
-                  <div className="overflow-x-auto rounded-xl border border-[#30363d]">
-                    <table className="w-full text-left text-xs font-mono text-[#c9d1d9] border-collapse bg-[#0d1117]">
+                  <div className="overflow-x-auto rounded-xl border border-slate-800">
+                    <table className="w-full text-left text-xs font-mono text-slate-300 border-collapse bg-slate-950">
                       <thead>
-                        <tr className="border-b border-[#30363d] bg-[#161b22] text-[#8b949e]">
+                        <tr className="border-b border-slate-800 bg-slate-900/80 text-slate-400">
                           <th className="py-2.5 px-3 font-semibold">Flag</th>
                           <th className="py-2.5 px-3 font-semibold">Description</th>
                           <th className="py-2.5 px-3 font-semibold">Example Values</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-[#30363d]/60">
+                      <tbody className="divide-y divide-slate-800/60">
                         <tr>
-                          <td className="py-2 px-3 text-white font-bold">-d, --desc</td>
-                          <td className="py-2 px-3 text-[#c9d1d9]">Detailed task description</td>
-                          <td className="py-2 px-3 text-[#8b949e]">&quot;Update Auth.js edge middleware&quot;</td>
+                          <td className="py-2 px-3 text-primary font-bold">-d, --desc</td>
+                          <td className="py-2 px-3 text-slate-300">Detailed task description</td>
+                          <td className="py-2 px-3 text-slate-400">&quot;Update Auth.js edge middleware&quot;</td>
                         </tr>
                         <tr>
-                          <td className="py-2 px-3 text-white font-bold">-p, --priority</td>
-                          <td className="py-2 px-3 text-[#c9d1d9]">Task priority level</td>
-                          <td className="py-2 px-3 text-[#8b949e]">low, medium, high, urgent</td>
+                          <td className="py-2 px-3 text-primary font-bold">-p, --priority</td>
+                          <td className="py-2 px-3 text-slate-300">Task priority level</td>
+                          <td className="py-2 px-3 text-slate-400">low, medium, high, urgent</td>
                         </tr>
                         <tr>
-                          <td className="py-2 px-3 text-white font-bold">-P, --project</td>
-                          <td className="py-2 px-3 text-[#c9d1d9]">Project slug (overrides git detection)</td>
-                          <td className="py-2 px-3 text-[#8b949e]">devloom, auth-api</td>
+                          <td className="py-2 px-3 text-primary font-bold">-P, --project</td>
+                          <td className="py-2 px-3 text-slate-300">Project slug (overrides git detection)</td>
+                          <td className="py-2 px-3 text-slate-400">devloom, auth-api</td>
                         </tr>
                         <tr>
-                          <td className="py-2 px-3 text-white font-bold">-t, --tags</td>
-                          <td className="py-2 px-3 text-[#c9d1d9]">Comma-separated tags</td>
-                          <td className="py-2 px-3 text-[#8b949e]">auth,security,nextjs</td>
+                          <td className="py-2 px-3 text-primary font-bold">-t, --tags</td>
+                          <td className="py-2 px-3 text-slate-300">Comma-separated tags</td>
+                          <td className="py-2 px-3 text-slate-400">auth,security,nextjs</td>
                         </tr>
                       </tbody>
                     </table>
@@ -573,50 +576,50 @@ devloom task "Implement JWT session rotation" -p high -t auth,security -d "Rotat
 
               {/* Bug Command */}
               {matchesSearch("bug severity repro steps defect") && (
-                <div className="p-6 rounded-2xl border border-[#30363d] bg-[#161b22] space-y-4">
+                <div className="p-6 rounded-2xl border border-slate-800 bg-slate-900/50 space-y-4">
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2 text-white font-bold text-sm">
-                      <Bug className="w-4 h-4 text-white" />
-                      <code className="text-white font-mono text-xs sm:text-sm bg-[#0d1117] px-2 py-0.5 rounded border border-[#30363d]">
+                      <Bug className="w-4 h-4 text-amber-400" />
+                      <code className="text-amber-400 font-mono text-xs sm:text-sm bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/25">
                         devloom bug &quot;&lt;title&gt;&quot; [options]
                       </code>
                     </div>
-                    <span className="text-xs text-[#8b949e]">Record a software defect</span>
+                    <span className="text-xs text-slate-400">Record a software defect</span>
                   </div>
 
-                  <p className="text-xs sm:text-sm text-[#8b949e] leading-relaxed">
+                  <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
                     Logs a software defect with severity level, reproduction steps, and error logs.
                   </p>
 
-                  <div className="overflow-x-auto rounded-xl border border-[#30363d]">
-                    <table className="w-full text-left text-xs font-mono text-[#c9d1d9] border-collapse bg-[#0d1117]">
+                  <div className="overflow-x-auto rounded-xl border border-slate-800">
+                    <table className="w-full text-left text-xs font-mono text-slate-300 border-collapse bg-slate-950">
                       <thead>
-                        <tr className="border-b border-[#30363d] bg-[#161b22] text-[#8b949e]">
+                        <tr className="border-b border-slate-800 bg-slate-900/80 text-slate-400">
                           <th className="py-2.5 px-3 font-semibold">Flag</th>
                           <th className="py-2.5 px-3 font-semibold">Description</th>
                           <th className="py-2.5 px-3 font-semibold">Example Values</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-[#30363d]/60">
+                      <tbody className="divide-y divide-slate-800/60">
                         <tr>
-                          <td className="py-2 px-3 text-white font-bold">-s, --severity</td>
-                          <td className="py-2 px-3 text-[#c9d1d9]">Bug severity</td>
-                          <td className="py-2 px-3 text-[#8b949e]">low, medium, high, critical</td>
+                          <td className="py-2 px-3 text-amber-400 font-bold">-s, --severity</td>
+                          <td className="py-2 px-3 text-slate-300">Bug severity</td>
+                          <td className="py-2 px-3 text-slate-400">low, medium, high, critical</td>
                         </tr>
                         <tr>
-                          <td className="py-2 px-3 text-white font-bold">-r, --repro</td>
-                          <td className="py-2 px-3 text-[#c9d1d9]">Reproduction steps or error trace</td>
-                          <td className="py-2 px-3 text-[#8b949e]">&quot;Run k6 load test with 500 VUs&quot;</td>
+                          <td className="py-2 px-3 text-amber-400 font-bold">-r, --repro</td>
+                          <td className="py-2 px-3 text-slate-300">Reproduction steps or error trace</td>
+                          <td className="py-2 px-3 text-slate-400">&quot;Run k6 load test with 500 VUs&quot;</td>
                         </tr>
                         <tr>
-                          <td className="py-2 px-3 text-white font-bold">-P, --project</td>
-                          <td className="py-2 px-3 text-[#c9d1d9]">Project slug</td>
-                          <td className="py-2 px-3 text-[#8b949e]">billing-service</td>
+                          <td className="py-2 px-3 text-amber-400 font-bold">-P, --project</td>
+                          <td className="py-2 px-3 text-slate-300">Project slug</td>
+                          <td className="py-2 px-3 text-slate-400">billing-service</td>
                         </tr>
                         <tr>
-                          <td className="py-2 px-3 text-white font-bold">-t, --tags</td>
-                          <td className="py-2 px-3 text-[#c9d1d9]">Comma-separated tags</td>
-                          <td className="py-2 px-3 text-[#8b949e]">db,postgres,leak</td>
+                          <td className="py-2 px-3 text-amber-400 font-bold">-t, --tags</td>
+                          <td className="py-2 px-3 text-slate-300">Comma-separated tags</td>
+                          <td className="py-2 px-3 text-slate-400">db,postgres,leak</td>
                         </tr>
                       </tbody>
                     </table>
@@ -635,45 +638,45 @@ devloom bug "OAuth redirect URI mismatch on production" -s high -t auth,oauth`}
 
               {/* Gotcha / Learning Command */}
               {matchesSearch("gotcha learning summary fix solution spaced repetition") && (
-                <div id="gotchas" className="p-6 rounded-2xl border border-[#30363d] bg-[#161b22] space-y-4">
+                <div id="gotchas" className="p-6 rounded-2xl border border-slate-800 bg-slate-900/50 space-y-4">
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2 text-white font-bold text-sm">
-                      <Code2 className="w-4 h-4 text-white" />
-                      <code className="text-white font-mono text-xs sm:text-sm bg-[#0d1117] px-2 py-0.5 rounded border border-[#30363d]">
+                      <Code2 className="w-4 h-4 text-emerald-400" />
+                      <code className="text-emerald-400 font-mono text-xs sm:text-sm bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/25">
                         devloom gotcha &quot;&lt;title&gt;&quot; -s &quot;&lt;fix&gt;&quot; [options]
                       </code>
                     </div>
-                    <span className="text-xs text-[#8b949e]">Save technical lesson</span>
+                    <span className="text-xs text-slate-400">Save technical lesson</span>
                   </div>
 
-                  <p className="text-xs sm:text-sm text-[#8b949e] leading-relaxed">
+                  <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
                     Never forget a hard-earned technical discovery. Captures tricky bugs, library quirks, and architecture rules into your Spaced Repetition knowledge base.
                   </p>
 
-                  <div className="overflow-x-auto rounded-xl border border-[#30363d]">
-                    <table className="w-full text-left text-xs font-mono text-[#c9d1d9] border-collapse bg-[#0d1117]">
+                  <div className="overflow-x-auto rounded-xl border border-slate-800">
+                    <table className="w-full text-left text-xs font-mono text-slate-300 border-collapse bg-slate-950">
                       <thead>
-                        <tr className="border-b border-[#30363d] bg-[#161b22] text-[#8b949e]">
+                        <tr className="border-b border-slate-800 bg-slate-900/80 text-slate-400">
                           <th className="py-2.5 px-3 font-semibold">Flag</th>
                           <th className="py-2.5 px-3 font-semibold">Description</th>
                           <th className="py-2.5 px-3 font-semibold">Requirement</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-[#30363d]/60">
+                      <tbody className="divide-y divide-slate-800/60">
                         <tr>
-                          <td className="py-2 px-3 text-white font-bold">-s, --summary</td>
-                          <td className="py-2 px-3 text-[#c9d1d9]">The crucial takeaway, workaround, or solution</td>
-                          <td className="py-2 px-3 text-white font-semibold">Required</td>
+                          <td className="py-2 px-3 text-emerald-400 font-bold">-s, --summary</td>
+                          <td className="py-2 px-3 text-slate-300">The crucial takeaway, workaround, or solution</td>
+                          <td className="py-2 px-3 text-emerald-300 font-semibold">Required</td>
                         </tr>
                         <tr>
-                          <td className="py-2 px-3 text-white font-bold">-t, --tags</td>
-                          <td className="py-2 px-3 text-[#c9d1d9]">Comma-separated tags for categorization</td>
-                          <td className="py-2 px-3 text-[#8b949e]">Optional</td>
+                          <td className="py-2 px-3 text-emerald-400 font-bold">-t, --tags</td>
+                          <td className="py-2 px-3 text-slate-300">Comma-separated tags for categorization</td>
+                          <td className="py-2 px-3 text-slate-400">Optional</td>
                         </tr>
                         <tr>
-                          <td className="py-2 px-3 text-white font-bold">-P, --project</td>
-                          <td className="py-2 px-3 text-[#c9d1d9]">Project slug</td>
-                          <td className="py-2 px-3 text-[#8b949e]">Optional</td>
+                          <td className="py-2 px-3 text-emerald-400 font-bold">-P, --project</td>
+                          <td className="py-2 px-3 text-slate-300">Project slug</td>
+                          <td className="py-2 px-3 text-slate-400">Optional</td>
                         </tr>
                       </tbody>
                     </table>
@@ -693,14 +696,14 @@ devloom gotcha "Next.js 15 cookies() is async" -s "Must await cookies() in serve
               {/* Smart Capture, Standup, and List Commands */}
               {matchesSearch("capture standup list status ai") && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-6 rounded-2xl border border-[#30363d] bg-[#161b22] space-y-3">
+                  <div className="p-6 rounded-2xl border border-slate-800 bg-slate-900/50 space-y-3">
                     <div className="flex items-center gap-2 text-white font-bold text-sm">
-                      <AIIcon className="w-4 h-4 text-white" />
-                      <code className="text-white font-mono text-xs bg-[#0d1117] px-2 py-0.5 rounded border border-[#30363d]">
+                      <AIIcon className="w-4 h-4 text-primary" />
+                      <code className="text-primary font-mono text-xs bg-primary-subtle px-2 py-0.5 rounded border border-primary/25">
                         devloom capture &quot;&lt;text&gt;&quot;
                       </code>
                     </div>
-                    <p className="text-xs text-[#8b949e] leading-relaxed">
+                    <p className="text-xs text-slate-400 leading-relaxed">
                       Paste unstructured terminal output, error logs, or quick thoughts. AI parses it into a task, bug, or gotcha automatically!
                     </p>
                     <CodeBlock
@@ -709,14 +712,14 @@ devloom gotcha "Next.js 15 cookies() is async" -s "Must await cookies() in serve
                     />
                   </div>
 
-                  <div className="p-6 rounded-2xl border border-[#30363d] bg-[#161b22] space-y-3">
+                  <div className="p-6 rounded-2xl border border-slate-800 bg-slate-900/50 space-y-3">
                     <div className="flex items-center gap-2 text-white font-bold text-sm">
-                      <Flame className="w-4 h-4 text-white" />
-                      <code className="text-white font-mono text-xs bg-[#0d1117] px-2 py-0.5 rounded border border-[#30363d]">
+                      <Flame className="w-4 h-4 text-amber-400" />
+                      <code className="text-amber-400 font-mono text-xs bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/25">
                         devloom standup
                       </code>
                     </div>
-                    <p className="text-xs text-[#8b949e] leading-relaxed">
+                    <p className="text-xs text-slate-400 leading-relaxed">
                       Generates a concise markdown standup report of what you shipped today, active blockers, and learnings ready for Slack.
                     </p>
                     <CodeBlock
@@ -729,17 +732,17 @@ devloom gotcha "Next.js 15 cookies() is async" -s "Must await cookies() in serve
 
               {/* Inspection Commands */}
               {matchesSearch("list status inspecting") && (
-                <div className="p-6 rounded-2xl border border-[#30363d] bg-[#161b22] space-y-3">
+                <div className="p-6 rounded-2xl border border-slate-800 bg-slate-900/50 space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 text-white font-bold text-sm">
-                      <Layers className="w-4 h-4 text-white" />
-                      <code className="text-white font-mono text-xs sm:text-sm bg-[#0d1117] px-2 py-0.5 rounded border border-[#30363d]">
+                      <Layers className="w-4 h-4 text-primary" />
+                      <code className="text-primary font-mono text-xs sm:text-sm bg-primary-subtle px-2 py-0.5 rounded border border-primary/25">
                         devloom list [tasks|bugs|learnings]
                       </code>
                     </div>
-                    <span className="text-xs text-[#8b949e]">Terminal inspection</span>
+                    <span className="text-xs text-slate-400">Terminal inspection</span>
                   </div>
-                  <p className="text-xs text-[#8b949e] leading-relaxed">
+                  <p className="text-xs text-slate-400 leading-relaxed">
                     Check your pending tasks, active bugs, and recorded gotchas right in your terminal.
                   </p>
                   <CodeBlock
@@ -760,21 +763,21 @@ devloom status`}
 
           {/* 5. Platform-Specific Shell Aliases & Productivity Shortcuts */}
           {matchesSearch("aliases shortcuts dt db dg dc ds productivity zshrc bashrc powershell windows mac linux") && (
-            <div id="shortcuts" className="p-6 sm:p-7 rounded-2xl border border-[#30363d] bg-[#161b22] space-y-5">
+            <div id="shortcuts" className="p-6 sm:p-7 rounded-2xl border border-slate-800 bg-slate-900/50 space-y-5">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2 text-white font-bold text-sm">
-                  <Zap className="w-4 h-4 text-white" />
+                  <Zap className="w-4 h-4 text-amber-400" />
                   <span>2-Letter Shell Shortcuts ({platform === "mac" ? "macOS" : platform === "linux" ? "Linux" : "Windows"})</span>
                 </div>
-                <span className="text-xs text-[#f0f6fc] font-mono bg-[#21262d] border border-[#30363d] px-2 py-0.5 rounded">
+                <span className="text-xs text-primary font-mono bg-primary-subtle border border-primary/20 px-2 py-0.5 rounded">
                   Instant Capture
                 </span>
               </div>
 
               {platform === "windows" ? (
                 <div className="space-y-3">
-                  <p className="text-xs sm:text-sm text-[#8b949e] leading-relaxed">
-                    In Windows PowerShell, add this line to your PowerShell profile (<code className="text-white font-mono text-xs">notepad $PROFILE</code>):
+                  <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
+                    In Windows PowerShell, add this line to your PowerShell profile (<code className="text-primary font-mono text-xs">notepad $PROFILE</code>):
                   </p>
                   <CodeBlock
                     code='. "$HOME\.devloom\devloom.ps1"'
@@ -784,8 +787,8 @@ devloom status`}
                 </div>
               ) : (
                 <div className="space-y-3">
-                  <p className="text-xs sm:text-sm text-[#8b949e] leading-relaxed">
-                    Add this to your <code className="text-white font-mono text-xs bg-[#21262d] px-1.5 py-0.5 rounded border border-[#30363d]">~/.zshrc</code> or <code className="text-white font-mono text-xs bg-[#21262d] px-1.5 py-0.5 rounded border border-[#30363d]">~/.bashrc</code>:
+                  <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
+                    Add this to your <code className="text-primary font-mono text-xs bg-primary-subtle px-1.5 py-0.5 rounded border border-primary/20">~/.zshrc</code> or <code className="text-primary font-mono text-xs bg-primary-subtle px-1.5 py-0.5 rounded border border-primary/20">~/.bashrc</code>:
                   </p>
                   <CodeBlock
                     code="source ~/.devloom/devloom.sh"
@@ -796,25 +799,25 @@ devloom status`}
               )}
 
               <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 pt-1 text-center text-xs">
-                <div className="p-3.5 rounded-xl border border-[#30363d] bg-[#0d1117] space-y-1">
-                  <code className="text-white font-mono font-bold text-sm">dt</code>
-                  <div className="text-[#8b949e] text-[11px]">devloom task</div>
+                <div className="p-3.5 rounded-xl border border-primary/20 bg-primary-subtle/30 space-y-1">
+                  <code className="text-primary font-mono font-bold text-sm">dt</code>
+                  <div className="text-slate-400 text-[11px]">devloom task</div>
                 </div>
-                <div className="p-3.5 rounded-xl border border-[#30363d] bg-[#0d1117] space-y-1">
-                  <code className="text-white font-mono font-bold text-sm">db</code>
-                  <div className="text-[#8b949e] text-[11px]">devloom bug</div>
+                <div className="p-3.5 rounded-xl border border-amber-500/20 bg-amber-500/10 space-y-1">
+                  <code className="text-amber-400 font-mono font-bold text-sm">db</code>
+                  <div className="text-slate-400 text-[11px]">devloom bug</div>
                 </div>
-                <div className="p-3.5 rounded-xl border border-[#30363d] bg-[#0d1117] space-y-1">
-                  <code className="text-white font-mono font-bold text-sm">dg</code>
-                  <div className="text-[#8b949e] text-[11px]">devloom gotcha</div>
+                <div className="p-3.5 rounded-xl border border-emerald-500/20 bg-emerald-500/10 space-y-1">
+                  <code className="text-emerald-400 font-mono font-bold text-sm">dg</code>
+                  <div className="text-slate-400 text-[11px]">devloom gotcha</div>
                 </div>
-                <div className="p-3.5 rounded-xl border border-[#30363d] bg-[#0d1117] space-y-1">
-                  <code className="text-white font-mono font-bold text-sm">dc</code>
-                  <div className="text-[#8b949e] text-[11px]">devloom capture</div>
+                <div className="p-3.5 rounded-xl border border-primary/20 bg-primary-subtle/30 space-y-1">
+                  <code className="text-primary font-mono font-bold text-sm">dc</code>
+                  <div className="text-slate-400 text-[11px]">devloom capture</div>
                 </div>
-                <div className="p-3.5 rounded-xl border border-[#30363d] bg-[#0d1117] space-y-1">
-                  <code className="text-white font-mono font-bold text-sm">ds</code>
-                  <div className="text-[#8b949e] text-[11px]">devloom standup</div>
+                <div className="p-3.5 rounded-xl border border-amber-500/20 bg-amber-500/10 space-y-1">
+                  <code className="text-amber-400 font-mono font-bold text-sm">ds</code>
+                  <div className="text-slate-400 text-[11px]">devloom standup</div>
                 </div>
               </div>
             </div>
@@ -825,14 +828,14 @@ devloom status`}
       {/* SECTION: WEB WORKSPACE GUIDE */}
       {(activeTab === "all" || activeTab === "web") && (
         <section id="web" className="space-y-6 pt-6">
-          <div className="flex items-center justify-between border-b border-[#30363d] pb-4">
+          <div className="flex items-center justify-between border-b border-slate-800 pb-4">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-[#21262d] border border-[#30363d] text-white">
+              <div className="p-2.5 rounded-xl bg-primary-subtle border border-primary/20 text-primary">
                 <LayoutDashboard className="w-5 h-5" />
               </div>
               <div>
                 <h2 className="text-xl font-bold text-white">DevLoom Web Workspace Guide</h2>
-                <p className="text-xs text-[#8b949e]">Everything inside your browser dashboard and productivity tools</p>
+                <p className="text-xs text-slate-400">Everything inside your browser dashboard and productivity tools</p>
               </div>
             </div>
           </div>
@@ -840,24 +843,24 @@ devloom status`}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {/* Feature 1: 52-Week Recall & Activity Heatmap */}
             {matchesSearch("heatmap recall review activity streaks consistency yearly calendar") && (
-              <div className="p-6 rounded-2xl border border-[#30363d] bg-[#161b22] space-y-3 flex flex-col justify-between">
+              <div className="p-6 rounded-2xl border border-slate-800 bg-slate-900/50 space-y-3 flex flex-col justify-between">
                 <div className="space-y-3">
                   <div className="flex items-center gap-2.5 text-white font-bold text-sm">
-                    <div className="p-1.5 rounded-lg bg-[#21262d] text-white border border-[#30363d]">
+                    <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                       <Calendar className="w-4 h-4" />
                     </div>
                     <span>52-Week Activity Heatmap & Streaks</span>
                   </div>
-                  <p className="text-xs text-[#8b949e] leading-relaxed">
-                    Located right on your <Link href="/dashboard" className="text-white underline hover:text-[#8b949e]">Dashboard</Link>. Tracks daily engineering reviews, notes, and tasks in a GitHub-style calendar.
+                  <p className="text-xs text-slate-400 leading-relaxed">
+                    Located right on your <Link href="/dashboard" className="text-primary hover:underline">Dashboard</Link>. Tracks daily engineering reviews, notes, and tasks in a GitHub-style calendar.
                   </p>
-                  <div className="text-xs text-[#8b949e] space-y-1.5 pt-1">
+                  <div className="text-xs text-slate-400 space-y-1.5 pt-1">
                     <p className="flex items-center gap-2">
-                      <Flame className="w-3.5 h-3.5 text-white shrink-0" />
+                      <Flame className="w-3.5 h-3.5 text-amber-400 shrink-0" />
                       <span><strong>Multi-Year History:</strong> Switch between <em>Current Year</em>, <em>Current - 1</em>, and <em>Current - 2</em>.</span>
                     </p>
                     <p className="flex items-center gap-2">
-                      <Flame className="w-3.5 h-3.5 text-white shrink-0" />
+                      <Flame className="w-3.5 h-3.5 text-amber-400 shrink-0" />
                       <span><strong>Consistency Streaks:</strong> Calculates active and all-time record streaks.</span>
                     </p>
                   </div>
@@ -867,24 +870,24 @@ devloom status`}
 
             {/* Feature 2: Spaced Repetition Reviews */}
             {matchesSearch("spaced repetition leitner ebbinghaus review memory learning gotcha") && (
-              <div className="p-6 rounded-2xl border border-[#30363d] bg-[#161b22] space-y-3 flex flex-col justify-between">
+              <div className="p-6 rounded-2xl border border-slate-800 bg-slate-900/50 space-y-3 flex flex-col justify-between">
                 <div className="space-y-3">
                   <div className="flex items-center gap-2.5 text-white font-bold text-sm">
-                    <div className="p-1.5 rounded-lg bg-[#21262d] text-white border border-[#30363d]">
+                    <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                       <Code2 className="w-4 h-4" />
                     </div>
                     <span>Leitner Spaced Repetition (Never Forget)</span>
                   </div>
-                  <p className="text-xs text-[#8b949e] leading-relaxed">
+                  <p className="text-xs text-slate-400 leading-relaxed">
                     Fights the developer forgetting curve with the proven Leitner 5-box spaced repetition algorithm (1d, 3d, 7d, 14d, 30d).
                   </p>
-                  <div className="text-xs text-[#8b949e] space-y-1.5 pt-1">
+                  <div className="text-xs text-slate-400 space-y-1.5 pt-1">
                     <p className="flex items-center gap-2">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-white shrink-0" />
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                       <span>Recall the fix before revealing the answer.</span>
                     </p>
                     <p className="flex items-center gap-2">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-white shrink-0" />
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                       <span>Promotes card on success; resets on failure.</span>
                     </p>
                   </div>
@@ -894,24 +897,24 @@ devloom status`}
 
             {/* Feature 3: Tasks with Kanban & Gantt Critical Path */}
             {matchesSearch("tasks kanban gantt timeline critical path dependencies") && (
-              <div className="p-6 rounded-2xl border border-[#30363d] bg-[#161b22] space-y-3 flex flex-col justify-between">
+              <div className="p-6 rounded-2xl border border-slate-800 bg-slate-900/50 space-y-3 flex flex-col justify-between">
                 <div className="space-y-3">
                   <div className="flex items-center gap-2.5 text-white font-bold text-sm">
-                    <div className="p-1.5 rounded-lg bg-[#21262d] text-white border border-[#30363d]">
+                    <div className="p-1.5 rounded-lg bg-primary-subtle text-primary border border-primary/20">
                       <CheckSquare className="w-4 h-4" />
                     </div>
                     <span>Dual Task Views: Kanban & Gantt</span>
                   </div>
-                  <p className="text-xs text-[#8b949e] leading-relaxed">
-                    On the <Link href="/tasks" className="text-white underline hover:text-[#8b949e]">Tasks page</Link>, toggle between Kanban Board (Todo, In Progress, In Review, Done) and Gantt Critical Path Timeline.
+                  <p className="text-xs text-slate-400 leading-relaxed">
+                    On the <Link href="/tasks" className="text-primary hover:underline">Tasks page</Link>, toggle between Kanban Board (Todo, In Progress, In Review, Done) and Gantt Critical Path Timeline.
                   </p>
-                  <div className="text-xs text-[#8b949e] space-y-1.5 pt-1">
+                  <div className="text-xs text-slate-400 space-y-1.5 pt-1">
                     <p className="flex items-center gap-2">
-                      <ChevronRight className="w-3.5 h-3.5 text-white shrink-0" />
+                      <ChevronRight className="w-3.5 h-3.5 text-primary shrink-0" />
                       <span><strong>Timeline Scheduling:</strong> Start dates, deadlines, and dependencies.</span>
                     </p>
                     <p className="flex items-center gap-2">
-                      <ChevronRight className="w-3.5 h-3.5 text-white shrink-0" />
+                      <ChevronRight className="w-3.5 h-3.5 text-primary shrink-0" />
                       <span><strong>Critical Path Highlighting:</strong> Visualizes release-blocking bottlenecks.</span>
                     </p>
                   </div>
@@ -921,24 +924,24 @@ devloom status`}
 
             {/* Feature 4: Bug Defect Triage & AI Fix Prompts */}
             {matchesSearch("bug defect stack trace ai fix prompt prompt llm claude cursor antigravity") && (
-              <div className="p-6 rounded-2xl border border-[#30363d] bg-[#161b22] space-y-3 flex flex-col justify-between">
+              <div className="p-6 rounded-2xl border border-slate-800 bg-slate-900/50 space-y-3 flex flex-col justify-between">
                 <div className="space-y-3">
                   <div className="flex items-center gap-2.5 text-white font-bold text-sm">
-                    <div className="p-1.5 rounded-lg bg-[#21262d] text-white border border-[#30363d]">
+                    <div className="p-1.5 rounded-lg bg-warning-subtle text-amber-400 border border-warning/20">
                       <Bug className="w-4 h-4" />
                     </div>
                     <span>Bugs & 1-Click AI Fix Prompts</span>
                   </div>
-                  <p className="text-xs text-[#8b949e] leading-relaxed">
-                    In <Link href="/bugs" className="text-white underline hover:text-[#8b949e]">Bug Triage</Link>, capture error logs, repro steps, and severity levels.
+                  <p className="text-xs text-slate-400 leading-relaxed">
+                    In <Link href="/bugs" className="text-amber-400 hover:underline">Bug Triage</Link>, capture error logs, repro steps, and severity levels.
                   </p>
-                  <div className="text-xs text-[#8b949e] space-y-1.5 pt-1">
+                  <div className="text-xs text-slate-400 space-y-1.5 pt-1">
                     <p className="flex items-center gap-2">
-                      <AIIcon className="w-3.5 h-3.5 text-white shrink-0" />
+                      <AIIcon className="w-3.5 h-3.5 text-amber-400 shrink-0" />
                       <span><strong>AI Fix Prompt:</strong> Click AI Fix to generate a structured debugging prompt.</span>
                     </p>
                     <p className="flex items-center gap-2">
-                      <AIIcon className="w-3.5 h-3.5 text-white shrink-0" />
+                      <AIIcon className="w-3.5 h-3.5 text-amber-400 shrink-0" />
                       <span>Paste into Claude Code, Cursor, ChatGPT, or Antigravity for instant resolutions.</span>
                     </p>
                   </div>
@@ -948,24 +951,24 @@ devloom status`}
 
             {/* Feature 5: Obsidian Vault Export */}
             {matchesSearch("obsidian markdown export zip foam logseq vault notes") && (
-              <div className="p-6 rounded-2xl border border-[#30363d] bg-[#161b22] space-y-3 flex flex-col justify-between">
+              <div className="p-6 rounded-2xl border border-slate-800 bg-slate-900/50 space-y-3 flex flex-col justify-between">
                 <div className="space-y-3">
                   <div className="flex items-center gap-2.5 text-white font-bold text-sm">
-                    <div className="p-1.5 rounded-lg bg-[#21262d] text-white border border-[#30363d]">
+                    <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                       <Download className="w-4 h-4" />
                     </div>
                     <span>Obsidian & Markdown Vault Export</span>
                   </div>
-                  <p className="text-xs text-[#8b949e] leading-relaxed">
-                    You own 100% of your data. In <Link href="/learnings" className="text-white underline hover:text-[#8b949e]">Knowledge Base</Link>, click <strong>Export Vault</strong> to download your entire technical library.
+                  <p className="text-xs text-slate-400 leading-relaxed">
+                    You own 100% of your data. In <Link href="/learnings" className="text-emerald-400 hover:underline">Knowledge Base</Link>, click <strong>Export Vault</strong> to download your entire technical library.
                   </p>
-                  <div className="text-xs text-[#8b949e] space-y-1.5 pt-1">
+                  <div className="text-xs text-slate-400 space-y-1.5 pt-1">
                     <p className="flex items-center gap-2">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-white shrink-0" />
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                       <span>Exports clean Markdown files formatted with YAML frontmatter tags.</span>
                     </p>
                     <p className="flex items-center gap-2">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-white shrink-0" />
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                       <span>Compatible with Obsidian, Logseq, Foam, or GitHub repositories.</span>
                     </p>
                   </div>
@@ -975,24 +978,24 @@ devloom status`}
 
             {/* Feature 6: Global Command Palette */}
             {matchesSearch("command palette search keyboard shortcuts k") && (
-              <div className="p-6 rounded-2xl border border-[#30363d] bg-[#161b22] space-y-3 flex flex-col justify-between">
+              <div className="p-6 rounded-2xl border border-slate-800 bg-slate-900/50 space-y-3 flex flex-col justify-between">
                 <div className="space-y-3">
                   <div className="flex items-center gap-2.5 text-white font-bold text-sm">
-                    <div className="p-1.5 rounded-lg bg-[#21262d] text-white border border-[#30363d]">
+                    <div className="p-1.5 rounded-lg bg-primary-subtle text-primary border border-primary/20">
                       <Command className="w-4 h-4" />
                     </div>
                     <span>Global Command Palette (⌘K)</span>
                   </div>
-                  <p className="text-xs text-[#8b949e] leading-relaxed">
-                    Press <kbd className="px-1.5 py-0.5 rounded bg-[#21262d] border border-[#30363d] text-[11px] font-mono text-white">⌘K</kbd> (or <kbd className="px-1.5 py-0.5 rounded bg-[#21262d] border border-[#30363d] text-[11px] font-mono text-white">Ctrl+K</kbd>) anywhere to open the instant search modal.
+                  <p className="text-xs text-slate-400 leading-relaxed">
+                    Press <kbd className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-[11px] font-mono text-white">⌘K</kbd> (or <kbd className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 text-[11px] font-mono text-white">Ctrl+K</kbd>) anywhere to open the instant search modal.
                   </p>
-                  <div className="text-xs text-[#8b949e] space-y-1.5 pt-1">
+                  <div className="text-xs text-slate-400 space-y-1.5 pt-1">
                     <p className="flex items-center gap-2">
-                      <Search className="w-3.5 h-3.5 text-white shrink-0" />
+                      <Search className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                       <span>Fuzzy search across tasks, bugs, gotchas, and projects in milliseconds.</span>
                     </p>
                     <p className="flex items-center gap-2">
-                      <Search className="w-3.5 h-3.5 text-white shrink-0" />
+                      <Search className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                       <span>Trigger Smart AI Capture or Quick Add directly from the keyboard.</span>
                     </p>
                   </div>
@@ -1006,13 +1009,13 @@ devloom status`}
       {/* SECTION: CI/CD & HEADLESS SCRIPTING */}
       {(activeTab === "all" || activeTab === "cli") && matchesSearch("cicd github actions pipeline environment variables token headless") && (
         <section className="space-y-4 pt-4">
-          <div className="p-6 sm:p-7 rounded-2xl border border-[#30363d] bg-[#161b22] space-y-4">
+          <div className="p-6 sm:p-7 rounded-2xl border border-slate-800 bg-slate-900/50 space-y-4">
             <div className="flex items-center gap-2 text-white font-bold text-sm">
-              <Cpu className="w-5 h-5 text-white" />
+              <Cpu className="w-5 h-5 text-primary" />
               <span>CI/CD & Headless Automation ({platform === "windows" ? "Windows / PowerShell" : "macOS / Linux / bash"})</span>
             </div>
-            <p className="text-xs sm:text-sm text-[#8b949e] leading-relaxed">
-              Run the CLI in automated pipelines (GitHub Actions, Docker, Jenkins) using environment variables without running <code className="text-white font-mono text-xs bg-[#21262d] px-1.5 py-0.5 rounded border border-[#30363d]">devloom login</code>:
+            <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
+              Run the CLI in automated pipelines (GitHub Actions, Docker, Jenkins) using environment variables without running <code className="text-primary font-mono text-xs bg-primary-subtle px-1.5 py-0.5 rounded border border-primary/20">devloom login</code>:
             </p>
 
             {platform === "windows" ? (
@@ -1042,17 +1045,17 @@ devloom task "Verify deployment #\${{ github.sha }}" -p high -t deploy,ci`}
         </section>
       )}
 
-      {/* Footer Support Callout (GitHub Style) */}
-      <div className="p-6 rounded-2xl border border-[#30363d] bg-[#161b22] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#8b949e]">
+      {/* Footer Support Callout */}
+      <div className="p-6 rounded-2xl border border-slate-800 bg-slate-900/40 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
         <div className="flex items-center gap-3">
           <DevLoomLogo className="w-6 h-6 shrink-0" />
-          <span>Have questions or need assistance? Check your <Link href="/settings" className="text-white underline hover:text-[#8b949e] font-semibold">Settings</Link> or inspect the open-source CLI suite.</span>
+          <span>Have questions or need assistance? Check your <Link href="/settings" className="text-primary hover:underline font-semibold">Settings</Link> or inspect the open-source CLI suite.</span>
         </div>
         <a
           href="https://github.com/ratnesh-maurya/devloom"
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border border-[#30363d] bg-[#21262d] hover:bg-[#30363d] text-white transition shrink-0 font-medium"
+          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border border-slate-800 bg-slate-900 hover:bg-slate-800 text-slate-200 hover:text-white transition shrink-0 font-medium"
         >
           <span>GitHub Repository</span>
           <ExternalLink className="w-3.5 h-3.5" />

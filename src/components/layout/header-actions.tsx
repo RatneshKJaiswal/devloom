@@ -191,20 +191,20 @@ export function HeaderActions({ userProfile }: HeaderActionsProps) {
               })}
             </nav>
 
-            {/* Try DevLoom CLI Mobile Callout */}
+            {/* Try DevLoom CLI Mobile Callout (Website Themed) */}
             <div className="p-3 border-t border-slate-800">
               <Link
                 href="/docs#cli"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="flex items-center gap-3 p-3 rounded-xl bg-slate-900/90 border border-emerald-500/20 hover:border-emerald-500/40 transition group"
+                className="flex items-center gap-3 p-3 rounded-xl bg-slate-900/90 border border-primary/20 hover:border-primary/40 transition group"
               >
-                <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400 group-hover:bg-emerald-500/20 transition">
+                <div className="p-2 rounded-lg bg-primary-subtle text-primary group-hover:bg-primary/20 transition">
                   <Terminal className="w-4 h-4" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="text-xs font-semibold text-white group-hover:text-emerald-400 transition flex items-center gap-1.5">
+                  <div className="text-xs font-semibold text-white group-hover:text-primary transition flex items-center gap-1.5">
                     <span>Try DevLoom CLI</span>
-                    <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">New</span>
+                    <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-primary-subtle text-primary border border-primary/20">New</span>
                   </div>
                   <p className="text-[11px] text-slate-400 truncate">Terminal capture & git context</p>
                 </div>

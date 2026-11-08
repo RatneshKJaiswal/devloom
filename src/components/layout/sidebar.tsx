@@ -77,20 +77,20 @@ export function Sidebar() {
         })}
       </nav>
 
-      {/* Try DevLoom CLI Banner */}
+      {/* Try DevLoom CLI Banner (Website Themed) */}
       <div className="p-3 border-t border-slate-800/80 shrink-0">
-        <div className="relative rounded-2xl border border-emerald-500/25 bg-gradient-to-b from-slate-900/90 to-slate-950 p-3.5 shadow-lg shadow-black/40 overflow-hidden group">
-          {/* Subtle ambient light */}
-          <div className="absolute -top-12 -right-12 w-28 h-28 rounded-full bg-emerald-500/10 blur-2xl pointer-events-none group-hover:bg-emerald-500/20 transition-all duration-500" />
+        <div className="relative rounded-2xl border border-primary/25 bg-gradient-to-b from-slate-900/90 to-slate-950 p-3.5 shadow-lg shadow-black/40 overflow-hidden group hover:border-primary/45 transition">
+          {/* Subtle ambient primary light */}
+          <div className="absolute -top-12 -right-12 w-28 h-28 rounded-full bg-primary/10 blur-2xl pointer-events-none group-hover:bg-primary/20 transition-all duration-500" />
 
           <div className="flex items-center justify-between gap-2 mb-2">
             <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">
+              <div className="p-1.5 rounded-lg bg-primary-subtle border border-primary/30 text-primary">
                 <Terminal className="w-4 h-4" />
               </div>
               <span className="text-xs font-semibold text-white tracking-tight">Try DevLoom CLI</span>
             </div>
-            <span className="text-[9px] font-mono font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            <span className="text-[9px] font-mono font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-primary-subtle text-primary border border-primary/20">
               v1.0
             </span>
           </div>
@@ -109,7 +109,7 @@ export function Sidebar() {
               className="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-white transition shrink-0 cursor-pointer"
             >
               {copied ? (
-                <Check className="w-3.5 h-3.5 text-emerald-400" />
+                <Check className="w-3.5 h-3.5 text-primary" />
               ) : (
                 <Copy className="w-3.5 h-3.5" />
               )}
@@ -119,7 +119,7 @@ export function Sidebar() {
           {/* Link to CLI Docs */}
           <Link
             href="/docs#cli"
-            className="flex items-center justify-between w-full text-[11px] font-medium text-emerald-400 hover:text-emerald-300 transition group/link"
+            className="flex items-center justify-between w-full text-[11px] font-medium text-primary hover:text-primary-hover transition group/link"
           >
             <span>View CLI Setup & Commands</span>
             <ChevronRight className="w-3.5 h-3.5 group-hover/link:translate-x-0.5 transition-transform" />
