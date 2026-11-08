@@ -116,11 +116,31 @@ export default function HomePage() {
         <div id="preview" className="mt-14 w-full rounded-2xl border border-slate-800 bg-[#121316] shadow-2xl overflow-hidden">
           {/* Mock Window Titlebar */}
           <div className="px-4 py-3 border-b border-slate-800 bg-slate-900/80 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-red-500/80" />
-              <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
-              <div className="w-3 h-3 rounded-full bg-emerald-500/80" />
-              <span className="ml-2 font-mono text-xs text-slate-400">devloom / workspace / main</span>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 group/traffic cursor-default" aria-hidden="true">
+                <span
+                  style={{
+                    background: "radial-gradient(circle at 35% 30%, #ff6f66, #ff5f56 60%, #e0443e 100%)",
+                    boxShadow: "inset 0 1px 1px rgba(255, 255, 255, 0.45), 0 1px 2px rgba(0, 0, 0, 0.4)",
+                  }}
+                  className="w-3 h-3 rounded-full flex items-center justify-center border border-black/25"
+                />
+                <span
+                  style={{
+                    background: "radial-gradient(circle at 35% 30%, #ffd54f, #ffbd2e 60%, #dea123 100%)",
+                    boxShadow: "inset 0 1px 1px rgba(255, 255, 255, 0.45), 0 1px 2px rgba(0, 0, 0, 0.4)",
+                  }}
+                  className="w-3 h-3 rounded-full flex items-center justify-center border border-black/25"
+                />
+                <span
+                  style={{
+                    background: "radial-gradient(circle at 35% 30%, #43ea59, #27c93f 60%, #1aab29 100%)",
+                    boxShadow: "inset 0 1px 1px rgba(255, 255, 255, 0.45), 0 1px 2px rgba(0, 0, 0, 0.4)",
+                  }}
+                  className="w-3 h-3 rounded-full flex items-center justify-center border border-black/25"
+                />
+              </div>
+              <span className="font-mono text-xs text-slate-400">devloom / workspace / main</span>
             </div>
 
             <div className="flex items-center gap-2">

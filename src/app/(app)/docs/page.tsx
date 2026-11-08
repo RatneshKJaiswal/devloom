@@ -64,10 +64,66 @@ function CodeBlock({ code, language = "bash", caption, platform, showPrompt = tr
       <div className="px-3.5 py-2.5 border-b border-slate-800/90 bg-[#14151a] flex items-center justify-between text-xs font-mono">
         {/* Left: macOS Window Traffic Lights + Caption */}
         <div className="flex items-center gap-3 min-w-0">
-          <div className="flex items-center gap-1.5 shrink-0" aria-hidden="true">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#ff5f56] inline-block shadow-sm" />
-            <span className="w-2.5 h-2.5 rounded-full bg-[#ffbd2e] inline-block shadow-sm" />
-            <span className="w-2.5 h-2.5 rounded-full bg-[#27c93f] inline-block shadow-sm" />
+          <div className="flex items-center gap-2 shrink-0 group/traffic cursor-default" aria-hidden="true">
+            {/* macOS Close (Red) */}
+            <span
+              style={{
+                background: "radial-gradient(circle at 35% 30%, #ff6f66, #ff5f56 60%, #e0443e 100%)",
+                boxShadow: "inset 0 1px 1px rgba(255, 255, 255, 0.45), 0 1px 2px rgba(0, 0, 0, 0.4)",
+              }}
+              className="w-3 h-3 rounded-full flex items-center justify-center border border-black/25 transition-transform group-hover/traffic:scale-105"
+            >
+              <svg
+                className="w-1.5 h-1.5 text-[#4c0000] opacity-0 group-hover/traffic:opacity-100 transition-opacity"
+                viewBox="0 0 6 6"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.2"
+                strokeLinecap="round"
+              >
+                <path d="M1 1l4 4M5 1L1 5" />
+              </svg>
+            </span>
+
+            {/* macOS Minimize (Yellow) */}
+            <span
+              style={{
+                background: "radial-gradient(circle at 35% 30%, #ffd54f, #ffbd2e 60%, #dea123 100%)",
+                boxShadow: "inset 0 1px 1px rgba(255, 255, 255, 0.45), 0 1px 2px rgba(0, 0, 0, 0.4)",
+              }}
+              className="w-3 h-3 rounded-full flex items-center justify-center border border-black/25 transition-transform group-hover/traffic:scale-105"
+            >
+              <svg
+                className="w-1.5 h-1.5 text-[#593b00] opacity-0 group-hover/traffic:opacity-100 transition-opacity"
+                viewBox="0 0 6 6"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.2"
+                strokeLinecap="round"
+              >
+                <path d="M1 3h4" />
+              </svg>
+            </span>
+
+            {/* macOS Zoom / Fullscreen (Green) */}
+            <span
+              style={{
+                background: "radial-gradient(circle at 35% 30%, #43ea59, #27c93f 60%, #1aab29 100%)",
+                boxShadow: "inset 0 1px 1px rgba(255, 255, 255, 0.45), 0 1px 2px rgba(0, 0, 0, 0.4)",
+              }}
+              className="w-3 h-3 rounded-full flex items-center justify-center border border-black/25 transition-transform group-hover/traffic:scale-105"
+            >
+              <svg
+                className="w-1.5 h-1.5 text-[#003808] opacity-0 group-hover/traffic:opacity-100 transition-opacity"
+                viewBox="0 0 6 6"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.2"
+                strokeLinecap="round"
+              >
+                <path d="M1.2 4.8l3.6-3.6M3 1.2h1.8v1.8M3 4.8H1.2V3" />
+              </svg>
+            </span>
           </div>
           {caption && (
             <span className="font-medium text-slate-300 truncate text-[11px] sm:text-xs">
