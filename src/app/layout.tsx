@@ -19,7 +19,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
-      <body className="antialiased min-h-screen bg-slate-950 text-slate-100">
+      <body
+        suppressHydrationWarning
+        className="antialiased min-h-screen bg-slate-950 text-slate-100"
+      >
         {children}
       </body>
     </html>
