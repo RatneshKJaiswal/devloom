@@ -3,12 +3,12 @@
 import { useMemo, useState } from "react";
 import {
   Flame,
-  Brain,
   Calendar,
   Info,
   Trophy,
   Activity,
 } from "lucide-react";
+import { HeatmapGridIcon } from "@/components/icons/heatmap-grid";
 import { calculateRecallHeatmap, HeatmapDay } from "@/lib/heatmap";
 
 interface RecallActivityHeatmapProps {
@@ -71,7 +71,7 @@ export function RecallActivityHeatmap({ items, className = "" }: RecallActivityH
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5 pb-4 border-b border-slate-800/80">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shadow-sm shadow-emerald-500/10">
-            <Brain className="w-5 h-5" />
+            <HeatmapGridIcon className="w-5 h-5" />
           </div>
           <div>
             <h2 className="text-base font-semibold text-white tracking-tight flex items-center gap-2">

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { CheckSquare, Bug, Brain, BookOpen, X, Loader2, FolderKanban, Calendar, AlertCircle, Zap, Layers, Terminal, ChevronDown } from "lucide-react";
+import { CheckSquare, Bug, Code2, X, Loader2, FolderKanban, Calendar, AlertCircle, Zap, Layers, Terminal, ChevronDown } from "lucide-react";
 import { MiniTextEditor } from "@/components/ui/mini-text-editor";
 import { formatTaskId } from "@/lib/identifiers";
 import { KnowledgeCategory } from "@/lib/knowledge";
@@ -256,7 +256,7 @@ export function QuickCaptureModal({
                   : "text-slate-400 hover:text-slate-200"
               }`}
             >
-              <Brain className="w-3.5 h-3.5" />
+              <Code2 className="w-3.5 h-3.5" />
               <span>Learning</span>
             </button>
           </div>
@@ -272,7 +272,7 @@ export function QuickCaptureModal({
               {activeTab === "bug" ? (
                 <Bug className="w-4 h-4" />
               ) : activeTab === "learning" ? (
-                <BookOpen className="w-4 h-4" />
+                <Code2 className="w-4 h-4" />
               ) : (
                 <CheckSquare className="w-4 h-4" />
               )}

@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import {
   Plus,
-  BookOpen,
+  Code2,
   Trash2,
   Pencil,
   FolderKanban,
@@ -163,7 +163,7 @@ export default function LearningsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2.5">
-            <BookOpen className="w-6 h-6 text-emerald-400" />
+            <Code2 className="w-6 h-6 text-emerald-400" />
             <span>Knowledge Base</span>
           </h1>
           <p className="mt-1 text-sm text-slate-400">
@@ -323,7 +323,7 @@ export default function LearningsPage() {
         </div>
       ) : filteredLearnings.length === 0 ? (
         <div className="p-16 text-center border border-dashed border-slate-800 rounded-2xl bg-slate-900/20">
-          <BookOpen className="w-9 h-9 text-slate-600 mx-auto mb-3" />
+          <Code2 className="w-9 h-9 text-slate-600 mx-auto mb-3" />
           <h3 className="text-sm font-semibold text-white">No knowledge entries found</h3>
           <p className="mt-1 text-xs text-slate-400 max-w-sm mx-auto mb-4">
             {searchQuery || selectedCategory !== "all" || projectFilter !== "all"

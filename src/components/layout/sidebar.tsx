@@ -7,7 +7,7 @@ import {
   LayoutDashboard,
   CheckSquare,
   Bug,
-  BookOpen,
+  Code2,
   FolderKanban,
   Settings,
 } from "lucide-react";
@@ -17,7 +17,7 @@ const navItems = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Tasks", href: "/tasks", icon: CheckSquare },
   { name: "Bugs", href: "/bugs", icon: Bug },
-  { name: "Knowledge Base", href: "/learnings", icon: BookOpen },
+  { name: "Knowledge Base", href: "/learnings", icon: Code2 },
   { name: "Projects", href: "/projects", icon: FolderKanban },
   { name: "Settings", href: "/settings", icon: Settings },
 ];

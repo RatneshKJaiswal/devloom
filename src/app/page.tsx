@@ -2,7 +2,7 @@ import Link from "next/link";
 import {
   CheckSquare,
   Bug,
-  BookOpen,
+  Code2,
   ArrowRight,
   ShieldCheck,
   FolderKanban,
@@ -141,7 +141,7 @@ export default function HomePage() {
                   <span>Defects (3)</span>
                 </span>
                 <span className="px-3 py-1 rounded-lg bg-slate-900 text-slate-400 text-xs font-medium flex items-center gap-1.5 border border-slate-800">
-                  <BookOpen className="w-3.5 h-3.5 text-emerald-400" />
+                  <Code2 className="w-3.5 h-3.5 text-emerald-400" />
                   <span>Knowledge (28)</span>
                 </span>
               </div>
@@ -237,7 +237,7 @@ export default function HomePage() {
 
           <div className="p-6 rounded-2xl border border-slate-800 bg-[#121316] hover:border-slate-700 transition space-y-3">
             <div className="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center text-emerald-400">
-              <BookOpen className="w-5 h-5" />
+              <Code2 className="w-5 h-5" />
             </div>
             <h2 className="text-base font-semibold text-white">Developer Knowledge Base</h2>
             <p className="text-xs text-slate-400 leading-relaxed">

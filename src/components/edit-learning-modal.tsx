@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { BookOpen, X, Loader2, FolderKanban, Zap, Layers, Terminal, ChevronDown } from "lucide-react";
+import { Code2, X, Loader2, FolderKanban, Zap, Layers, Terminal, ChevronDown } from "lucide-react";
 import { MiniTextEditor } from "@/components/ui/mini-text-editor";
 import {
   inferKnowledgeCategory,
@@ -141,7 +141,7 @@ export function EditLearningModal({
 
         <div className="flex items-center gap-3 mb-4 pb-3 border-b border-slate-800/80">
           <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-center text-emerald-400 shrink-0">
-            <BookOpen className="w-4 h-4" />
+            <Code2 className="w-4 h-4" />
           </div>
           <div>
             <h2 className="text-sm font-semibold text-white tracking-tight">Edit Knowledge Entry</h2>

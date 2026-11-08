@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
-import { X, Loader2, Check, AlertCircle, Bug, CheckSquare, Brain, Link2, ChevronDown } from "lucide-react";
+import { X, Loader2, Check, AlertCircle, Bug, CheckSquare, Code2, Link2, ChevronDown } from "lucide-react";
 import { AIIcon } from "@/components/icons/ai";
 import { GithubIcon } from "@/components/icons/github";
 import { SmartCaptureOutput } from "@/lib/agent/prompts/capture";
@@ -290,7 +290,7 @@ TypeError: Cannot read properties of undefined (reading 'userId')
                 <div className="flex items-center gap-2">
                   {candidate.entityType === "task" && <CheckSquare className="w-4 h-4 text-primary" />}
                   {candidate.entityType === "bug" && <Bug className="w-4 h-4 text-warning" />}
-                  {candidate.entityType === "learning" && <Brain className="w-4 h-4 text-success" />}
+                  {candidate.entityType === "learning" && <Code2 className="w-4 h-4 text-success" />}
 
                   <span className="text-xs font-bold uppercase tracking-wider text-white">
                     Classified as {candidate.entityType}

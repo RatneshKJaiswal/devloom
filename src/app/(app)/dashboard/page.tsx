@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { CheckSquare, Bug, BookOpen, Cpu, ArrowRight, Plus, FileText, Loader2 } from "lucide-react";
+import { CheckSquare, Bug, Code2, Cpu, ArrowRight, Plus, FileText, Loader2 } from "lucide-react";
 import { AIIcon } from "@/components/icons/ai";
 import Link from "next/link";
 import { QuickCaptureModal } from "@/components/quick-capture-dialog";
@@ -169,7 +169,7 @@ export default function DashboardPage() {
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-slate-400">Knowledge Base</span>
-            <BookOpen className="w-4 h-4 text-emerald-400" />
+            <Code2 className="w-4 h-4 text-emerald-400" />
           </div>
           <div className="mt-3 text-3xl font-bold text-white">
             {totalLearnings}
