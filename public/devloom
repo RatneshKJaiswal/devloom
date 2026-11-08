@@ -161,6 +161,101 @@ function slugify(text) {
     .slice(0, 40);
 }
 
+function detectLocalGitRepo() {
+  try {
+    const remote = execSync("git remote get-url origin 2>/dev/null", { encoding: "utf8" }).trim();
+    if (remote) {
+      const match = remote.match(/[:/]([^/]+)\/([^/.]+?)(?:\.git)?$/);
+      if (match) {
+        return {
+          owner: match[1],
+          name: match[2],
+          url: remote.startsWith("git@")
+            ? `https://github.com/${match[1]}/${match[2]}`
+            : remote.replace(/\.git$/, ""),
+        };
+      }
+    }
+  } catch (e) {}
+
+  try {
+    const root = execSync("git rev-parse --show-toplevel 2>/dev/null", { encoding: "utf8" }).trim();
+    if (root) {
+      const name = path.basename(root);
+      return { owner: null, name, url: null };
+    }
+  } catch (e) {}
+
+  return null;
+}
+
+async function resolveOrCreateProject(config, explicitProjectName) {
+  let targetName = explicitProjectName ? explicitProjectName.trim() : null;
+  let detectedGit = null;
+
+  if (!targetName) {
+    detectedGit = detectLocalGitRepo();
+    if (detectedGit && detectedGit.name) {
+      targetName = detectedGit.name;
+    }
+  }
+
+  if (!targetName) {
+    return null;
+  }
+
+  try {
+    // 1. Fetch user's existing projects
+    const listRes = await apiRequest({
+      method: "GET",
+      endpoint: "/api/projects",
+      config,
+    });
+
+    const existingProjects = Array.isArray(listRes.data) ? listRes.data : [];
+    const matched = existingProjects.find(
+      (p) => p.name.toLowerCase() === targetName.toLowerCase()
+    );
+
+    if (matched) {
+      return {
+        id: matched.id,
+        name: matched.name,
+        isNew: false,
+      };
+    }
+
+    // 2. Project does not exist in DevLoom -> Just-In-Time Auto-Provisioning!
+    const createRes = await apiRequest({
+      method: "POST",
+      endpoint: "/api/projects",
+      body: {
+        name: targetName,
+        description: detectedGit?.url
+          ? `Auto-provisioned from Git repository: ${detectedGit.url}`
+          : `Auto-provisioned from local workspace: ${targetName}`,
+        currentPhase: "development",
+        color: "#10B981",
+      },
+      config,
+    });
+
+    const newProject = createRes.data;
+    if (newProject && newProject.id) {
+      print(`${colors.cyan}✨ Auto-created project:${colors.reset} ${colors.bold}${newProject.name}${colors.reset} (from git repository)`);
+      return {
+        id: newProject.id,
+        name: newProject.name,
+        isNew: true,
+      };
+    }
+  } catch (err) {
+    // Fallback gracefully if offline or permissions issue
+  }
+
+  return null;
+}
+
 // Commands
 async function cmdLogin() {
   print(`${colors.bold}${colors.cyan}◆ DevLoom CLI Setup & Authentication${colors.reset}\n`);
@@ -233,12 +328,15 @@ async function cmdTask(args) {
   let title = "";
   let priority = "medium";
   let description = "";
+  let projectName = null;
 
   for (let i = 0; i < args.length; i++) {
     if (args[i] === "--priority" || args[i] === "-p") {
       priority = args[++i] || "medium";
     } else if (args[i] === "--desc" || args[i] === "-d") {
       description = args[++i] || "";
+    } else if (args[i] === "--project" || args[i] === "-P") {
+      projectName = args[++i] || null;
     } else if (!args[i].startsWith("-")) {
       title += (title ? " " : "") + args[i];
     }
@@ -252,6 +350,8 @@ async function cmdTask(args) {
     }
   }
 
+  const project = await resolveOrCreateProject(config, projectName);
+
   try {
     const res = await apiRequest({
       method: "POST",
@@ -260,6 +360,7 @@ async function cmdTask(args) {
         title,
         priority: priority.toLowerCase(),
         description: description || undefined,
+        projectId: project ? project.id : undefined,
         status: "todo",
       },
       config,
@@ -268,6 +369,9 @@ async function cmdTask(args) {
     const task = res.data;
     const taskNumberStr = task.taskNumber ? `TSK-${task.taskNumber}` : `Task #${task.id.slice(0, 8)}`;
     success(`Created ${colors.bold}${taskNumberStr}${colors.reset}: ${task.title}`);
+    if (project) {
+      print(`  Project:  ${colors.cyan}${project.name}${colors.reset}`);
+    }
     print(`  Status:   ${colors.yellow}${task.status}${colors.reset}`);
     print(`  Priority: ${task.priority}`);
     print(`  Web URL:  ${config.apiUrl}/tasks?selected=${task.id}`);
@@ -287,12 +391,15 @@ async function cmdBug(args) {
   let title = "";
   let priority = "medium";
   let stackTrace = "";
+  let projectName = null;
 
   for (let i = 0; i < args.length; i++) {
     if (args[i] === "--priority" || args[i] === "-p") {
       priority = args[++i] || "medium";
     } else if (args[i] === "--stack" || args[i] === "-s") {
       stackTrace = args[++i] || "";
+    } else if (args[i] === "--project" || args[i] === "-P") {
+      projectName = args[++i] || null;
     } else if (!args[i].startsWith("-")) {
       title += (title ? " " : "") + args[i];
     }
@@ -306,6 +413,8 @@ async function cmdBug(args) {
     }
   }
 
+  const project = await resolveOrCreateProject(config, projectName);
+
   try {
     const res = await apiRequest({
       method: "POST",
@@ -314,6 +423,7 @@ async function cmdBug(args) {
         title,
         priority: priority.toLowerCase(),
         stackTrace: stackTrace || undefined,
+        projectId: project ? project.id : undefined,
         status: "open",
       },
       config,
@@ -322,6 +432,9 @@ async function cmdBug(args) {
     const bug = res.data;
     const bugNumberStr = bug.bugNumber ? `BUG-${bug.bugNumber}` : `Bug #${bug.id.slice(0, 8)}`;
     success(`Reported ${colors.bold}${colors.red}${bugNumberStr}${colors.reset}: ${bug.title}`);
+    if (project) {
+      print(`  Project:  ${colors.cyan}${project.name}${colors.reset}`);
+    }
     print(`  Priority: ${bug.priority}`);
     print(`  Web URL:  ${config.apiUrl}/bugs?selected=${bug.id}`);
   } catch (err) {
@@ -340,12 +453,15 @@ async function cmdGotcha(args) {
   let title = "";
   let category = "gotcha";
   let content = "";
+  let projectName = null;
 
   for (let i = 0; i < args.length; i++) {
     if (args[i] === "--category" || args[i] === "-c") {
       category = args[++i] || "gotcha";
     } else if (args[i] === "--solution" || args[i] === "-s") {
       content = args[++i] || "";
+    } else if (args[i] === "--project" || args[i] === "-P") {
+      projectName = args[++i] || null;
     } else if (!args[i].startsWith("-")) {
       title += (title ? " " : "") + args[i];
     }
@@ -363,6 +479,8 @@ async function cmdGotcha(args) {
     content = await prompt("Solution / explanation notes: ");
   }
 
+  const project = await resolveOrCreateProject(config, projectName);
+
   try {
     const res = await apiRequest({
       method: "POST",
@@ -371,6 +489,7 @@ async function cmdGotcha(args) {
         title,
         category: category.toLowerCase(),
         content: content || "Quick captured via DevLoom CLI",
+        projectId: project ? project.id : undefined,
         status: "open",
       },
       config,
@@ -378,6 +497,9 @@ async function cmdGotcha(args) {
 
     const item = res.data;
     success(`Recorded Gotcha: ${colors.bold}${item.title}${colors.reset}`);
+    if (project) {
+      print(`  Project:  ${colors.cyan}${project.name}${colors.reset}`);
+    }
     print(`  Category: ${item.category}`);
     print(`  Web URL:  ${config.apiUrl}/learnings?selected=${item.id}`);
   } catch (err) {
@@ -522,19 +644,21 @@ ${colors.bold}USAGE:${colors.reset}
   devloom <command> [options]
 
 ${colors.bold}COMMANDS:${colors.reset}
-  ${colors.bold}login${colors.reset}                       Authenticate with Personal Access Token
-  ${colors.bold}whoami${colors.reset}                      Display current session and active tokens
-  ${colors.bold}task${colors.reset} <title> [-p priority]  Quickly create an engineering task
-  ${colors.bold}bug${colors.reset} <title> [-p priority]   Log a defect or bug report
-  ${colors.bold}gotcha${colors.reset} <title> [-s notes]   Record a technical gotcha / Leitner entry
-  ${colors.bold}capture${colors.reset} <text|url>          Smart-capture unstructured note or issue
-  ${colors.bold}standup${colors.reset}                     Fetch daily AI planner summary & standup
-  ${colors.bold}list${colors.reset} [tasks|bugs|gotchas]   View recent items in terminal
-  ${colors.bold}help${colors.reset}                        Show this help message
+  ${colors.bold}login${colors.reset}                                 Authenticate with Personal Access Token
+  ${colors.bold}whoami${colors.reset}                                Display current session and active tokens
+  ${colors.bold}task${colors.reset} <title> [-p prio] [-P project]   Quickly create an engineering task
+  ${colors.bold}bug${colors.reset} <title> [-p prio] [-P project]    Log a defect or bug report
+  ${colors.bold}gotcha${colors.reset} <title> [-s notes] [-P proj]   Record a technical gotcha / Leitner entry
+  ${colors.bold}capture${colors.reset} <text|url>                    Smart-capture unstructured note or issue
+  ${colors.bold}standup${colors.reset}                               Fetch daily AI planner summary & standup
+  ${colors.bold}list${colors.reset} [tasks|bugs|gotchas]             View recent items in terminal
+  ${colors.bold}help${colors.reset}                                  Show this help message
+
+  ${colors.dim}* Auto-detects local Git repo and links (or auto-provisions) Project in DevLoom.${colors.reset}
 
 ${colors.bold}EXAMPLES:${colors.reset}
   devloom task "Refactor auth middleware" -p high
-  devloom bug "Postgres connection pool exhausted" -p urgent
+  devloom bug "Postgres connection pool exhausted" -p urgent -P "api-gateway"
   devloom gotcha "Drizzle PgBouncer mode" -s "Set prepare: false"
   devloom capture "Investigate memory spike on /api/agent/summary"
   devloom standup

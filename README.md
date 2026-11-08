@@ -139,18 +139,29 @@ export DEVLOOM_API_URL="https://your-app.vercel.app" # Defaults to http://localh
 export DEVLOOM_TOKEN="devloom_pat_xxxxxxxx..."
 ```
 
-### 3. Command Reference & Examples
+### 3. Automatic Git Context & Project Auto-Provisioning
+
+Whenever you run `devloom` commands inside **any local Git repository**, the CLI automatically inspects `git remote get-url origin` to detect the repository name:
+
+- **If the project already exists in DevLoom:** The task, bug, or gotcha is automatically associated with that project (`projectId`).
+- **If the project does NOT exist in DevLoom yet (Strategy 1):** The CLI **auto-provisions the project on the fly** in your database with active phase `development`, so you never have to leave the terminal or create projects in the web UI first!
+- **Manual Project Override:** Use `-P` or `--project <name>` to explicitly assign or override the project:
+  ```bash
+  devloom task "Refactor authentication flow" -p high -P "api-gateway"
+  ```
+
+### 4. Command Reference & Examples
 
 | Command | Description | Example |
 | :--- | :--- | :--- |
-| `devloom task` | Create a task with priority and notes | `devloom task "Implement Redis caching" -p high -d "Cache summary responses"` |
+| `devloom task` | Create a task with priority, notes, and project | `devloom task "Implement Redis caching" -p high -d "Cache summary responses" -P "backend"` |
 | `devloom bug` | File a defect report with stack traces | `devloom bug "Postgres timeout under load" -p urgent -s "Error: connection timeout"` |
 | `devloom gotcha` | Save a technical gotcha into Leitner Box 1 | `devloom gotcha "Drizzle PgBouncer mode" -s "Set prepare: false in client config"` |
 | `devloom capture` | AI Smart-Capture unstructured notes/URLs | `devloom capture "Investigate memory spike on large exports"` |
 | `devloom standup` | Fetch daily AI standup & focus items | `devloom standup` |
 | `devloom list` | View recent workspace items | `devloom list tasks` / `devloom list bugs` |
 
-### 4. Terminal Shell Shortcuts (Optional)
+### 5. Terminal Shell Shortcuts (Optional)
 
 Add this line to your `~/.zshrc` or `~/.bashrc` to unlock direct terminal aliases:
 ```bash
@@ -163,7 +174,7 @@ Available shortcuts:
 - `devloom-gotcha "Gotcha title" -s "Solution notes"`
 - `devloom-capture "Note or URL"`
 - `devloom-standup`
-- `devloom-checkout TSK-3` (automatically generates and checks out `feature/tsk-3-slug`)
+- `devloom-whoami`
 
 ---
 
