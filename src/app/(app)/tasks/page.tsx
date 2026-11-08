@@ -231,32 +231,65 @@ export default function TasksPage() {
       <div
         key={task.id}
         id={`task-${task.id}`}
-        className="p-4 rounded-xl border border-slate-800 bg-slate-900/50 hover:border-slate-700/80 transition flex items-start justify-between gap-4 group"
+        className="p-5 rounded-2xl border border-slate-800 bg-slate-900/50 hover:border-slate-700/80 transition flex flex-col justify-between gap-3 group"
       >
-        <div className="space-y-1.5 flex-1 min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="font-mono text-[11px] font-bold px-2.5 py-1 rounded-md bg-primary-subtle text-primary border border-primary/25 leading-none">
-              {formatTaskId(task)}
-            </span>
-
-            <span
-              className={`text-[10px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-md border leading-none ${
-                PRIORITY_CONFIG[task.priority]?.badgeClass || PRIORITY_CONFIG.medium.badgeClass
-              }`}
-            >
-              {task.priority}
-            </span>
-
-            {task.projectName && (
-              <span
-                className="text-[11px] font-medium px-2.5 py-1 rounded-md bg-primary-subtle text-primary border border-primary/20 cursor-pointer leading-none hover:bg-primary/20 transition"
-                onClick={() => setProjectFilter(task.projectId)}
-                title="Filter by this project"
-              >
-                {task.projectName}
+        <div className="space-y-2.5 flex-1 min-w-0">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="font-mono text-[11px] font-bold px-2.5 py-1 rounded-md bg-primary-subtle text-primary border border-primary/25 leading-none">
+                {formatTaskId(task)}
               </span>
-            )}
 
+              <span
+                className={`text-[10px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-md border leading-none ${
+                  PRIORITY_CONFIG[task.priority]?.badgeClass || PRIORITY_CONFIG.medium.badgeClass
+                }`}
+              >
+                {task.priority}
+              </span>
+
+              {task.projectName && (
+                <span
+                  className="text-[11px] font-medium px-2.5 py-1 rounded-md bg-primary-subtle text-primary border border-primary/20 cursor-pointer leading-none hover:bg-primary/20 transition"
+                  onClick={() => setProjectFilter(task.projectId)}
+                  title="Filter by this project"
+                >
+                  {task.projectName}
+                </span>
+              )}
+            </div>
+
+            <div className="flex items-center gap-1 shrink-0">
+              <button
+                type="button"
+                onClick={() => setEditingTask(task)}
+                title="Edit task"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
+              >
+                <Pencil className="w-3.5 h-3.5" />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => deleteTask(task.id)}
+                title="Delete task"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-slate-800 transition cursor-pointer"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          <div
+            onClick={() => setEditingTask(task)}
+            className={`text-base font-semibold cursor-pointer hover:text-primary transition ${
+              task.status === "done" ? "line-through text-slate-400" : "text-white"
+            }`}
+          >
+            {task.title}
+          </div>
+
+          <div className="flex flex-wrap items-center gap-1.5">
             {/* Due Date & Overdue Indicators */}
             {dateStatus && (
               <span
@@ -274,15 +307,6 @@ export default function TasksPage() {
                 <span>{dateStatus.label}</span>
               </span>
             )}
-          </div>
-
-          <div
-            onClick={() => setEditingTask(task)}
-            className={`text-sm font-medium cursor-pointer hover:text-primary transition ${
-              task.status === "done" ? "line-through text-slate-400" : "text-white"
-            }`}
-          >
-            {task.title}
           </div>
 
           {/* Associated Bugs */}
@@ -392,43 +416,26 @@ export default function TasksPage() {
           )}
         </div>
 
-        {/* Status Selector, Edit, Delete */}
-        <div className="flex items-center gap-2 shrink-0">
+        {/* Bottom Status Selector */}
+        <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between gap-2 mt-auto">
+          <span className="text-[11px] text-slate-500 font-medium">Status:</span>
           <select
             value={task.status}
             onChange={(e) => updateStatus(task.id, e.target.value)}
-            className="px-3 py-1.5 rounded-xl border border-slate-800 bg-slate-950 text-xs text-slate-300 focus:outline-none focus:border-primary cursor-pointer"
+            className="px-3 py-1 rounded-lg border border-slate-800 bg-slate-950 text-xs text-slate-300 focus:outline-none focus:border-primary cursor-pointer"
           >
             <option value="todo">To Do</option>
             <option value="in_progress">In Progress</option>
             <option value="done">Done</option>
             <option value="cancelled">Cancelled</option>
           </select>
-
-          <button
-            type="button"
-            onClick={() => setEditingTask(task)}
-            title="Edit task"
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
-          >
-            <Pencil className="w-3.5 h-3.5" />
-          </button>
-
-          <button
-            type="button"
-            onClick={() => deleteTask(task.id)}
-            title="Delete task"
-            className="p-1.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-slate-800 transition cursor-pointer"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto">
+    <div className="space-y-6 max-w-7xl mx-auto">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -545,7 +552,7 @@ export default function TasksPage() {
           </p>
         </div>
       ) : statusFilter !== "all" ? (
-        <div className="space-y-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {displayedTasks.all.map(renderTaskCard)}
         </div>
       ) : (
@@ -564,7 +571,9 @@ export default function TasksPage() {
                 No active tasks. Create a new task or review completed items below.
               </div>
             ) : (
-              displayedTasks.active.map(renderTaskCard)
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {displayedTasks.active.map(renderTaskCard)}
+              </div>
             )}
           </div>
 
@@ -591,7 +600,7 @@ export default function TasksPage() {
               </button>
 
               {showCompleted && (
-                <div className="space-y-3 opacity-85 hover:opacity-100 transition">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 opacity-85 hover:opacity-100 transition">
                   {displayedTasks.completed.map(renderTaskCard)}
                 </div>
               )}

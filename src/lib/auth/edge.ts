@@ -45,6 +45,7 @@ export const authConfig: NextAuthConfig = {
       // 1. Static installation and CLI scripts are public
       if (
         pathname === "/install.sh" ||
+        pathname === "/install.ps1" ||
         pathname === "/devloom.sh" ||
         pathname === "/devloom"
       ) {

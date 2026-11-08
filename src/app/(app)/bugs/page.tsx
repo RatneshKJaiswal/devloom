@@ -237,11 +237,11 @@ export default function BugsPage() {
       <div
         key={bug.id}
         id={`bug-${bug.id}`}
-        className="p-5 rounded-2xl border border-slate-800 bg-slate-900/50 hover:border-slate-700/80 transition space-y-3"
+        className="p-5 rounded-2xl border border-slate-800 bg-slate-900/50 hover:border-slate-700/80 transition flex flex-col justify-between gap-3 group"
       >
-        <div className="flex items-start justify-between gap-4">
-          <div className="space-y-1.5 flex-1 min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
+        <div className="space-y-2.5 flex-1 min-w-0">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex flex-wrap items-center gap-1.5">
               <span className="font-mono text-[11px] font-bold px-2.5 py-1 rounded-md bg-amber-500/10 text-amber-400 border border-amber-500/25 leading-none">
                 {formatBugId(bug)}
               </span>
@@ -263,148 +263,136 @@ export default function BugsPage() {
                   {bug.projectName}
                 </span>
               )}
-
-              <span
-                className={`text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md border leading-none ${
-                  BUG_STATUS_CONFIG[bug.status]?.badgeClass || "text-slate-400 border-slate-700"
-                }`}
-              >
-                {BUG_STATUS_CONFIG[bug.status]?.label || bug.status.replace("_", " ")}
-              </span>
-
-              {/* Due Date / Resolution Deadline Indicator */}
-              {dateStatus && (
-                <span
-                  className={`text-[11px] px-2.5 py-1 rounded-md border flex items-center gap-1.5 leading-none ${dateStatus.badgeClass}`}
-                >
-                  {dateStatus.type === "overdue" && (
-                    <AlertCircle className="w-3 h-3 text-red-400 shrink-0" />
-                  )}
-                  {(dateStatus.type === "due_soon" || dateStatus.type === "due_today") && (
-                    <Clock className="w-3 h-3 text-amber-400 shrink-0" />
-                  )}
-                  {dateStatus.type === "scheduled" && (
-                    <Calendar className="w-3 h-3 text-slate-400 shrink-0" />
-                  )}
-                  <span>{dateStatus.label}</span>
-                </span>
-              )}
             </div>
 
-            <h3
-              onClick={() => setEditingBug(bug)}
-              className="text-base font-semibold text-white cursor-pointer hover:text-amber-400 transition"
+            <div className="flex items-center gap-1 shrink-0">
+              <button
+                type="button"
+                onClick={() => setEditingBug(bug)}
+                title="Edit bug"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
+              >
+                <Pencil className="w-3.5 h-3.5" />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => deleteBug(bug.id)}
+                title="Delete bug"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-slate-800 transition cursor-pointer"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          <h3
+            onClick={() => setEditingBug(bug)}
+            className="text-base font-semibold text-white cursor-pointer hover:text-amber-400 transition"
+          >
+            {bug.title}
+          </h3>
+
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span
+              className={`text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md border leading-none ${
+                BUG_STATUS_CONFIG[bug.status]?.badgeClass || "text-slate-400 border-slate-700"
+              }`}
             >
-              {bug.title}
-            </h3>
+              {BUG_STATUS_CONFIG[bug.status]?.label || bug.status.replace("_", " ")}
+            </span>
 
-            {/* Linked Tasks */}
-            {bug.associatedTasks && bug.associatedTasks.length > 0 && (
-              <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
-                <span className="text-[11px] font-medium text-slate-400 flex items-center gap-1">
-                  <CheckSquare className="w-3.5 h-3.5 text-primary" />
-                  <span>Linked Task:</span>
-                </span>
-                {bug.associatedTasks.map((t: any) => (
-                  <span
-                    key={t.id}
-                    className="text-[10px] font-mono font-semibold px-2.5 py-1 rounded-md bg-primary-subtle text-primary border border-primary/25 leading-none"
-                    title={`${formatTaskId(t)}: ${t.title}`}
-                  >
-                    {formatTaskId(t)}: {t.title}
-                  </span>
-                ))}
-              </div>
-            )}
-
-            {/* GitHub Link Badges */}
-            {bug.githubLinks && bug.githubLinks.length > 0 && (
-              <div className="flex flex-wrap gap-2 pt-0.5">
-                {bug.githubLinks.map((link: any) => (
-                  <GitHubLinkBadge
-                    key={link.id}
-                    link={link}
-                    onRefresh={(updated) => {
-                      setBugs((prev) =>
-                        prev.map((b) =>
-                          b.id === bug.id
-                            ? {
-                                ...b,
-                                githubLinks: (b.githubLinks || []).map((l: any) =>
-                                  l.id === updated.id ? updated : l
-                                ),
-                              }
-                            : b
-                        )
-                      );
-                    }}
-                    onDelete={(deletedId) => {
-                      setBugs((prev) =>
-                        prev.map((b) =>
-                          b.id === bug.id
-                            ? {
-                                ...b,
-                                githubLinks: (b.githubLinks || []).filter(
-                                  (l: any) => l.id !== deletedId
-                                ),
-                              }
-                            : b
-                        )
-                      );
-                    }}
-                  />
-                ))}
-              </div>
-            )}
-
-            {bug.description && (
-              <div className="pt-1">
-                {isExpanded ? (
-                  <div className="pt-1 pb-1">
-                    <MarkdownPreview content={bug.description} />
-                  </div>
-                ) : (
-                  <div className="text-xs text-slate-300 leading-relaxed font-normal line-clamp-2">
-                    {stripMarkdown(bug.description)}
-                  </div>
+            {/* Due Date / Resolution Deadline Indicator */}
+            {dateStatus && (
+              <span
+                className={`text-[11px] px-2.5 py-1 rounded-md border flex items-center gap-1.5 leading-none ${dateStatus.badgeClass}`}
+              >
+                {dateStatus.type === "overdue" && (
+                  <AlertCircle className="w-3 h-3 text-red-400 shrink-0" />
                 )}
-              </div>
+                {(dateStatus.type === "due_soon" || dateStatus.type === "due_today") && (
+                  <Clock className="w-3 h-3 text-amber-400 shrink-0" />
+                )}
+                {dateStatus.type === "scheduled" && (
+                  <Calendar className="w-3 h-3 text-slate-400 shrink-0" />
+                )}
+                <span>{dateStatus.label}</span>
+              </span>
             )}
           </div>
 
-          {/* Status Dropdown, Edit, Delete */}
-          <div className="flex items-center gap-2 shrink-0">
-            <select
-              value={bug.status}
-              onChange={(e) => updateStatus(bug.id, e.target.value)}
-              className="px-2.5 py-1 rounded-lg border border-slate-800 bg-slate-950 text-xs text-slate-300 focus:outline-none focus:border-amber-500 cursor-pointer"
-            >
-              <option value="open">Open</option>
-              <option value="confirmed">Confirmed</option>
-              <option value="fixing">Fixing</option>
-              <option value="resolved">Resolved</option>
-              <option value="closed">Closed</option>
-              <option value="wont_fix">Won't Fix</option>
-            </select>
+          {/* Linked Tasks */}
+          {bug.associatedTasks && bug.associatedTasks.length > 0 && (
+            <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+              <span className="text-[11px] font-medium text-slate-400 flex items-center gap-1">
+                <CheckSquare className="w-3.5 h-3.5 text-primary" />
+                <span>Linked Task:</span>
+              </span>
+              {bug.associatedTasks.map((t: any) => (
+                <span
+                  key={t.id}
+                  className="text-[10px] font-mono font-semibold px-2.5 py-1 rounded-md bg-primary-subtle text-primary border border-primary/25 leading-none"
+                  title={`${formatTaskId(t)}: ${t.title}`}
+                >
+                  {formatTaskId(t)}: {t.title}
+                </span>
+              ))}
+            </div>
+          )}
 
-            <button
-              type="button"
-              onClick={() => setEditingBug(bug)}
-              title="Edit bug"
-              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
-            >
-              <Pencil className="w-3.5 h-3.5" />
-            </button>
+          {/* GitHub Link Badges */}
+          {bug.githubLinks && bug.githubLinks.length > 0 && (
+            <div className="flex flex-wrap gap-2 pt-0.5">
+              {bug.githubLinks.map((link: any) => (
+                <GitHubLinkBadge
+                  key={link.id}
+                  link={link}
+                  onRefresh={(updated) => {
+                    setBugs((prev) =>
+                      prev.map((b) =>
+                        b.id === bug.id
+                          ? {
+                              ...b,
+                              githubLinks: (b.githubLinks || []).map((l: any) =>
+                                l.id === updated.id ? updated : l
+                              ),
+                            }
+                          : b
+                      )
+                    );
+                  }}
+                  onDelete={(deletedId) => {
+                    setBugs((prev) =>
+                      prev.map((b) =>
+                        b.id === bug.id
+                          ? {
+                              ...b,
+                              githubLinks: (b.githubLinks || []).filter(
+                                (l: any) => l.id !== deletedId
+                              ),
+                            }
+                          : b
+                      )
+                    );
+                  }}
+                />
+              ))}
+            </div>
+          )}
 
-            <button
-              type="button"
-              onClick={() => deleteBug(bug.id)}
-              title="Delete bug"
-              className="p-1.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-slate-800 transition cursor-pointer"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
-          </div>
+          {bug.description && (
+            <div className="pt-1">
+              {isExpanded ? (
+                <div className="pt-1 pb-1">
+                  <MarkdownPreview content={bug.description} />
+                </div>
+              ) : (
+                <div className="text-xs text-slate-300 leading-relaxed font-normal line-clamp-2">
+                  {stripMarkdown(bug.description)}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Technical Accordion Section */}
@@ -462,12 +450,29 @@ export default function BugsPage() {
             )}
           </div>
         )}
+
+        {/* Bottom Status Control Bar */}
+        <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between gap-2 mt-auto">
+          <span className="text-[11px] text-slate-500 font-medium">Status:</span>
+          <select
+            value={bug.status}
+            onChange={(e) => updateStatus(bug.id, e.target.value)}
+            className="px-2.5 py-1 rounded-lg border border-slate-800 bg-slate-950 text-xs text-slate-300 focus:outline-none focus:border-amber-500 cursor-pointer"
+          >
+            <option value="open">Open</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="fixing">Fixing</option>
+            <option value="resolved">Resolved</option>
+            <option value="closed">Closed</option>
+            <option value="wont_fix">Won't Fix</option>
+          </select>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto">
+    <div className="space-y-6 max-w-7xl mx-auto">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -586,7 +591,7 @@ export default function BugsPage() {
           </p>
         </div>
       ) : statusFilter !== "all" ? (
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {displayedBugs.all.map(renderBugCard)}
         </div>
       ) : (
@@ -605,7 +610,9 @@ export default function BugsPage() {
                 No active bugs. All defects are resolved or closed!
               </div>
             ) : (
-              displayedBugs.active.map(renderBugCard)
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {displayedBugs.active.map(renderBugCard)}
+              </div>
             )}
           </div>
 
@@ -632,7 +639,7 @@ export default function BugsPage() {
               </button>
 
               {showCompleted && (
-                <div className="space-y-4 opacity-85 hover:opacity-100 transition">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 opacity-85 hover:opacity-100 transition">
                   {displayedBugs.completed.map(renderBugCard)}
                 </div>
               )}

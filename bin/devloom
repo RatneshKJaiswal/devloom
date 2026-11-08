@@ -163,7 +163,10 @@ function slugify(text) {
 
 function detectLocalGitRepo() {
   try {
-    const remote = execSync("git remote get-url origin 2>/dev/null", { encoding: "utf8" }).trim();
+    const remote = execSync("git remote get-url origin", {
+      stdio: ["pipe", "pipe", "ignore"],
+      encoding: "utf8",
+    }).trim();
     if (remote) {
       const match = remote.match(/[:/]([^/]+)\/([^/.]+?)(?:\.git)?$/);
       if (match) {
@@ -179,7 +182,10 @@ function detectLocalGitRepo() {
   } catch (e) {}
 
   try {
-    const root = execSync("git rev-parse --show-toplevel 2>/dev/null", { encoding: "utf8" }).trim();
+    const root = execSync("git rev-parse --show-toplevel", {
+      stdio: ["pipe", "pipe", "ignore"],
+      encoding: "utf8",
+    }).trim();
     if (root) {
       const name = path.basename(root);
       return { owner: null, name, url: null };

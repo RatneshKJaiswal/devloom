@@ -108,14 +108,17 @@ DevLoom includes a zero-dependency, native Node.js CLI executable (`bin/devloom`
 
 ### 1. Installation
 
-**Option A: 1-Line Remote Installer (Vercel / Web App Users)**
-Generate a Personal Access Token in **Settings** (`/settings`), then run the auto-installer:
+**macOS & Linux:**
 ```bash
-curl -fsSL "https://your-app.vercel.app/api/cli/install?token=devloom_pat_xxxxxxxx" | bash
+curl -fsSL https://devloom.app/install.sh | bash
 ```
-*This downloads the binary to `~/.devloom/bin`, configures your PATH, and pre-authenticates your session.*
 
-**Option B: Local Repository Contributors**
+**Windows (PowerShell):**
+```powershell
+irm https://devloom.app/install.ps1 | iex
+```
+
+**Local Repository Contributors:**
 If you cloned the DevLoom repository:
 ```bash
 npm link
