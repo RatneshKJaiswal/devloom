@@ -339,7 +339,7 @@ export default function TasksPage() {
 
           {/* GitHub Link Badges */}
           {task.githubLinks && task.githubLinks.length > 0 && (
-            <div className="flex flex-wrap gap-2 pt-0.5">
+            <div className="flex flex-wrap gap-2 pt-0.5 max-w-full min-w-0">
               {task.githubLinks.map((link: any) => (
                 <GitHubLinkBadge
                   key={link.id}
